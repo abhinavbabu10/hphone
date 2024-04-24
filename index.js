@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Provide a secret option for express-session
 app.use(session({
-    secret: 'your_secret_key_here', // Replace 'your_secret_key_here' with your actual secret key
+    secret: 'your_secret_key_here',
     resave: true,
     saveUninitialized: true
 }));
@@ -24,6 +24,12 @@ app.use(session({
 // USER ROUTE
 const userroute = require('./routes/userroute');
 app.use('/', userroute);
+
+// ADMIN ROUTE
+
+const adminroute = require('./routes/adminroute')
+app.use('/admin',adminroute)
+
 
 app.listen(3000, function () {
     console.log('Listening to the server http://localhost:3000');

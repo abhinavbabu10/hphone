@@ -1,31 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OTP Verification</title>
-</head>
-<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f2f2f2;">
-  <div style="max-width: 400px; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-    <h1>OTP Verification</h1>
-    <div style="margin-top: 20px;">
-      <label for="otp" style="display: block; margin-bottom: 5px;">Enter OTP:</label>
-      <input type="text" id="otp" maxlength="6" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
-      <button onclick="verifyOTP()" style="padding: 10px 20px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Verify OTP</button>
-      <p id="message" style="margin-top: 10px; font-size: 14px;"></p>
-    </div>
-  </div>
-  <script>
-    function verifyOTP() {
-      const enteredOTP = document.getElementById('otp').value;
-      const generatedOTP = '123456'; // Replace this with your actual generated OTP
+<meta charset="utf-8" />
+<title>HPHONE</title>
+<meta http-equiv="x-ua-compatible" content="ie=edge" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="" />
+<meta property="og:type" content="" />
+<meta property="og:url" content="" />
+<meta property="og:image" content="" />
+<link
+  rel="shortcut icon"
+  type="image/x-icon"
+  href="Userassets/imgs/theme/hfavicon.jpeg"
+/>
+<link rel="stylesheet" href="Userassets/css/main.css?v=3.4" />
 
-      if (enteredOTP === generatedOTP) {
-        document.getElementById('message').innerText = 'OTP verified successfully!';
-      } else {
-        document.getElementById('message').innerText = 'Invalid OTP. Please try again.';
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    padding: 20px;
+  }
+  .otp-container {
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  .otp-form input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .otp-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .otp-form button:hover {
+    background-color: #0056b3;
+  }
+  #timer {
+    text-align: center;
+    margin-top: 10px;
+  }
+</style>
+</head>
+
+<body>
+  <div class="otp-container">
+    <h2>OTP Verification</h2>
+
+    <form class="otp-form" action="/otp" method="POST">
+      <label for="otp">Enter OTP:</label>
+      <input type="text" id="otp" name="otp" required>
+      <button type="submit">Verify OTP</button>
+    </form>
+
+    <div id="timer"></div>
+    <button id="resendBtn" style="display:none;">Resend OTP</button> 
+     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      let timer;
+      let seconds = 60;
+    
+      function startTimer() {
+        clearInterval(timer);
+        timer = setInterval(() => {
+          document.getElementById('timer').innerText = `OTP Expires in ${seconds} seconds`;
+          seconds--;
+          if (seconds < 0) {
+            clearInterval(timer);
+            document.getElementById('timer').innerText = '';
+            showResendAlert();
+          }
+        }, 1000);
       }
-    }
-  </script>
+
+    startTimer();
+      document.getElementById('resendBtn').addEventListener('click', () => {
+        seconds = 60;
+        startTimer();
+        fetch('/resendOTP', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userId: 'user_id_here' })
+        })
+        .then(response => {
+          if (response.ok) {
+            showAlert('success', 'OTP Resent successfully!');
+          } else {
+            showAlert('error', 'Failed to resend OTP. Please try again later.');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showAlert('error', 'An error occurred. Please try again later.');
+        });
+      });
+
+      function showResendAlert() {
+        Swal.fire({
+          icon: 'info',
+          title: 'Resend OTP',
+          text: 'The timer has expired. Do you want to resend the OTP?',
+          showCancelButton: true,
+          confirmButtonText: 'Resend OTP',
+          cancelButtonText: 'Cancel'
+        }).then((result) => {
+          if (result.isConfirmed) {
+          document.getElementById('resendBtn').click();
+          }
+        });
+      }
+
+
+      function showAlert(type, message) {
+        Swal.fire({
+          icon: type,
+          title: message
+        });
+      }
+    </script>
+
+   
+   
 </body>
 </html>

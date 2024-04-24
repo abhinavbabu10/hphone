@@ -3,297 +3,252 @@ const bcrypt = require('bcrypt');
 const nodemailer = require("nodemailer");
 
 
+const Email = process.env.Email;
+const pass = process.env.Pass;
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: Email,
+        pass: pass
+    }
+});
 
 
 
 // PASSWORD HASHING//
 
-const securePassword = async(password)=>{
+const securePassword = async (password) => {
 
-    try{
+    try {
 
         const passwordHash = await bcrypt.hash(password, 10);
         return passwordHash
 
-    }catch(error){
+    } catch (error) {
         console.log(error)
     }
 }
 
 
-
 //LOAD HOME PAGE
 
-const loadhome = async(req,res)=>{
+const loadhome = async (req, res) => {
     try {
+         
         res.render('home')
     } catch (error) {
         console.log(error)
     }
 }
 
+// const loadhome = async (req, res) => {
+//     try {
+      
+//         const ourUser = await User.findById(req.session.userData);
+//         console.log(ourUser)
+
+//         if (ourUser) {
+//             const name = ourUser.name;
+//             console.log(name);
+
+//             res.render('/', { user: name });
+//         } else {
+//             console.log('User not found');
+//             res.status(404).send('User not found');
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// }
+
+
 //LOAD SIGNUP PAGE
 
-const loadsignup = async(req,res)=>{
-    try{
+const loadsignup = async (req, res) => {
+    try {
         res.render('signup')
-    }catch(error){
+    } catch (error) {
         console.log(error)
     }
 }
 
 //LOAD LOGIN//
 
-const loadlogin = async(req,res)=>{
-    try{
-        res.render('login')
-    }catch(error){
+const loadlogin = async (req, res) => {
+    try {
+        res.render('login', {user: "hhhh"})
+    } catch (error) {
         console.log(error)
     }
 }
 
 
-const verifyLogin = async(req,res)=>{
+const insertUser = async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        console.log(req.body, "userdetails")
+         
 
-    try{
+        
+        if (!req.session) {
+            throw new Error('Session middleware not initialized');
+        }
+        
 
-        const email = req.body.email;
-        const password= req.body.password;
+        const otp = generateOTP();
+       userData = {
+            name:username,
+            email:email,
+            password:password,
+            otp:otp
+        };
+        
+        req.session.userData=userData
 
-const userData = await User.findOne({email:email});
+        console.log("details",userData);
+        console.log("data", req.session.userData)
+        
+        sendOTPByEmail(email, otp);
+        res.redirect('/otp');
 
-if(userData){
+        } catch (error) {
+        console.error('Error inserting user:', error);
+        res.status(500).send('Error inserting user');
+     }
+};
 
-const passwordMatch  = bcrypt.compare(password,userData.password)
-if(passwordMatch){
-    if(userData.is_verified === 0){
-        res.render('login',{message:"Please verify your mail"})
-
-    }else{
-        req.session.user_id = userData._id
-       res.redirect('/home');
-    }
-
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000);
 }
-else{
 
-    res.render('login',{message:"Email and password is incorrect"})
-}
-
-
-}
-
-else{
-    res.render('login',{message:"Email and password is incorrect"})
-}
-
-    }catch(error){
-        console.log(error)
-    }
-}
-
-
-//Insert User send otp
-
-
-const insertUser = async(req,res)=>{
-    try{
-        const spassword = await securePassword(req.body.password);
-
-        const user = new User({
-            name:req.body.name,
-            email:req.body.email,
-            password:req.body.password,
-            is_admin:0,
-
-        })
-
-        new User
-        .save()
-        .then((result)=>{
-            sendOTPVerificationEmail(result,res)
-        })
-
-
+// Function to send OTP by email
+function sendOTPByEmail(userEmail, otp) {
+    console.log("test", userEmail);
     
-    }catch(error){
-        console.log(error)
-    }
+    const mailOptions = {
+        from: Email,
+        to: userEmail,
+        subject: 'OTP Verification',
+        text: `Your OTP for verification is: ${otp}`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log('Error sending email:', error);
+        } else {
+            console.log('Email sent:', info.response);
+        }
+    });
 }
 
 
 
 
 //LOAD OTP
-
-
-const loadotp = async(req,res)=>{
-    try{
+const loadotp = async (req, res) => {
+    try {
         res.render('otp')
-    }catch(error){
+    } catch (error) {
         console.log(error)
     }
 }
 
 
-
-
-// for send mail
-
-const sendVerifyMail = async(name,email,user_id)=>{
-
-     try{
-        
-       const transporter =  nodemailer.createTransport({
-            host:'smtp.gmail.com',
-            port:587,
-            secure:false,
-            requireTLS:true,
-            auth:{
-                 user:'abhinavbabu336@gmail.com',
-                 pass:''
-            }
-
-        })
-     } catch (error){
-        console.log(error)
-     }
-
-}
-
-
-
-// send otp verification email
-
-const sendOTPVerificationEmail = async (req,res)=>{
-    try{
-        const otp = `${1000 + Math.random() *9000}`;
-
-      //mail options
-      const mailOptions = {
-        from:"abhinavbabu336@gmail.com",
-        to:email,
-        subject:"Verify Your Email",
-        html:`<p>Enter<b>${otp}</b> in the app to verify your email and complete the signup<p>
-        <p>This code <b>expires in 1 hour</b>.</p>`
-      };
-
-      //hash the otp
-
-      const saltRounds = 10;
-
-      const hashedOTP = await bcrypt.hash(otp,saltRounds);
-      const newOTPVerification = await new userOTPVerification({
-        userId: __dirname,
-        otp: hashedOTP,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 3600000,
-
-      })
-
-      //save otp record
-
-      await newOTPVerification.save();
-      await transporter.sendMail(mailOptions);
-
-      res.json({
-        status:"PENDING",
-        message:"Verification otp email sent",
-        data: {
-            userId: _id,
-            email,
-        }
-      })
-
-    }catch(error){
-     
-        res.json({
-            status:"FAILED",
-            message: error.message,
-
-        })
-    }
-}
-
-//verify otp email
 
 const verifyOTP = async (req, res) => {
-    try{
-        let{userId,otp} = req.body;
-        if(!userId || !otp){
-            throw Error("Empty otp details are not allowed")
-        } else{
-         const userOPTVerificationRecords = await   userOPTVerification.find({
-             userId,
+    try {
+        const enteredOTP = req.body.otp;
+        console.log("working", req.body.otp);
+
+        if (req.session.otpExpiration && Date.now() > req.session.otpExpiration) {
+            res.status(400).json({ error: 'OTP expired, please request a new one' });
+            return;
+        }
+
+        // Check if entered OTP matches the stored OTP in session
+
+        if (parseInt(enteredOTP) === req.session.userData.otp) {
+            const spassword = await securePassword(req.session.userData.password);
+            console.log(req.session.userData.password,"hello")
+            const newUser = new User({
+                name: req.session.userData.name,
+                email: req.session.userData.email,
+                password: spassword,
+                is_admin: 0,
+                is_verified: 1
             });
-            if(userOPTVerificationRecords.length<=0) {
-                throw new Error(
-                    "Account record doesnt exist or has been verified already . please sign up or login"
-                )
-         
-                
-            } else{
-                const {expiresAt} = userOPTVerificationRecords[0];
-               
-                const hashedOTP = userOPTVerificationRecords[0].otp;
-
-                if(expiresAt < Date.now()){
-
-                    await userOPTVerificationRecords.deleteMany({userId});
-                    throw new Error("code has expired.Please request again")
-                }else{
-                    const validOTP = await bcrypt.compare(otp,hashedOTP)
-
-                    if(!validOTP){
-                        throw new Error("Invalid code passed.check your inbox")
-                    }else{
-                       await User.updateOne({_id: userId},{verified:true})
-                       await userOPTVerification.deleteMany({userId});
-                       res.json({
-                        status:"VERIFIED",
-                        message: `User email verified succesfully`
-                       })
-                    }
-                }
-            }
+            await newUser.save();
+            req.session.userData = null;
+            req.session.otpExpiration = null;
+            res.redirect("/login");
+        } else {
+            res.status(400).json({ error: 'Incorrect OTP' });
         }
-    }catch(error){
-        res.json({
-            status:"FAILED",
-            message:error.message
-        })
-
-}
-}
-
-//resend verification
-
-const resendOTPVerificationCode = async (req, res) => {
-    try{
-        let{userId,email} = req.body;
-        if(!userId || email){
-            throw Error ("Empty user details are not allowed")
-        }else{
-            await userOPTVerification.deleteMany({userId})
-            sendOTPVerificationEmail({_id:userId,email},res);
-        }
-    } catch(error){
-       
-        res.json({
-            status: "FAILED"
-        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-}
+};
+
+const resendOTP = async (req, res) => {
+    try {
+
+         let email = req.session.userData.email
+        const newOTP = Math.floor(100000 + Math.random() * 900000);
+        req.session.userData.otp = newOTP;
+
+        const expirationTime = Date.now() + 60 * 1000;
+        req.session.otpExpiration = expirationTime;
+        console.log('New OTP:', newOTP);
+
+        sendOTPByEmail(email, newOTP);
+
+        res.status(200).json({ message: 'New OTP sent successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+const verifyLogin = async (req, res) => {
+    try {
+        const email = req.body.email;
+        const password = req.body.password;
+        console.log(req.body.email, "verify");
+        console.log(req.body.password, "verify");
+
+        const userdata = await User.findOne({ email: email });
+        if (userdata) {
+            const passwordMatch = await bcrypt.compare(password, userdata.password);
+            if (passwordMatch) {
+                if (userdata.is_verified === 0) {
+                    res.render('login', { message: "Email and password are incorrect" });
+                } else {
+                    req.session.userData = userdata.id;
+                    res.redirect('/');
+                }
+            } else {
+                res.render('login', { message: "Email and password are incorrect" });
+            }
+        } else {
+            res.render('login', { message: "Email and password are incorrect" });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 
 module.exports = {
     loadhome,
     loadsignup,
     loadlogin,
     loadotp,
-    verifyLogin,
     insertUser,
-    sendVerifyMail,
     verifyOTP,
-    resendOTPVerificationCode
+    resendOTP,
+    verifyLogin
 }
