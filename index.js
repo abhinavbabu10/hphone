@@ -14,6 +14,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'views')));
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+
+
 // Provide a secret option for express-session
 app.use(session({
     secret: 'your_secret_key_here',
@@ -29,7 +32,6 @@ app.use('/', userroute);
 
 const adminroute = require('./routes/adminroute')
 app.use('/admin',adminroute)
-
 
 app.listen(3000, function () {
     console.log('Listening to the server http://localhost:3000');

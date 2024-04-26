@@ -19,9 +19,13 @@ adminRoute.set("views","./views/admin")
 
 const adminController = require("../controllers/adminController")
 
+adminRoute.get('/', adminController.loadAdminLogin);
+adminRoute.get("/admindash", adminController.loadDashboard)
+adminRoute.post('/', adminController.verifyAdmin);
 
 
-
+//users
+adminRoute.get("/userlist",adminController.userslist)
 
 
 module.exports=adminRoute
