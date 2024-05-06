@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     is_verified:{
         type:Number,
         required:true
-    },
+    }
     
 })
 

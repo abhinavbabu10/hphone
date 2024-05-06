@@ -31,12 +31,12 @@
         <nav>
             <ul class="menu-aside">
                 <li class="menu-item active">
-                    <a class="menu-link" href="/admin/admindash"> <i class="icon material-icons md-home"></i>
+                    <a class="menu-link" href="/admin/home"> <i class="icon material-icons md-home"></i>
                         <span class="text">Dashboard</span>
                     </a>
                 </li>
                 <li class="menu-item has-submenu">
-                    <a class="menu-link" href="/admin/userlist?page=1#"> <i class="icon material-icons md-shopping_cart"></i>
+                    <a class="menu-link" href="/admin/customer"> <i class="icon material-icons md-shopping_cart"></i>
                         <span class="text">Customers</span>
                     </a>
                     <a class="menu-link" href="page-orders-1.html"> <i class="icon material-icons md-shopping_cart"></i>
@@ -45,6 +45,9 @@
                     <a class="menu-link" href="page-products-list.html"> <i class="icon material-icons md-shopping_bag"></i>
                         <span class="text">Products</span>
                     </a>
+                    </div>
+                </li>
+                <li class="menu-item has-submenu">
                     <a class="menu-link" href="page-orders-1.html"> <i class="icon material-icons md-shopping_cart"></i>
                         <span class="text">Orders</span>
                     </a>
@@ -96,106 +99,23 @@
                 </ul>
             </div>
         </header>
-<section class="content-main">
-    <div class="content-header">
-        <h2 class="content-title">Users List</h2>
-        <div>
-            <!-- <a href="#" class="btn btn-primary"><i class="material-icons md-plus"></i> Create new</a> -->
-        </div>
-    </div>
-    <div class="card mb-4">
-        <header class="card-header">
-            <div class="row gx-3">
-                <div class="col-lg-4 col-md-6 me-auto">
-                    <input type="text" placeholder="Search..." class="form-control">
-                </div>
-                <div class="col-lg-2 col-md-3 col-6">
-                    <select class="form-select">
-                        <option>Status</option>
-                        <option></option>
-                        <option></option>
-                        <option></option>
-                    </select>
-                </div>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Dashboard </h2>
+        </section> <!-- content-main end// -->
             </div>
-        </header>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% users.forEach(user => { %>
-                            <tr>
-                                <td><%= user.name %></td>
-                                <td><%= user.email %></td>
-                                <td>
-                                    <a href="/admin/userlist/<%= user._id %>/edit">Block</a> |
-                                    <a href="/admin/userlist/<%= user._id %>/delete">Unblock</a>
-                                </td>
-                            </tr>
-                        <% }); %>
-                    </tbody>
-                </table>
-            
-                <!-- Pagination -->
-               <div class="pagination-area mt-15 mb-sm-5 mb-lg-0">
-                        <nav aria-label="Page navigation example">
-                            <ul class="pagination justify-content-start">
-                                <li class="page-item">
-                                    <%if(page==1){%>
-                                        <a class="page-link" ><i class="fi-rs-angle-double-small-left"><<</i></a>
-                                    <%}else{%>
-                                    <a class="page-link" href="/admin/userlist?page=<%=parseInt(page)-1%>"><i class="fi-rs-angle-double-small-left"><<</i></a>
-                                    <%}%>
-                                </li>
-                                
-                                    <li class="page-item active">
-                                        <a class="page-link" href=""><%=page%></a>
-                                    </li>
-                                
-                                <li class="page-item">
-                                    <%if(page==pageLimit){%>
-                                        <a class="page-link" ><i class="fi-rs-angle-double-small-right">>></i></a>
-                                    <%}else{%>
-                                    <a class="page-link" href="/admin/userlist?page=<%=parseInt(page)+1%>"><i class="fi-rs-angle-double-small-right">>></i></a>
-                                    <%}%>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </section>
-<footer class="main-footer font-xs">
-    <div class="row pb-30 pt-15">
-        <div class="col-sm-6">
-            <script>
-            document.write(new Date().getFullYear())
-            </script> ©, Evara - HTML Ecommerce Template .
-        </div>
-        <div class="col-sm-6">
-            <div class="text-sm-end">
-                All rights reserved
-            </div>
-        </div>
-    </div>
-</footer>
-</main>
-
-<!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
-<script src="/Adminassets/js/vendors/jquery-3.6.0.min.js"></script>
-<script src="/Adminassets/js/vendors/bootstrap.bundle.min.js"></script>
-<script src="/Adminassets/js/vendors/select2.min.js"></script>
-<script src="/Adminassets/js/vendors/perfect-scrollbar.js"></script>
-<script src="/Adminassets/js/vendors/jquery.fullscreen.min.js"></script>
-<script src="/Adminassets/js/vendors/chart.js"></script>
-
-<!-- Main Script  -->
-<script src="/Adminassets/js/main.js" type="text/javascript"></script>
-
+        </footer>
+    </main>
+    <script src="/Adminassets/js/vendors/jquery-3.6.0.min.js"></script>
+    <script src="/Adminassets/js/vendors/bootstrap.bundle.min.js"></script>
+    <script src="/Adminassets/js/vendors/select2.min.js"></script>
+    <script src="/Adminassets/js/vendors/perfect-scrollbar.js"></script>
+    <script src="/Adminassets/js/vendors/jquery.fullscreen.min.js"></script>
+    <script src="/Adminassets/js/vendors/chart.js"></script>
+    <!-- Main Script -->
+    <script src="/Adminassets/js/main.js" type="text/javascript"></script>
+    <script src="/Adminassets/js/custom-chart.js" type="text/javascript"></script>
 </body>
-</html>>
+
+</html>

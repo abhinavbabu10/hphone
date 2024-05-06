@@ -25,7 +25,7 @@ const verifyAdmin = async(req,res)=>{
                     res.render('adminlogin', { message: "Email and password are incorrect" });
                 } else {
                     req.session.userData = userdata.id;
-                    res.redirect('/admin/admindash');
+                    res.redirect('/admin/home');
                 }
             } else {
                 res.render('adminlogin', { message: "Email and password are incorrect" });
@@ -43,7 +43,7 @@ const verifyAdmin = async(req,res)=>{
 const loadDashboard = async(req,res)=>{
     try{
       
-        res.render('admindash')
+        res.render('home')
     }catch (error){
         console.log(error)
     }
@@ -51,22 +51,6 @@ const loadDashboard = async(req,res)=>{
 
 
 
-const userslist = async (req, res) => {
-    try{
-    const limit = 10; 
-    const page = req.query.page
-    console.log(page,"koo")
-    const pageNumber = page? parseInt(page):1
-    console.log(pageNumber,"lol")
-     let skip = (pageNumber - 1) * limit
-    const users = await User.find({}).skip(skip).limit(limit)
-     let pageLimit=Math.ceil(users.length/limit)
-    res.render('userlist', { users: users,page,pageLimit });
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).send('Internal Server Error');
-    }
-};
 
 
 
@@ -77,6 +61,5 @@ const userslist = async (req, res) => {
 module.exports = {
   loadAdminLogin,
   loadDashboard,
-  verifyAdmin,
-  userslist
+  verifyAdmin
 }
