@@ -17,13 +17,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 
-
-// Provide a secret option for express-session
 app.use(session({
     secret: secretKey,
     resave: true,
     saveUninitialized: true
 }));
+
 
 // USER ROUTE
 const userroute = require('./routes/userroute');

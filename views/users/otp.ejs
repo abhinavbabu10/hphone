@@ -1,143 +1,239 @@
-<!DOCTYPE html>
-<html lang="en">
+ <!-- <!DOCTYPE html>
+<html lang="en"> -->
+
 <head>
-<meta charset="utf-8" />
-<title>HPHONE</title>
-<meta http-equiv="x-ua-compatible" content="ie=edge" />
-<meta name="description" content="" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta property="og:title" content="" />
-<meta property="og:type" content="" />
-<meta property="og:url" content="" />
-<meta property="og:image" content="" />
-<link
-  rel="shortcut icon"
-  type="image/x-icon"
-  href="Userassets/imgs/theme/hfavicon.jpeg"
-/>
-<link rel="stylesheet" href="Userassets/css/main.css?v=3.4" />
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>OTP</title>
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.3/dist/sweetalert2.min.css">
+ <style>
+   body {
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     background-color: #f0f0f0;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     height: 100vh;
+     margin: 0;
+   }
 
+   #otp-container {
+     background-color: #ffffff;
+     padding: 30px;
+     border-radius: 8px;
+     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+     text-align: center;
+     max-width: 400px;
+     width: 100%;
+   }
 
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    padding: 20px;
-  }
-  .otp-container {
-    max-width: 400px;
-    margin: 0 auto;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  .otp-form input[type="text"] {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  .otp-form button {
-    width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  .otp-form button:hover {
-    background-color: #0056b3;
-  }
-  #timer {
-    text-align: center;
-    margin-top: 10px;
-  }
-</style>
-</head>
+   #otp-container h2 {
+     margin-bottom: 30px;
+     color: #333333;
+   }
+
+   #otp-input {
+     width: 100%;
+     padding: 12px;
+     font-size: 16px;
+     border: 1px solid #cccccc;
+     border-radius: 4px;
+     margin-bottom: 20px;
+     text-align: center;
+   }
+
+   #timer {
+     font-size: 18px;
+     margin-bottom: 20px;
+     color: #666666;
+   }
+
+   button {
+     padding: 12px 24px;
+     background-color: #4285f4;
+     color: #ffffff;
+     border: none;
+     border-radius: 4px;
+     cursor: pointer;
+     transition: background-color 0.3s ease;
+     font-size: 16px;
+   }
+
+   button:hover {
+     background-color: #3367d6;
+   }
+
+   button:disabled {
+     background-color: #cccccc;
+     cursor: not-allowed;
+   }
+
+   #error-message {
+     color: #ff0000;
+     margin-top: 10px;
+   }
+ </style>
+ </head>
 
 <body>
-  <div class="otp-container">
-    <h2>OTP Verification</h2>
+ <div id="otp-container">
+   <h2>Secure OTP Verification</h2>
+   <form id="otp-form" method="post" onsubmit="return validateForm()">
+     <input name="otp" type="text" id="otp-input" placeholder="Enter OTP"  maxlength="6" required>
+     <br>
+     <button type="submit" id="submit-btn">Verify OTP</button>
+     <button type="button" id="resend-btn" onclick="resendOTP()" disabled>Resend OTP</button>
+   </form>
+   <p id="timer">Timer: 60 seconds</p>
+   <p id="error-message"></p>
+ </div>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <form class="otp-form" action="/otp" method="POST">
-      <label for="otp">Enter OTP:</label>
-      <input type="text" id="otp" name="otp" required>
-      <button type="submit">Verify OTP</button>
-    </form>
-
-    <div id="timer"></div>
-    <button id="resendBtn" style="display:none;">Resend OTP</button> 
-     
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-      let timer;
-      let seconds = 60;
-    
-      function startTimer() {
-        clearInterval(timer);
-        timer = setInterval(() => {
-          document.getElementById('timer').innerText = `OTP Expires in ${seconds} seconds`;
-          seconds--;
-          if (seconds < 0) {
-            clearInterval(timer);
-            document.getElementById('timer').innerText = '';
-            showResendAlert();
-          }
-        }, 1000);
-      }
+    let timerSeconds = 60; 
+    let resendTimerSeconds = 30;
+    let timerInterval;
+    let resendTimerInterval;
+    let resendDisabled = true;
+    let formSubmitted = false;
 
-    startTimer();
-      document.getElementById('resendBtn').addEventListener('click', () => {
-        seconds = 60;
-        startTimer();
-        fetch('/resendOTP', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ userId: 'user_id_here' })
+    function startTimer() {
+        timerInterval = setInterval(function() {
+            timerSeconds--;
+            document.getElementById("timer").innerText = "Timer: " + timerSeconds + " seconds";
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById("timer").innerText = "Time's up!";
+                enableResendButton();
+                disableSubmitButton();
+            }
+        }, 1000);
+    }
+
+    function enableResendButton() {
+        document.getElementById("resend-btn").disabled = false;
+        resendDisabled = false;
+    }
+
+    function disableResendButton() {
+        document.getElementById("resend-btn").disabled = true;
+        resendDisabled = true;
+    }
+
+    function disableSubmitButton() {
+        document.getElementById("submit-btn").disabled = true;
+    }
+
+    function enableSubmitButton() {
+        document.getElementById("submit-btn").disabled = false;
+    }
+
+    function validateForm() {
+    const otpInput = document.getElementById("otp-input").value;
+    console.log(`enetered otp : ${otpInput }`)
+    const errorMessage = document.getElementById("error-message");
+
+   
+    if (otpInput.trim() === "") {
+        errorMessage.innerText = "Enter valid OTP";
+        enableSubmitButton(); 
+        return false;
+    }
+
+   
+    if (!/^\d{6}$/.test(otpInput)) {
+        errorMessage.innerText = "Invalid OTP";
+        enableSubmitButton(); 
+        return false;
+    }
+
+   
+    errorMessage.innerText = "";
+    formSubmitted = true;
+    enableSubmitButton();
+    verifyOTP(otpInput);
+    return false;
+}
+
+
+
+    function resendOTP() {
+        if (!resendDisabled) {
+            disableResendButton();
+            startResendTimer();
+   
+            fetch('/resendOTP', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data.message);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'OTP sent successfully'
+                });
+                enableSubmitButton();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to resend OTP. Please try again later.'
+                });
+            });
+        }
+    }
+
+    function startResendTimer() {
+        resendDisabled = true; 
+        resendTimerInterval = setInterval(() => {
+            resendTimerSeconds--;
+            document.getElementById("timer").innerText = "Resend in: " + resendTimerSeconds + " seconds";
+            if (resendTimerSeconds <= 0) {
+                clearInterval(resendTimerInterval);
+                document.getElementById("timer").innerText = "Resend Now";
+                enableResendButton();
+            }
+        }, 1000);
+    }
+
+    function verifyOTP(otp) {
+        fetch('/verifyOTP', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ enteredOtp: otp })
         })
         .then(response => {
-          if (response.ok) {
-            showAlert('success', 'OTP Resent successfully!');
-          } else {
-            showAlert('error', 'Failed to resend OTP. Please try again later.');
-          }
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.error) {
+                window.location.href = '/login';
+            }
         })
         .catch(error => {
-          console.error('Error:', error);
-          showAlert('error', 'An error occurred. Please try again later.');
+            console.error('Error:', error);
+            document.getElementById('error-message').textContent = 'Enter valid OTP.';
         });
-      });
+    }
 
-      function showResendAlert() {
-        Swal.fire({
-          icon: 'info',
-          title: 'Resend OTP',
-          text: 'The timer has expired. Do you want to resend the OTP?',
-          showCancelButton: true,
-          confirmButtonText: 'Resend OTP',
-          cancelButtonText: 'Cancel'
-        }).then((result) => {
-          if (result.isConfirmed) {
-          document.getElementById('resendBtn').click();
-          }
-        });
-      }
+    startTimer();
 
-
-      function showAlert(type, message) {
-        Swal.fire({
-          icon: type,
-          title: message
-        });
-      }
-    </script>
-
-   
-   
+</script>
 </body>
 </html>

@@ -85,8 +85,9 @@
                         <div class="mb-4">
                             <input type="submit" class="btn btn-primary w-100" onclick="verify()" value="Login">
                         </div> <!-- form-group// -->
+                        
                     </form>
-                    <p class="text-center small text-muted mb-15">or sign up with</p>
+                    <!-- <p class="text-center small text-muted mb-15">or sign up with</p>
                     <div class="d-grid gap-3 mb-4">
                         <a href="#" class="btn w-100 btn-light font-sm">
                             <svg aria-hidden="true" class="icon-svg" width="20" height="20" viewBox="0 0 20 20">
@@ -103,9 +104,15 @@
                         </a>
                     </div>
                     <p class="text-center mb-4">Don't have account? <a href="#">Sign up</a></p>
-                </div>
+                </div> -->
+                <div>
+                    <% if(message){ %>
+                      <h4 style="color: red;"><%= message %></h4>
+                    <% } %> 
+                  </div>
             </div>
         </section>
+
         <footer class="main-footer text-center">
             <p class="font-xs">
                 <script>
@@ -114,6 +121,9 @@
             </p>
             <p class="font-xs mb-30">All rights reserved</p>
         </footer>
+
+
+
     </main>
     <script src="/Adminassets/js/vendors/jquery-3.6.0.min.js"></script>
     <script src="/Adminassets/js/vendors/bootstrap.bundle.min.js"></script>
@@ -122,39 +132,36 @@
     <script src="/Adminassets/js/main.js" type="text/javascript"></script>
     <script>
 
-        function verify(){
-            const email=document.getElementById("email").value
-            const password=document.getElementById("password").value
+  async function verify() {
+  try {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
+    const response = await fetch('/admin/adminlogin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
+    const responseData = await response.json();
 
-            $.ajax({
-                url:'/admin/adminlogin',
-                method:'post',
-                data:{
-                    email,
-                    password
-                },
-                success:(response)=>{
-                    if(response.status==='emailErr'){
-                        document.getElementById('emailErr').innerHTML='Invalid Email'
-                        setTimeout(()=>{
-                            document.getElementById('emailErr').innerHTML=''
-                        },1500)
-                    }else if(response.status==='passErr'){
-                        document.getElementById("passErr").innerHTML='Invalid Password'
-                        setTimeout(()=>{
-                            document.getElementById('passEmail').innerHTML=''
-                        },1500)
-                    }else if(response.status===true){
-                        window.location.href="/admin/home"
-                    }
-                }
-            })
-
-
-
-        }
+    if (responseData.status === 'emailErr') {
+      document.getElementById('emailErr').innerHTML = 'Invalid Email';
+      setTimeout(() => {
+        document.getElementById('emailErr').innerHTML = '';
+      }, 1500);
+    } else if (responseData.status === 'passErr') {
+      document.getElementById('passErr').innerHTML = 'Invalid Password';
+      setTimeout(() => {
+        document.getElementById('passErr').innerHTML = '';
+      }, 1500);
+    } else if (responseData.status === true) {
+      window.location.href = "/admin/home";
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
 
     </script>
 </body>

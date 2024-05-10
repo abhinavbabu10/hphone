@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt')
 
 const loadAdminLogin = async (req, res) => {
     try {
-        res.render('adminlogin')
+        res.render('adminlogin',{message: ""})
     } catch (error) {
         console.log(error)
     }
@@ -14,8 +14,6 @@ const verifyAdmin = async(req,res)=>{
     try {
         const email = req.body.email;
         const password = req.body.password;
-        console.log(req.body.email, "verify");
-        console.log(req.body.password, "verifyvdfjksd");
 
         const userdata = await User.findOne({ email: email });
         if (userdata) {

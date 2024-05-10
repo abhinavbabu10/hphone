@@ -58,7 +58,7 @@ const loadsignup = async (req, res) => {
 
 const loadlogin = async (req, res) => {
     try {
-        res.render('login', {user: "hhhh"})
+        res.render('login', {message: ""})
     } catch (error) {
         console.log(error)
     }
@@ -68,17 +68,12 @@ const loadlogin = async (req, res) => {
 const insertUser = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-        console.log(req.body, "userdetails")
-         
-
-        
-        if (!req.session) {
+          if (!req.session) {
             throw new Error('Session middleware not initialized');
         }
-        
 
         const otp = generateOTP();
-       userData = {
+            userData = {
             name:username,
             email:email,
             password:password,
@@ -86,10 +81,8 @@ const insertUser = async (req, res) => {
         };
         
         req.session.userData=userData
+        console.log(otp,"otp")
 
-        console.log("details",userData);
-        console.log("data", req.session.userData)
-        
         sendOTPByEmail(email, otp);
         res.redirect('/otp');
 
@@ -99,14 +92,16 @@ const insertUser = async (req, res) => {
      }
 };
 
+
+
+
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000);
 }
 
-// Function to send OTP by email
+
+
 function sendOTPByEmail(userEmail, otp) {
-    console.log("test", userEmail);
-    
     const mailOptions = {
         from: Email,
         to: userEmail,
@@ -139,19 +134,16 @@ const loadotp = async (req, res) => {
 
 const verifyOTP = async (req, res) => {
     try {
-        const enteredOTP = req.body.otp;
-        console.log("working", req.body.otp);
 
-        if (req.session.otpExpiration && Date.now() > req.session.otpExpiration) {
-            res.status(400).json({ error: 'OTP expired, please request a new one' });
-            return;
-        }
+        const enteredOTP = req.body.enteredOtp;
 
-        // Check if entered OTP matches the stored OTP in session
+        // if (req.session.otpExpiration && Date.now() > req.session.otpExpiration) {
+        //     res.status(400).json({ error: 'OTP expired, please request a new one' });
+        //     return;
+        // }
 
         if (parseInt(enteredOTP) === req.session.userData.otp) {
             const spassword = await securePassword(req.session.userData.password);
-            console.log(req.session.userData.password,"hello")
             const newUser = new User({
                 name: req.session.userData.name,
                 email: req.session.userData.email,
@@ -159,10 +151,11 @@ const verifyOTP = async (req, res) => {
                 is_admin: 0,
                 is_verified: 1
             });
+
             await newUser.save();
-            req.session.userData = null;
-            req.session.otpExpiration = null;
-            res.redirect("/login");
+            console.log(newUser);
+            res.status(200).json({ success:true });
+
         } else {
             res.status(400).json({ error: 'Incorrect OTP' });
         }
@@ -171,6 +164,7 @@ const verifyOTP = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
 
 const resendOTP = async (req, res) => {
     try {
@@ -196,9 +190,6 @@ const verifyLogin = async (req, res) => {
     try {
         const email = req.body.email;
         const password = req.body.password;
-        console.log(req.body.email, "verify");
-        console.log(req.body.password, "verify");
-
         const userdata = await User.findOne({ email: email });
         if (userdata) {
             const passwordMatch = await bcrypt.compare(password, userdata.password);

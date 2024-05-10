@@ -25,14 +25,14 @@
                 <div class="padding_eight_all bg-white">
                   <div class="heading_s1">
                     <h3 class="mb-30">Login</h3>
+                    </div>
+                  
+                  <div>
+                    <% if(message){ %>
+                      <h4 style="color: red;"><%= message %></h4>
+                    <% } %> 
                   </div>
-                  <!-- <div><% if(typeof message !== 'undefined'){ %>
-                    <h4 style="color: red;"><%=message %></h4>
-                <% } %> </div>
-                <div id="emailError" style="color: red;"></div>
-              </div>
-              <div id="passwordError" style="color: red;"></div>
-            </div> -->
+            </div>
                 
                 
             <form

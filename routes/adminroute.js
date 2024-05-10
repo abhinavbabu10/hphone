@@ -1,5 +1,8 @@
 const express=require("express")
 const adminRoute = express()
+const userManagement = require("../controllers/userManagement")
+const adminController = require("../controllers/adminController")
+const categoryController = require("../controllers/categoryController");
 const path=require("path")
 
 const session=require("express-session")
@@ -17,21 +20,23 @@ adminRoute.use(
 adminRoute.set("view engine","ejs")
 adminRoute.set("views","./views/admin")
 
-const adminController = require("../controllers/adminController")
+
 
 adminRoute.get('/', adminController.loadAdminLogin);
-adminRoute.get("/home", adminController.loadDashboard)
 adminRoute.post('/', adminController.verifyAdmin);
+adminRoute.get("/home", adminController.loadDashboard)
+
 
 
 // users
-const userManagement = require("../controllers/userManagement")
+adminRoute.get("/customer",userManagement.loadcustomers);
+adminRoute.post('/users/:id/block',userManagement.blockUnblockuser);
 
-adminRoute.get("/customer",userManagement.loadcustomers );
-
-
-
-
+//category
+adminRoute.get("/category", categoryController.loadCategory);
+adminRoute.post("/add-category", categoryController.addCategory);
+adminRoute.post("/update-category/:id", categoryController.editCategory)
+adminRoute.post("/delete-category/:id", categoryController.confirmDelete)
 
 
 
