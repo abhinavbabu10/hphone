@@ -3,9 +3,9 @@ const Category = require("../models/categoryModel")
 
 const loadCategory = async (req, res) => {
   try {
-    const category = await Category.find({deleted:false})
-    
-    res.render("category", {message:"",category: category })
+    const category = await Category.find({ deleted: false }).sort({createdOn:-1})
+
+    res.render("category", { message: "", category: category })
   } catch (error) {
     console.log(error.message)
   }
@@ -16,11 +16,14 @@ const loadCategory = async (req, res) => {
 const addCategory = async (req, res) => {
   try {
     const { name } = req.body;
-    const category= await Category.find({})
-    const existingCategory = await Category.findOne({ name });
-
+    const category = await Category.find({ deleted: false })
+    const existingCategory = await Category.findOne({
+      name: { $regex: new RegExp(`^${name}$`, 'i') },
+      deleted: false
+    });
+    
     if (existingCategory) {
-      return res.render("category",{message:'Category already exists',category})
+      return res.render("category", { message: 'Category already exists', category })
     }
 
     const newCategory = new Category({
@@ -28,7 +31,7 @@ const addCategory = async (req, res) => {
       createdOn: new Date(),
     });
 
-     await newCategory.save();
+    await newCategory.save();
     res.redirect("/admin/category")
 
   } catch (error) {
@@ -37,7 +40,7 @@ const addCategory = async (req, res) => {
 };
 
 
-const editCategory = async(req,res) =>{
+const editCategory = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, status } = req.body;
@@ -51,18 +54,18 @@ const editCategory = async(req,res) =>{
       return res.status(404).json({ error: 'Category not found' });
     }
     res.status(200).json(updatedCategory);
-} catch (error) {
+  } catch (error) {
     console.error('Error updating category:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const confirmDelete = async(req,res) =>{
+const confirmDelete = async (req, res) => {
 
   try {
     const categoryId = req.params.id;
     const deletedCategory = await Category.findByIdAndUpdate(categoryId, { deleted: true }, { new: true });
-
+    console.log(deletedCategory)
     if (!deletedCategory) {
       return res.status(404).json({ error: 'Category not found' });
     }

@@ -23,5 +23,7 @@ userroute.post('/verifyOTP',userController.verifyOTP)
 userroute.post('/resendOTP',userController.resendOTP)
 
 
+userroute.get('/shop',userController.loadShop)
+
 
 module.exports = userroute;

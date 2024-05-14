@@ -3,6 +3,7 @@ const adminRoute = express()
 const userManagement = require("../controllers/userManagement")
 const adminController = require("../controllers/adminController")
 const categoryController = require("../controllers/categoryController");
+const productController = require("../controllers/productController");
 const path=require("path")
 
 const session=require("express-session")
@@ -38,6 +39,14 @@ adminRoute.post("/add-category", categoryController.addCategory);
 adminRoute.post("/update-category/:id", categoryController.editCategory)
 adminRoute.post("/delete-category/:id", categoryController.confirmDelete)
 
+//product
+
+adminRoute.get("/product", productController.loadProduct)
+adminRoute.get("/add-product", productController.loadAddProduct)
+adminRoute.post("/add-product",productController.addProduct)
+adminRoute.get("/edit-product/:id",productController.editProduct)
+adminRoute.post("/edit-product/:id",productController.updateProduct)
+adminRoute.post("/delete-product/:id",productController.deleteProduct)
 
 
 module.exports=adminRoute

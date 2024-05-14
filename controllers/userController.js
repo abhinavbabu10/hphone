@@ -1,4 +1,7 @@
 const User = require('../models/userModel');
+const Category = require("../models/categoryModel")
+const Product = require("../models/productModel")
+
 const bcrypt = require('bcrypt');
 const nodemailer = require("nodemailer");
 
@@ -130,6 +133,16 @@ const loadotp = async (req, res) => {
     }
 }
 
+const loadShop = async (req,res) =>{
+    try {
+
+        const category = await Category.find({ deleted: false }).sort({createdOn:-1})
+        const products = await Product.find({ isUnlisted: false })
+        res.render('shop',{category,products})
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 
 const verifyOTP = async (req, res) => {
@@ -218,6 +231,7 @@ module.exports = {
     loadsignup,
     loadlogin,
     loadotp,
+    loadShop,
     insertUser,
     verifyOTP,
     resendOTP,
