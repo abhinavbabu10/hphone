@@ -47,6 +47,7 @@ adminRoute.post("/add-product",productController.addProduct)
 adminRoute.get("/edit-product/:id",productController.editProduct)
 adminRoute.post("/edit-product/:id",productController.updateProduct)
 adminRoute.post("/delete-product/:id",productController.deleteProduct)
+adminRoute.post("/remove-image/:id",productController.removeImage)
 
 
 module.exports=adminRoute

@@ -145,9 +145,7 @@
                                     <th>Image</th>
                                     <th>Name</th>
                                     <th>Price</th>
-                                    <!-- <th>Category</th> -->
                                     <th>Stock</th>
-                                    <!-- <th>Unlisted</th> -->
                                     <th class="text-end">Action</th>
                                     <th></th>
                                   </tr>
@@ -164,9 +162,7 @@
                                       </td>
                                       <td><%= product.name %></td>
                                       <td>$<%= product.price %></td>
-                                      <!-- <td><%= product.category %></td> -->
                                       <td><%= product.stock %></td>
-                                      <!-- <td><%= product.isUnlisted ? 'Yes' : 'No' %></td> -->
 
                                       <td class="text-end">
                                         <button type="button" class="btn btn-primary" onclick="window.location.href='/admin/edit-product/<%=product._id %>'">

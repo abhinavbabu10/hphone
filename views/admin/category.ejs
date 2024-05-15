@@ -142,9 +142,8 @@
                                 <% if (message){ %>
                                     <p style="color: red;"><%= message %></p>
                                     <% } %>
-                           
                                 <div class="d-grid">
-                                    <button type = "submit" class="btn btn-primary">Create category</button>
+                                  <button type="submit" class="btn btn-primary" id="createCategoryBtn">Create category</button>
                                 </div>
                             </form>
                         </div>
@@ -215,10 +214,25 @@
     <script src="assets/js/main.js" type="text/javascript"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      document.getElementById('createCategoryBtn').addEventListener('click', function(event) {
+          var categoryName = document.getElementById('category-name').value.trim();
+  
+          if (categoryName === '') {
+              event.preventDefault();
+              Swal.fire({
+                  icon: 'warning',
+                  title: 'Input Required',
+                  text: 'Please enter something in the Name field.',
+                  confirmButtonText: 'OK'
+              });
+          }
+      });
+  </script>
     
     <script>
-
-    function editCategory(categoryId, categoryName, categoryStatus) {
+      function editCategory(categoryId, categoryName, categoryStatus) {
         Swal.fire({
           title: 'Edit Category',
           html: `
@@ -281,7 +295,7 @@
       }
 
 
-      function confirmDelete(categoryId) {
+  function confirmDelete(categoryId) {
   Swal.fire({
     title: 'Are you sure?',
     text: 'You will not be able to recover this category!',
@@ -305,7 +319,7 @@
             title: 'Deleted!',
             text: 'The category has been deleted.'
           }).then(() => {
-            window.location.reload();
+            window.location = "/admin/category";
           });
         } else {
           Swal.fire({
@@ -326,9 +340,7 @@
     }
   });
 }
-
-
-    </script>
+</script>
       
       
 </body>
