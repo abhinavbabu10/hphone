@@ -31,7 +31,7 @@ adminRoute.get("/home", adminController.loadDashboard)
 
 // users
 adminRoute.get("/customer",userManagement.loadcustomers);
-adminRoute.post('/users/:id/block',userManagement.blockUnblockuser);
+adminRoute.post('/users/:id',userManagement.blockUnblockuser);
 
 //category
 adminRoute.get("/category", categoryController.loadCategory);

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
+const { bool } = require("sharp");
 
 const userSchema = new mongoose.Schema({
-
     name:{
         type:String,
         required:true
@@ -16,17 +16,11 @@ const userSchema = new mongoose.Schema({
     },
     is_admin:{
         type:Number,
-        required:true
+       default:0
     },
     is_verified:{
-        type:Number,
-        required:true
-    },
-    is_blocked:{
         type:Boolean,
-        default:false
-    },
-    
+        default:false}  
 })
 
 module.exports = mongoose.model('User',userSchema);

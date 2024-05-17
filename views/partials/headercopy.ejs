@@ -32,12 +32,17 @@
                                     <li><a href="#"><img src="Userassets/imgs/theme/flag-ru.png" alt="">Pусский</a></li>
                                 </ul>
                             </li>
+                            <%if(user){%>
+                                 <p>hello <%= user.name %></p>
+                                 <li><i ></i><a href="/logout">Log Out</a></li>
+                            <% } else { %>
                             <li><i class="fi-rs-user"></i><a href="/login">Log In</a></li>
                             <li><i class="fi-rs-user"></i><a href="/signup">Sign Up</a></li>
+                            <% } %>
                         </ul>
                     </div>
                 </div>
-            </div>
+            </div>` 
         </div>
     </div>
     <div class="header-middle header-middle-ptb-1 d-none d-lg-block">

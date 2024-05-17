@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const express = require("express");
+const nocache = require("nocache")
 
 const session = require("express-session");
 const path = require('path');
@@ -16,7 +17,7 @@ app.use(express.static(path.join(__dirname, 'views')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-
+app.use(nocache())
 app.use(session({
     secret: secretKey,
     resave: true,

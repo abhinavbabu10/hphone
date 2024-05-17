@@ -3,7 +3,7 @@ const User = require('../models/userModel')
 
 const loadcustomers = async (req, res) => {
     try {
-        const users = await User.find({is_admin:false});
+        const users = await User.find({is_admin:0});
         res.render('customer', { users });
     } catch (err) {
         console.error('Error fetching users:', err);
@@ -18,7 +18,8 @@ const blockUnblockuser = async (req, res) => {
           return res.status(404).json({ success: false, message: 'User not found.' });
         }
     
-        user.is_blocked =!user.is_blocked;
+        user.is_verified =!user.is_verified;
+        req.session.userData = null;
         await user.save();
     
         const users = await User.find();

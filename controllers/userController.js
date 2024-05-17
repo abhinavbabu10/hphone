@@ -38,8 +38,12 @@ const securePassword = async (password) => {
 
 const loadhome = async (req, res) => {
     try {
+
+        const users = req.session.userData
+        const user = await User.findById(users)
+ 
          
-        res.render('home')
+        res.render('home',{user})
     } catch (error) {
         console.log(error)
     }
@@ -51,7 +55,8 @@ const loadhome = async (req, res) => {
 
 const loadsignup = async (req, res) => {
     try {
-        res.render('signup')
+        const user = req.session.userData
+        res.render('signup',{user})
     } catch (error) {
         console.log(error)
     }
@@ -61,8 +66,19 @@ const loadsignup = async (req, res) => {
 
 const loadlogin = async (req, res) => {
     try {
-        res.render('login', {message: ""})
+        // const user = req.session.userData
+        res.render('login', {message: "",user:''})
     } catch (error) {
+        console.log(error)
+    }
+}
+
+const logout = async (req,res) =>{
+    try{
+        req.session.userData = null
+        res.redirect('/')
+
+    }catch (error){
         console.log(error)
     }
 }
@@ -74,17 +90,16 @@ const insertUser = async (req, res) => {
           if (!req.session) {
             throw new Error('Session middleware not initialized');
         }
-
         const otp = generateOTP();
-            userData = {
+          const userData = {
             name:username,
             email:email,
             password:password,
             otp:otp
         };
-        
+       
         req.session.userData=userData
-        console.log(otp,"otp")
+       console.log(otp,"otp")
 
         sendOTPByEmail(email, otp);
         res.redirect('/otp');
@@ -136,9 +151,10 @@ const loadotp = async (req, res) => {
 const loadShop = async (req,res) =>{
     try {
 
+        const user = req.session.userData
         const category = await Category.find({ deleted: false }).sort({createdOn:-1})
         const products = await Product.find({ isUnlisted: false })
-        res.render('shop',{category,products})
+        res.render('shop',{category,products,user})
     } catch (error) {
         console.log(error)
     }
@@ -147,37 +163,27 @@ const loadShop = async (req,res) =>{
 
 const verifyOTP = async (req, res) => {
     try {
-
-        const enteredOTP = req.body.enteredOtp;
-
-        // if (req.session.otpExpiration && Date.now() > req.session.otpExpiration) {
-        //     res.status(400).json({ error: 'OTP expired, please request a new one' });
-        //     return;
-        // }
-
+        const enteredOTP = req.body.otp;
         if (parseInt(enteredOTP) === req.session.userData.otp) {
-            const spassword = await securePassword(req.session.userData.password);
+            const {name,email,password}=req.session.userData;
+            const spassword = await securePassword(password);
             const newUser = new User({
-                name: req.session.userData.name,
-                email: req.session.userData.email,
+                name,
+                email,
                 password: spassword,
-                is_admin: 0,
-                is_verified: 1
+                is_admin:0,
             });
 
             await newUser.save();
-            console.log(newUser);
-            res.status(200).json({ success:true });
-
+            res.redirect('/login');
         } else {
-            res.status(400).json({ error: 'Incorrect OTP' });
+            res.json({ error: 'Incorrect OTP' });
         }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-
 
 const resendOTP = async (req, res) => {
     try {
@@ -203,21 +209,22 @@ const verifyLogin = async (req, res) => {
     try {
         const email = req.body.email;
         const password = req.body.password;
+        const user = req.session.userData;
         const userdata = await User.findOne({ email: email });
         if (userdata) {
             const passwordMatch = await bcrypt.compare(password, userdata.password);
             if (passwordMatch) {
-                if (userdata.is_verified === 0) {
-                    res.render('login', { message: "Email and password are incorrect" });
+                if (userdata.is_verified) {
+                    res.render('login', { message: "user id blocked" ,user:''});
                 } else {
                     req.session.userData = userdata.id;
                     res.redirect('/');
                 }
             } else {
-                res.render('login', { message: "Email and password are incorrect" });
+                res.render('login', { message: "Email and password are incorrect",user:'' });
             }
         } else {
-            res.render('login', { message: "Email and password are incorrect" });
+            res.render('login', { message: "Email and password are incorrect",user:'' });
         }
     } catch (error) {
         console.error(error);
@@ -225,6 +232,15 @@ const verifyLogin = async (req, res) => {
     }
 };
 
+const loadShopdetail = async(req,res) =>{
+  try{
+
+    res.render("shopdetail")
+
+  }catch{
+
+  }
+}
 
 module.exports = {
     loadhome,
@@ -235,5 +251,7 @@ module.exports = {
     insertUser,
     verifyOTP,
     resendOTP,
-    verifyLogin
+    verifyLogin,
+    loadShopdetail,
+    logout
 }
