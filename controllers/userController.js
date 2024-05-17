@@ -233,13 +233,17 @@ const verifyLogin = async (req, res) => {
 };
 
 const loadShopdetail = async(req,res) =>{
-  try{
-
-    res.render("shopdetail")
-
-  }catch{
-
-  }
+    try {
+        const productId= req.params.id;
+        const product = await Product.findById(productId)
+        if (!product) {
+          return res.status(404).send('Product not found');
+        }
+        const user = req.session.userData
+        res.render('shopdetail',{user,product})
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 module.exports = {

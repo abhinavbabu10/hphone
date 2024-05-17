@@ -23,7 +23,7 @@ userroute.post('/resendOTP',userController.resendOTP)
 
 
 userroute.get('/shop',auth.isLogin,userController.loadShop)
-userroute.get('/shop-detail',userController.loadShopdetail)
+userroute.get('/shop-detail/:id',userController.loadShopdetail)
 userroute.get('/logout', userController.logout)
 
 module.exports = userroute;
