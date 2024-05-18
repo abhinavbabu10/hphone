@@ -33,7 +33,7 @@
                                 </ul>
                             </li>
                             <%if(user){%>
-                                 <p>hello <%= user.name %></p>
+                                 <p><a href="/profile">hello <%= user.name %></a></p>
                                  <li><i ></i><a href="/logout">Log Out</a></li>
                             <% } else { %>
                             <li><i class="fi-rs-user"></i><a href="/login">Log In</a></li>

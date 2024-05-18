@@ -26,4 +26,7 @@ userroute.get('/shop',userController.loadShop)
 userroute.get('/shop-detail',userController.loadShopdetail)
 userroute.get('/logout', userController.logout)
 
+userroute.get('/profile',auth.isLogin, userController.loadProfile)
+userroute.post('/edit-detail', userController.editDetail)
+
 module.exports = userroute;

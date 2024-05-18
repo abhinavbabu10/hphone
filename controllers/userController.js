@@ -247,6 +247,36 @@ const loadShopdetail = async(req,res) =>{
     }
 }
 
+
+const loadProfile = async(req,res) =>{
+
+    try {
+        const userId = req.session.userData
+        const user = await User.findById(userId)
+        res.render('profile',{user})
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const editDetail = async (req, res) => {
+    try {
+        const user = req.session.userData
+        const { name, email } = req.body;
+        const newUser = await User.findById(user);
+        newUser.name = name;
+        newUser.email = email;
+        if (!newUser) {
+          return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        await newUser.save();
+        return res.status(200).json({ success: true, newUser });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: 'Server error' });
+      }
+    };
+
 module.exports = {
     loadhome,
     loadsignup,
@@ -258,5 +288,7 @@ module.exports = {
     resendOTP,
     verifyLogin,
     loadShopdetail,
+    loadProfile,
+    editDetail,
     logout
 }
