@@ -16,7 +16,7 @@ const loadCategory = async (req, res) => {
 const addCategory = async (req, res) => {
   try {
     const { name } = req.body;
-    const category = await Category.find({ deleted: false }).sort({createdOn:-1})
+    const category = await Category.trim().find({ deleted: false }).sort({createdOn:-1})
     const existingCategory = await Category.findOne({
       name: { $regex: new RegExp(`^${name}$`, 'i') },
       deleted: false
