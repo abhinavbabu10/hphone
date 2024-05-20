@@ -1,6 +1,52 @@
 <%- include('../partials/header') %>
 <%- include('../partials/headercopy') %>
 
+<style>
+.error-message {
+  color: #dc3545;
+  font-size: 14px; 
+  margin-top: 5px; 
+}
+</style>
+
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" role="dialog" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="resetPasswordModalLabel">Reset Password</h5>
+          <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"> -->
+            <!-- <span aria-hidden="true">&times;</span> -->
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id = "resetPasswordForm">
+            <div class="form-group">
+              <label for="currentPassword">Current Password</label>
+              <input type="password" class="form-control" id="currentPassword" required>
+              <div class="error-message" id = "currentPasswordError"></div>
+            </div>
+            <div class="form-group">
+              <label for="newPassword">New Password</label>
+              <input type="password" class="form-control" id="newPassword" required>
+              <div class="error-message" id = "newPasswordError"></div>
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">Confirm Password</label>
+              <input type="password" class="form-control" id="confirmPassword" required>
+              <div class="error-message" id = "confirmPasswordError"></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="resetPasswordSubmit()">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
     <main class="main">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
@@ -163,8 +209,8 @@
                                           </div>
                                         </div>
                                         <div class="col-md-12 text-center mt-30">
-                                          <button type="button" class="btn btn-fill-out">Reset Password</button>
-                                        </div>
+                                            <button type="button" class="btn btn-fill-out" onclick="resetPassword()">Reset Password</button>
+                                          </div>
                                       </div>
                                 </div>
                             </div>
@@ -226,6 +272,122 @@
     });
   }
 </script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function resetPassword() {
+        let resetPasswordModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+        resetPasswordModal.show();
+    }
+function resetPasswordSubmit() {
+    // Reset previous error messages
+    document.querySelectorAll('.error-message').forEach(elem => elem.textContent = '');
+
+    // Get input values
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    let isValid = true;
+
+    // Validation for empty fields
+    if (currentPassword.trim() === '') {
+        document.getElementById('currentPasswordError').textContent = 'Current password is required';
+        isValid = false;
+    }
+    if (newPassword.trim() === '') {
+        document.getElementById('newPasswordError').textContent = 'New password is required';
+        isValid = false;
+    } else if (!isStrongPassword(newPassword)) {
+        document.getElementById('newPasswordError').textContent = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+        isValid = false;
+    }
+    if (confirmPassword.trim() === '') {
+        document.getElementById('confirmPasswordError').textContent = 'Confirm password is required';
+        isValid = false;
+    } else if (newPassword !== confirmPassword) {
+        document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
+        isValid = false;
+    }
+    if (isValid) {
+        confirmResetPassword();
+    }
+}
+
+function isStrongPassword(password) {
+    const uppercaseRegex = /[A-Z]/;
+    const lowercaseRegex = /[a-z]/;
+    const numberRegex = /[0-9]/;
+    return uppercaseRegex.test(password) && lowercaseRegex.test(password) && numberRegex.test(password);
+}
+
+function confirmResetPassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+
+    const data = {
+        currentPassword,
+        newPassword
+    };
+
+    fetch('/reset-password', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json(); // Parse response body as JSON
+    })
+    .then(data => {
+        // Handle success response from the backend
+        if(data.success){
+            Swal.fire({
+                icon: 'success',
+                title: 'Password reset successful',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                // Hide the modal after the SweetAlert
+                let resetPasswordModal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+                resetPasswordModal.hide();
+                document.getElementById('resetPasswordForm').reset();
+            });
+        } else {
+            // Handle other response errors here
+            Swal.fire({
+                icon: 'error',
+                title: 'Password reset failed',
+                text: data.message || 'Unknown error occurred'
+            }).then(() => {
+                // Hide the modal after the SweetAlert
+                let resetPasswordModal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+                resetPasswordModal.hide();
+                document.getElementById('resetPasswordForm').reset();
+            });
+        }
+    })
+    .catch(error => {
+        // Handle error
+        console.error('There was a problem with the fetch operation:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Password reset failed',
+            text: error.message
+        }).then(() => {
+            // Hide the modal after the SweetAlert
+            let resetPasswordModal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+            resetPasswordModal.hide();
+            document.getElementById('resetPasswordForm').reset();
+        });
+    });
+}
+ </script>
+
 
 <%- include('../partials/footercopy') %>
 <%- include('../partials/footer') %>

@@ -211,6 +211,9 @@ const verifyLogin = async (req, res) => {
         const password = req.body.password;
         const user = req.session.userData;
         const userdata = await User.findOne({ email: email });
+        if(userdata.is_admin ===1){
+            res.render('login', { message:"admin" ,user:''});
+        }
         if (userdata) {
             const passwordMatch = await bcrypt.compare(password, userdata.password);
             if (passwordMatch) {
@@ -236,9 +239,6 @@ const loadShopdetail = async(req,res) =>{
     try {
         const productId= req.query.id;
         const product = await Product.findById(productId)
-        // if (!product) {
-        //   return res.status(404).send('Product not found');
-        // }
         const user = req.session.userData
         console.log(`product : ${product}`)
         res.render('shopdetail',{user,product})
@@ -277,6 +277,38 @@ const editDetail = async (req, res) => {
       }
     };
 
+const resetPassword = async(req,res) => {
+    try {
+        const userId = req.session.userData;
+        const { currentPassword, newPassword } = req.body;
+        const user = await User.findById(userId); 
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+         if (!isPasswordValid) {
+            return res.json({ success: false, message: 'Invalid current password' });
+        }
+
+        const spassword = await securePassword(newPassword);
+        user.password = spassword;
+          await user.save();
+
+        return res.status(200).json({ success: true, message: 'Password reset successful' });
+ } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
+
+
+
+
+
+
 module.exports = {
     loadhome,
     loadsignup,
@@ -290,5 +322,6 @@ module.exports = {
     loadShopdetail,
     loadProfile,
     editDetail,
+    resetPassword,
     logout
 }
