@@ -30,4 +30,6 @@ userroute.get('/profile',auth.isLogin, userController.loadProfile)
 userroute.post('/edit-detail', userController.editDetail)
 userroute.post('/reset-password',userController.resetPassword)
 
+userroute.post('/add-address',userController.addAddress)
+
 module.exports = userroute;

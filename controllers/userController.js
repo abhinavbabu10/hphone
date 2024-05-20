@@ -304,7 +304,9 @@ const resetPassword = async(req,res) => {
 };
 
 
-
+const addAddress = async(req,res) => {
+           
+}
 
 
 
@@ -323,5 +325,6 @@ module.exports = {
     loadProfile,
     editDetail,
     resetPassword,
+    addAddress,
     logout
 }

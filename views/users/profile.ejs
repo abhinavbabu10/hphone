@@ -47,6 +47,62 @@
     </div>
   </div>
 
+  <div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addAddressModalLabel">Add Address</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addAddressForm">
+            <div class="mb-3">
+              <label for="addHouseName" class="form-label">House Name</label>
+              <input type="text" class="form-control" id="addHouseName">
+            </div>
+            <div class="mb-3">
+              <label for="addStreet" class="form-label">Street</label>
+              <input type="text" class="form-control" id="addStreet">
+            </div>
+            <div class="mb-3">
+              <label for="addCity" class="form-label">City</label>
+              <input type="text" class="form-control" id="addCity">
+            </div>
+            <div class="mb-3">
+              <label for="addState" class="form-label">State</label>
+              <input type="text" class="form-control" id="addState">
+            </div>
+            <div class="mb-3">
+              <label for="addCountry" class="form-label">Country</label>
+              <input type="text" class="form-control" id="addCountry">
+            </div>
+            <div class="mb-3">
+              <label for="addPostalCode" class="form-label">Postal Code</label>
+              <input type="text" class="form-control" id="addPostalCode">
+            </div>
+            <div class="mb-3">
+              <label for="addPhoneNumber" class="form-label">Phone Number</label>
+              <input type="text" class="form-control" id="addPhoneNumber">
+            </div>
+            <div class="mb-3">
+                <label for="addType" class="form-label">Address Type</label>
+                <select class="form-control" id="addType">
+                  <option value="Office">Office</option>
+                  <option value="Home">Home</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="saveNewAddress()">Add Address</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
     <main class="main">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
@@ -156,34 +212,36 @@
                                         </div>
                                     </div>
                                     <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
-                                        <div class="row">
-                                            <div class="col-lg-6">
-                                                <div class="card mb-3 mb-lg-0">
-                                                    <div class="card-header">
-                                                        <h5 class="mb-0">Billing Address</h5>
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <address>3522 Interstate<br> 75 Business Spur,<br> Sault Ste. <br>Marie, MI 49783</address>
-                                                        <p>New York</p>
-                                                        <a href="#" class="btn-small">Edit</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6">
-                                                <div class="card">
-                                                    <div class="card-header">
-                                                        <h5 class="mb-0">Shipping Address</h5>
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <address>4299 Express Lane<br>
-                                                            Sarasota, <br>FL 34249 USA <br>Phone: 1.941.227.4444</address>
-                                                        <p>Sarasota</p>
-                                                        <a href="#" class="btn-small">Edit</a>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        <!-- Add Address button -->
+                                        <div class="text-end mb-3">
+                                          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">Add Address</button>
                                         </div>
-                                    </div>
+                                      
+                                        <div class="row">
+                                          <% user.address.forEach(function(add) { %>
+                                          <div class="col-lg-6 mt-15">
+                                            <div class="card mb-3 mb-lg-0">
+                                              <div class="card-header">
+                                                <h5 class="mb-0"><%=add.type %> Address</h5>
+                                              </div>
+                                              <div class="card-body">
+                                                <address>
+                                                  <%=add.houseName%><br>
+                                                  <%=add.street %>,<br>
+                                                  <%=add.city%>,<%=add.postalCode%> <br>
+                                                  <%=add.phoneNumber%><br>
+                                                  <%=add.state%>
+                                                </address>
+                                                <p><%=add.country %></p>
+                                                <!-- Edit button in address card -->
+                                                <a type="button" class="btn-small" data-bs-toggle="modal" data-bs-target="#editAddressModal" onclick="populateEditForm('<%=add._id%>', '<%=add.houseName%>', '<%=add.street%>', '<%=add.city%>', '<%=add.state%>', '<%=add.country%>', '<%=add.postalCode%>', '<%=add.phoneNumber%>', '<%=add.type%>')">Edit</a>
+                                                <a type="button" class="btn-small ml-15" onclick="confirmDelete('<%=add._id%>')">Delete</a>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <% }); %>
+                                        </div>
+                                      </div>
                                     <div class="tab-pane fade active show" id="account-detail" role="tabpanel" aria-labelledby="account-detail-tab">
                                         <div class="card">
                                           <div class="card-header">
