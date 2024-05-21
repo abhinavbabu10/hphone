@@ -332,7 +332,39 @@ const addAddress = async(req,res) => {
     };
     
 
-
+const updateAddress = async (req,res) =>{
+    try {
+        const userId = req.session.userData; 
+        const { addressId, houseName, street, city, state, country, postalCode, phoneNumber, addressType } = req.body;
+      
+        const user = await User.findById(userId);       
+        if (!user) {
+          return res.status(404).json({ success: false, message: 'User not found' }); 
+        }
+      
+      
+        const addressIndex = user.address.findIndex(addr => addr._id.toString() === addressId);
+        if (addressIndex === -1) {
+          return res.status(404).json({ success: false, message: 'Address not found' });
+        }
+      
+        user.address[addressIndex].houseName = houseName;
+        user.address[addressIndex].street = street;
+        user.address[addressIndex].city = city;
+        user.address[addressIndex].state = state;
+        user.address[addressIndex].country = country;
+        user.address[addressIndex].postalCode = postalCode;
+        user.address[addressIndex].phoneNumber = phoneNumber;
+        user.address[addressIndex].type = addressType;
+      
+        await user.save();
+      
+        res.status(200).json({ success: true, message: 'Address updated successfully' }); 
+      } catch (error) {
+        console.error('Error updating address:', error); 
+        res.status(500).json({ success: false, message: 'Internal server error' });
+      }
+    }      
 
 
 module.exports = {
@@ -350,5 +382,6 @@ module.exports = {
     editDetail,
     resetPassword,
     addAddress,
+    updateAddress,
     logout
 }

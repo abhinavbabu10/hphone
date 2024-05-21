@@ -31,5 +31,10 @@ userroute.post('/edit-detail', userController.editDetail)
 userroute.post('/reset-password',userController.resetPassword)
 
 userroute.post('/add-address',userController.addAddress)
+userroute.post('/edit-address',userController.updateAddress)
+
+
+
+
 
 module.exports = userroute;

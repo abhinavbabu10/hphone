@@ -47,6 +47,7 @@
     </div>
   </div>
 
+  <!-- add address modal -->
   <div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -111,6 +112,63 @@
     </div>
   </div>
   
+  <!-- Edit Address Modal -->
+<div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editAddressModalLabel">Edit Address</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editAddressForm">
+          <input type="hidden" id="editAddressId">
+          <div class="mb-3">
+            <label for="editHouseName" class="form-label">House Name</label>
+            <input type="text" class="form-control" id="editHouseName" required>
+          </div>
+          <div class="mb-3">
+            <label for="editStreet" class="form-label">Street</label>
+            <input type="text" class="form-control" id="editStreet" required>
+          </div>
+          <div class="mb-3">
+            <label for="editCity" class="form-label">City</label>
+            <input type="text" class="form-control" id="editCity" required>
+          </div>
+          <div class="mb-3">
+            <label for="editState" class="form-label">State</label>
+            <input type="text" class="form-control" id="editState" required>
+          </div>
+          <div class="mb-3">
+            <label for="editCountry" class="form-label">Country</label>
+            <input type="text" class="form-control" id="editCountry" required>
+          </div>
+          <div class="mb-3">
+            <label for="editPostalCode" class="form-label">Postal Code</label>
+            <input type="text" class="form-control" id="editPostalCode" required>
+          </div>
+          <div class="mb-3">
+            <label for="editPhoneNo" class="form-label">Phone Number</label>
+            <input type="text" class="form-control" id="editPhoneNo" required>
+          </div>
+          <div class="mb-3">
+            <label for="editType" class="form-label">Address Type</label>
+            <select class="form-control" id="editType"  name="editAddressType" required>
+              <option value="Home">Home</option>
+              <option value="Work">Work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="updateAddress()">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 
     <main class="main">
         <div class="page-header breadcrumb-wrap">
@@ -561,6 +619,77 @@ function confirmResetPassword() {
         });
     }
   }
+</script>
+
+<script>
+  function populateEditForm(addressId, houseName, street, city, state, country, postalCode, phoneNumber, type) {
+  document.getElementById('editAddressId').value = addressId;
+  document.getElementById('editHouseName').value = houseName;
+  document.getElementById('editStreet').value = street;
+  document.getElementById('editCity').value = city;
+  document.getElementById('editState').value = state;
+  document.getElementById('editCountry').value = country;
+  document.getElementById('editPostalCode').value = postalCode;
+  document.getElementById('editPhoneNo').value = phoneNumber;
+  document.getElementById("editType").value = type;
+}
+
+function updateAddress() {
+  const addressId = document.getElementById('editAddressId').value;
+  const houseName = document.getElementById('editHouseName').value;
+  const street = document.getElementById('editStreet').value;
+  const city = document.getElementById('editCity').value;
+  const state = document.getElementById('editState').value;
+  const country = document.getElementById('editCountry').value;
+  const postalCode = document.getElementById('editPostalCode').value;
+  const phoneNumber = document.getElementById('editPhoneNo').value;
+  const addressType = document.getElementById("editType").value;
+
+  const data = {
+    addressId,
+    houseName,
+    street,
+    city,
+    state,
+    country,
+    postalCode,
+    phoneNumber,
+    addressType
+  };
+  console.log(data);
+
+  fetch('/edit-address', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Address Updated'
+      }).then(() => {
+        $('#editAddressModal').modal('hide');
+        document.getElementById('editAddressForm').reset();
+        location.reload()
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update address'
+      });
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+
 </script>
 
 
