@@ -59,39 +59,48 @@
             <div class="mb-3">
               <label for="addHouseName" class="form-label">House Name</label>
               <input type="text" class="form-control" id="addHouseName">
+              <div id="houseNameError" class="error-message text-danger"></div>
             </div>
             <div class="mb-3">
               <label for="addStreet" class="form-label">Street</label>
               <input type="text" class="form-control" id="addStreet">
+              <div id="streetError" class="error-message text-danger"></div>
             </div>
             <div class="mb-3">
               <label for="addCity" class="form-label">City</label>
               <input type="text" class="form-control" id="addCity">
+              <div id="cityError" class="error-message text-danger"></div>
             </div>
             <div class="mb-3">
               <label for="addState" class="form-label">State</label>
               <input type="text" class="form-control" id="addState">
+              <div id="stateError" class="error-message text-danger"></div>
             </div>
             <div class="mb-3">
               <label for="addCountry" class="form-label">Country</label>
               <input type="text" class="form-control" id="addCountry">
+              <div id="countryError" class="error-message text-danger"></div>
             </div>
             <div class="mb-3">
               <label for="addPostalCode" class="form-label">Postal Code</label>
               <input type="text" class="form-control" id="addPostalCode">
+              <div id="postalCodeError" class="error-message text-danger"></div>
             </div>
             <div class="mb-3">
               <label for="addPhoneNumber" class="form-label">Phone Number</label>
               <input type="text" class="form-control" id="addPhoneNumber">
+              <div id="phoneNoError" class="error-message text-danger"></div>
             </div>
             <div class="mb-3">
-                <label for="addType" class="form-label">Address Type</label>
-                <select class="form-control" id="addType">
-                  <option value="Office">Office</option>
-                  <option value="Home">Home</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
+              <label for="addType" class="form-label">Address Type</label>
+              <select class="form-control" id="addType">
+                <option value="">Select Address Type</option>
+                <option value="Office">Office</option>
+                <option value="Home">Home</option>
+                <option value="Other">Other</option>
+              </select>
+              <div id="addressTypeError" class="error-message text-danger"></div>
+            </div>
           </form>
         </div>
         <div class="modal-footer">
@@ -445,6 +454,115 @@ function confirmResetPassword() {
     });
 }
  </script>
+
+
+
+<script>
+  function saveNewAddress() {
+    document.querySelectorAll('.error-message').forEach(elem => elem.textContent = '');
+
+    const houseName = document.getElementById('addHouseName').value.trim();
+    const street = document.getElementById('addStreet').value.trim();
+    const city = document.getElementById('addCity').value.trim();
+    const state = document.getElementById('addState').value.trim();
+    const country = document.getElementById('addCountry').value.trim();
+    const postalCode = document.getElementById('addPostalCode').value.trim();
+    const phoneNumber = document.getElementById('addPhoneNumber').value.trim();
+    const addressType = document.getElementById('addType').value;
+
+    let isValid = true;
+    if (houseName === '') {
+        document.getElementById('houseNameError').textContent = 'House Name is required';
+        isValid = false;
+    }
+
+    if (street === '') {
+        document.getElementById('streetError').textContent = 'Street is required';
+        isValid = false;
+    }
+
+    if (city === '') {
+        document.getElementById('cityError').textContent = 'City is required';
+        isValid = false;
+    }
+
+    if (state === '') {
+        document.getElementById('stateError').textContent = 'State is required';
+        isValid = false;
+    }
+
+    if (country === '') {
+        document.getElementById('countryError').textContent = 'Country is required';
+        isValid = false;
+    }
+    if (!/^\d{6}$/.test(postalCode)) {
+        document.getElementById('postalCodeError').textContent = 'Postal Code should contain 6 digits';
+        isValid = false;
+    }
+    if (!/^\d{10}$/.test(phoneNumber)) {
+        document.getElementById('phoneNoError').textContent = 'Phone Number should contain 10 digits';
+        isValid = false;
+    }
+    if (addressType === '') {
+        document.getElementById('addressTypeError').textContent = 'Please select Address Type';
+        isValid = false;
+    }
+
+    if (isValid) {
+        const data = {
+            houseName,
+            street,
+            city,
+            state,
+            country,
+            postalCode,
+            phoneNumber,
+            addressType
+        };
+        fetch('/add-address', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if(data.success){
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Address Added Successfully',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    $('#addAddressModal').modal('hide');
+                    document.getElementById('addAddressForm').reset();
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Adding Address failed',
+                    text: data.message || 'Unknown error occurred'
+                }).then(() => {
+                    $('#addAddressModal').modal('hide');
+                    document.getElementById('addAddressForm').reset();
+                    location.reload();
+                });
+            }
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    }
+  }
+</script>
+
 
 
 <%- include('../partials/footercopy') %>
