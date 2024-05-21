@@ -690,6 +690,36 @@ function updateAddress() {
   });
 }
 
+  function confirmDelete(addressId) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Are you sure about deleting the address?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      fetch(`/delete-address?id=${addressId}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire('Deleted!', 'The address has been deleted.', 'success').then(() => {
+            location.reload();
+          });
+        } else {
+          Swal.fire('Error!', 'Failed to delete the address.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error!', 'An error occurred while deleting the address.', 'error');
+      });
+    }
+  });
+}
 </script>
 
 

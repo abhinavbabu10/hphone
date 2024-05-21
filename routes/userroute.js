@@ -32,6 +32,7 @@ userroute.post('/reset-password',userController.resetPassword)
 
 userroute.post('/add-address',userController.addAddress)
 userroute.post('/edit-address',userController.updateAddress)
+userroute.post('/delete-address',userController.deleteAddress)
 
 
 
