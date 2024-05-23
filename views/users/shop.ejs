@@ -131,9 +131,14 @@
                     <span><%= product.price %></span>
                     <span class="old-price"><%= product.oldPrice %></span>
                   </div>
+          
                   <div class="product-action-1 show">
-                    
-                  </div>
+                    <!-- <a aria-label="Add To Cart" class="action-btn hover-up" href="#" id="addToCartBtn" onclick="addToCart()"><i class="fi-rs-shopping-bag-add"></i></a> -->
+                    <button class="add-to-cart-button" data-id="<%= product.id %>" onclick="addToCart('<%= product.id %>')">
+                      <i class="fi-rs-shopping-bag-add"></i>
+                    </button>
+                    <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                </div>
                 </div>
               </div>
             </div>
@@ -179,5 +184,49 @@
     </div>
   </section>
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script>
+async function addToCart(productId) {
+  try {
+    const response = await fetch('/add-cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ productId }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      Swal.fire({
+        title: 'Success',
+        text: 'Product added to cart successfully!',
+        icon: 'success',
+        confirmButtonText: 'OK',
+      });
+    } else {
+      Swal.fire({
+        title: 'Error',
+        text: data.error || 'An error occurred while adding the product to cart.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  } catch (error) {
+    Swal.fire({
+      title: 'Error',
+      text: 'An error occurred while adding the product to cart.',
+      icon: 'error',
+      confirmButtonText: 'OK',
+    });
+  }
+}
+   
+</script>
+  
 
 <%- include('../partials/footercopy') %> <%- include('../partials/footer') %>

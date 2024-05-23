@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const Category = require("../models/categoryModel")
 const Product = require("../models/productModel")
+const Cart = require("../models/cartModel")
 
 const bcrypt = require('bcrypt');
 const nodemailer = require("nodemailer");
@@ -380,6 +381,44 @@ const deleteAddress = async (req,res) =>{
     }
   };
 
+
+  const addtoCart = async (req,res) =>{
+    try {
+        const productId = req.body.productId;
+        const userId = req.session.userData;
+        let cart = await Cart.findOne({ userId: userId });
+        if (!cart) {
+          cart = new Cart({userId: userId});
+        }
+        const productIndex = cart.product.findIndex(item => item.productId.toString() === productId);
+        if (productIndex) {
+          cart.product.push({ productId: productId, quantity: 1 });
+        } else {
+          cart.product[productIndex].quantity++;
+        }
+        await cart.save();
+        res.status(200).json({ success: true });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Server Error' });
+      }
+    };
+
+
+
+  const loadCart = async (req,res) =>{
+        try {
+            const userId = req.session.userData;
+            const cart = await Cart.findOne({ userId:userId }).populate('product.productId');
+            res.render('cart', { cart,user:userId });
+          } catch (err) {
+            console.error(err);
+            res.status(500).send('Internal Server Error');
+          }
+        };
+        
+
+
 module.exports = {
     loadhome,
     loadsignup,
@@ -397,5 +436,7 @@ module.exports = {
     addAddress,
     updateAddress,
     deleteAddress,
+    loadCart,
+    addtoCart,
     logout
 }
