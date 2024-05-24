@@ -382,28 +382,37 @@ const deleteAddress = async (req,res) =>{
   };
 
 
-  const addtoCart = async (req,res) =>{
+  const addtoCart = async (req, res) => {
     try {
-        const productId = req.body.productId;
-        const userId = req.session.userData;
-        let cart = await Cart.findOne({ userId: userId });
-        if (!cart) {
-          cart = new Cart({userId: userId});
-        }
-        const productIndex = cart.product.findIndex(item => item.productId.toString() === productId);
-        if (productIndex) {
-          cart.product.push({ productId: productId, quantity: 1 });
-        } else {
-          cart.product[productIndex].quantity++;
-        }
-        await cart.save();
-        res.status(200).json({ success: true });
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: 'Server Error' });
+      const productId = req.body.productId;
+      const userId = req.session.userData;
+  
+      let cart = await Cart.findOne({ userId: userId });
+  
+      if (!cart) {
+        cart = new Cart({ userId: userId });
       }
-    };
-
+  
+      const productIndex = cart.product.findIndex(
+        (item) => item.productId.toString() === productId
+      );
+  
+      if (productIndex === -1) {
+        cart.product.push({ productId: productId, quantity: 1 });
+      } else {
+        // Product is already in the cart
+        res.status(200).json({ success: false, error: 'Product already in cart' });
+        return;
+      }
+  
+      await cart.save();
+  
+      res.status(200).json({ success: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, error: 'Server Error' });
+    }
+  };
 
 
   const loadCart = async (req,res) =>{
@@ -418,6 +427,26 @@ const deleteAddress = async (req,res) =>{
         };
         
 
+  const updateQuantity = async (req,res) =>{
+    const { cartId, productId, quantity } = req.body;
+
+  try {
+    const cart = await Cart.findById(cartId);
+    const productIndex = cart.product.findIndex(item => item.productId.toString() === productId);
+
+    if (productIndex !== -1) {
+      cart.product[productIndex].quantity = quantity;
+      await cart.save();
+
+      res.status(200).json({ message: 'Quantity updated successfully',quantity });
+    } else {
+      res.status(404).json({ error: 'Product not found in cart' });
+    }
+  } catch (error) {
+    console.error('Error updating quantity:', error);
+    res.status(500).json({ error: 'Failed to update quantity' });
+  }
+};
 
 module.exports = {
     loadhome,
@@ -438,5 +467,6 @@ module.exports = {
     deleteAddress,
     loadCart,
     addtoCart,
+    updateQuantity ,
     logout
 }

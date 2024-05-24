@@ -36,6 +36,7 @@ userroute.post('/delete-address',userController.deleteAddress)
 
 userroute.get('/cart',userController.loadCart);
 userroute.post('/add-cart',userController.addtoCart)
+userroute.post('/update-quantity',userController.updateQuantity)
 
 
 

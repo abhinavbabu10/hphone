@@ -28,33 +28,42 @@
                                         <th scope="col">Remove</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                     <% cart.product.forEach(item => { %>
-                                          <tr>
+                                <% if (cart && cart.product && cart.product.length > 0) { %>
+                                    <% cart.product.forEach(item => { %>
+                                        <tr>
                                             <td class="image product-thumbnail">
                                                 <img src="/Productimages/<%= item.productId.media?.[0] || '/path/to/default/image.jpg' %>" alt="<%= item.productId.name && item.productId.name || 'Product Image' %>">
-                                              </td>
+                                            </td>
                                             <td class="product-des product-name">
-                                              <h5 class="product-name"><a href="/product/<%= item.productId._id %>"><%= item.productId.name %></a></h5>
-                                              <p class="font-xs"><%= item.productId.description.substring(0, 50) %>...</p>
+                                                <h5 class="product-name"><a href="/product/<%= item.productId._id %>"><%= item.productId.name %></a></h5>
+                                                <p class="font-xs"><%= item.productId.description.substring(0, 50) %>...</p>
                                             </td>
                                             <td class="price" data-title="Price"><span>$<%= item.productId.price.toFixed(2) %></span></td>
                                             <td class="text-center" data-title="Stock">
-                                              <div class="detail-qty border radius m-auto">
-                                                <a href="#" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
-                                                <span class="qty-val"><%= item.quantity %></span>
-                                                <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
-                                              </div>
-                                            </td>
+                                                <div class="detail-qty border radius m-auto">
+                                                  <button class="qty-up" data-max-stock="<%= item.productId.stock %>" data-product-id="<%= item.productId._id %>" data-cart-id="<%= cart._id %>">
+                                                    <i class="fi-rs-angle-small-up"></i>
+                                                  </button>
+                                                  <span class="qty-val" data-product-id="<%= item.productId._id %>"><%= item.quantity %></span>
+                                                  <button class="qty-down" data-max-stock="<%= item.productId.stock %>" data-product-id="<%= item.productId._id %>" data-cart-id="<%= cart._id %>">
+                                                    <i class="fi-rs-angle-small-down"></i>
+                                                  </button>
+                                                </div>
+                                              </td>
                                             <td class="text-right" data-title="Cart">
-                                              <span>$<%= (item.productId.price * item.quantity).toFixed(2) %></span>
+                                                <span>$<%= (item.productId.price * item.quantity).toFixed(2) %></span>
                                             </td>
                                             <td class="action" data-title="Remove">
-                                              <a href="#" class="text-muted"><i class="fi-rs-trash"></i></a>
+                                                <a href="#" class="text-muted"><i class="fi-rs-trash"></i></a>
                                             </td>
-                                          </tr>
-                                        <% }) %>                                 
-                                </tbody>
+                                        </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="6" class="text-center">Your cart is empty.</td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
                             </table>
                         </div>
                         <div class="cart-action text-end">
@@ -390,6 +399,79 @@
             </div>
         </section>
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
+
+  
+  <script>
+  const qtyUpButtons = document.querySelectorAll('.qty-up');
+  const qtyDownButtons = document.querySelectorAll('.qty-down');
+
+  qtyUpButtons.forEach(button => {
+    const maxStock = parseInt(button.dataset.maxStock);
+    const productId = button.dataset.productId;
+    const cartId = button.dataset.cartId;
+    const qtyVal = button.parentNode.querySelector('.qty-val');
+
+    button.addEventListener('click', async () => {
+      let currentQty = parseInt(qtyVal.textContent)+1;
+      if(currentQty>10){
+        Swal.fire('Maximum quantity reached', `You can only Buy 10 products`, 'warning');
+      }else if(currentQty > maxStock){
+        Swal.fire('Out of stock', `The maximum quantity for this item is ${maxStock}`, 'warning');
+      }else{
+        await updateQuantity(cartId, productId, currentQty);
+      }
+    });
+  });
+
+  qtyDownButtons.forEach(button => {
+    const productId = button.dataset.productId;
+    const cartId = button.dataset.cartId;
+    const qtyVal = button.parentNode.querySelector('.qty-val');
+    const qtyUpButton = button.parentNode.querySelector('.qty-up');
+
+    button.addEventListener('click', async () => {
+      let currentQty = parseInt(qtyVal.textContent);
+
+      if (currentQty > 1) {
+        await updateQuantity(cartId, productId, currentQty - 1);
+        if (qtyUpButton.disabled) {
+          qtyUpButton.disabled = false;
+        }
+      }
+    });
+  });
+
+  async function updateQuantity(cartId, productId, quantity) {
+    try {
+      const response = await fetch('/update-quantity', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cartId, productId, quantity }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Response Data:", data);
+
+      if (data.message === 'Quantity updated successfully') {
+        const qtyValElement = document.querySelector(`.qty-val[data-product-id="${productId}"]`);
+        qtyValElement.innerText = data.quantity;
+      } else {
+        console.error('Error updating quantity:', data.error);
+      }
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+    }
+  }
+</script>
+
     
 <%- include('../partials/footercopy') %>
 <%- include('../partials/footer') %>
