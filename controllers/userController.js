@@ -178,7 +178,7 @@ const verifyOTP = async (req, res) => {
             await newUser.save();
             res.redirect('/login');
         } else {
-            res.json({ error: 'Incorrect OTP' });
+            res.render('otp', { errorMessage: 'Incorrect OTP' });
         }
     } catch (error) {
         console.error(error);
