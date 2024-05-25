@@ -16,27 +16,31 @@ const loadCategory = async (req, res) => {
 const addCategory = async (req, res) => {
   try {
     const { name } = req.body;
-    const category = await Category.trim().find({ deleted: false }).sort({createdOn:-1})
+    const trimmedName = name.trim().toLowerCase(); // Trim and convert to lowercase
+    const category = await Category.find({ deleted: false }).sort({ createdOn: -1 });
+
     const existingCategory = await Category.findOne({
-      name: { $regex: new RegExp(`^${name}$`, 'i') },
+      name: { $regex: new RegExp(`^${trimmedName}$`, 'i') },
       deleted: false
     });
-    
+
     if (existingCategory) {
-      return res.render("category", { message: 'Category already exists', category })
+      return res.render("category", { message: 'Category already exists', category });
     } else {
       const newCategory = new Category({
-        name: name,
+        name: trimmedName,
         createdOn: new Date(),
       });
-  
+
       await newCategory.save();
-      res.redirect("/admin/category")
+      res.redirect("/admin/category");
     }
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while creating the category' });
   }
 };
+
+
 
 const editCategory = async (req, res) => {
   try {
