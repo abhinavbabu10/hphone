@@ -448,6 +448,28 @@ const deleteAddress = async (req,res) =>{
   }
 };
 
+const removeQuantity = async (req, res) => {
+    const { cartId, productId } = req.body;
+
+    try {
+        const cart = await Cart.findById(cartId);
+        const productIndex = cart.product.findIndex(item => item.productId.toString() === productId);
+
+        if (productIndex !== -1) {
+            cart.product.splice(productIndex, 1);
+            await cart.save();
+
+            res.status(200).json({ message: 'Product removed successfully' });
+        } else {
+            res.status(404).json({ error: 'Product not found in cart' });
+        }
+    } catch (error) {
+        console.error('Error removing product:', error);
+        res.status(500).json({ error: 'Failed to remove product' });
+    }
+};
+
+
 module.exports = {
     loadhome,
     loadsignup,
@@ -468,5 +490,6 @@ module.exports = {
     loadCart,
     addtoCart,
     updateQuantity ,
+    removeQuantity ,
     logout
 }
