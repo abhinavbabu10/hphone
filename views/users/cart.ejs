@@ -395,7 +395,9 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <a href="/checkout" class="btn "> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
+                                    <a href="" id="checkoutButton" class="btn">
+                                        <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut
+                                      </a>
                                 </div>
                             </div>
                         </div>
@@ -625,7 +627,64 @@
     }
     </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkoutButton = document.getElementById('checkoutButton');
     
+        checkoutButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+    
+            try {
+                const response = await checkQuantity();
+                
+                if (response.message === 'Cart processed successfully') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Stock Available',
+                        text: 'All items are in stock. Proceeding to checkout...',
+                        didClose: () => {
+                            window.location.href = '/checkout';
+                        }
+                    });
+                } else if (response.message === 'Cart is empty or not found') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Empty Cart',
+                        text: 'Your cart is empty or not found.'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Stock Updated',
+                        text: 'Some items in your cart were out of stock. The quantities have been updated.'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'There was an error checking the stock. Please try again later.'
+                });
+            }
+        });
+    
+        async function checkQuantity() {
+            const response = await fetch('/checkout-quantity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            return response.json();
+        }
+    });
+    </script>
+  
     
     
 <%- include('../partials/footercopy') %>

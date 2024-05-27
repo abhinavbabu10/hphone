@@ -469,6 +469,34 @@ const removeQuantity = async (req, res) => {
     }
 };
 
+
+const checkOutQuantity= async (req,res) =>{
+    try {
+        const userId = req.session.userData;
+        const cart = await Cart.findOne({ userId: userId }).populate('product.productId');
+    
+        if (!cart || cart.product.length === 0) {
+            return res.status(404).json({ message: 'Cart is empty or not found' });
+        }
+    
+        for (const cartProduct of cart.product) {
+            const product = cartProduct.productId;
+            const cartQuantity = cartProduct.quantity;
+    
+            if (cartQuantity > product.stock) {
+                cartProduct.quantity = product.stock;
+            }
+        }
+        await cart.save();
+        res.status(200).json({ message: 'Cart processed successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+
 const checkOut = async (req, res) =>{
     try {
         const userId = req.session.userData;
@@ -533,5 +561,6 @@ module.exports = {
     removeQuantity ,
     checkOut,
     addAddressCheckOut ,
+    checkOutQuantity,
     logout
 }

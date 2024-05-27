@@ -38,7 +38,7 @@ userroute.get('/cart',userController.loadCart);
 userroute.post('/add-cart',userController.addtoCart)
 userroute.post('/update-quantity',userController.updateQuantity)
 userroute.post('/remove-quantity',userController.removeQuantity)
-
+userroute.post('/checkout-quantity',userController.checkOutQuantity)
 
 userroute.get('/checkout', userController.checkOut)
 userroute.post('/add-addresscheckout',userController.addAddressCheckOut)
