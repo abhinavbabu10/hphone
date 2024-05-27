@@ -382,7 +382,7 @@
                                             <tbody>
                                                 <tr>
                                                     <td class="cart_total_label">Cart Subtotal</td>
-                                                    <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">$240.00</span></td>
+                                                    <td class="cart_total_amount"><span id="cart-subtotal" class="font-lg fw-900 text-brand"></span></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="cart_total_label">Shipping</td>
@@ -390,12 +390,12 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="cart_total_label">Total</td>
-                                                    <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">$240.00</span></strong></td>
+                                                    <td class="cart_total_amount"><strong><span id="cart-total" class="font-xl fw-900 text-brand"></span></strong></td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
-                                    <a href="#" class="btn "> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
+                                    <a href="/checkout" class="btn "> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
                                 </div>
                             </div>
                         </div>
@@ -406,7 +406,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
-
+<!-- 
     <script>
         const qtyUpButtons = document.querySelectorAll('.qty-up');
         const qtyDownButtons = document.querySelectorAll('.qty-down');
@@ -482,8 +482,103 @@
             console.error('Error updating quantity:', error);
           }
         }
-      </script>
+      </script> -->
       
+      <script>
+        const qtyUpButtons = document.querySelectorAll('.qty-up');
+        const qtyDownButtons = document.querySelectorAll('.qty-down');
+    
+        qtyUpButtons.forEach(button => {
+            const maxStock = parseInt(button.dataset.maxStock);
+            const productId = button.dataset.productId;
+            const cartId = button.dataset.cartId;
+            const qtyVal = button.parentNode.querySelector('.qty-val');
+    
+            button.addEventListener('click', async () => {
+                let currentQty = parseInt(qtyVal.textContent) + 1;
+                if (currentQty > 10) {
+                    Swal.fire('Maximum quantity reached', 'You can only buy 10 products', 'warning');
+                } else if (currentQty > maxStock) {
+                    Swal.fire('Out of stock', `The maximum quantity for this item is ${maxStock}`, 'warning');
+                } else {
+                    await updateQuantity(cartId, productId, currentQty);
+                }
+            });
+        });
+    
+        qtyDownButtons.forEach(button => {
+            const productId = button.dataset.productId;
+            const cartId = button.dataset.cartId;
+            const qtyVal = button.parentNode.querySelector('.qty-val');
+            const qtyUpButton = button.parentNode.querySelector('.qty-up');
+    
+            button.addEventListener('click', async () => {
+                let currentQty = parseInt(qtyVal.textContent);
+    
+                if (currentQty > 1) {
+                    await updateQuantity(cartId, productId, currentQty - 1);
+                    if (qtyUpButton.disabled) {
+                        qtyUpButton.disabled = false;
+                    }
+                }
+            });
+        });
+    
+        async function updateQuantity(cartId, productId, quantity) {
+            try {
+                const response = await fetch('/update-quantity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ cartId, productId, quantity }),
+                });
+    
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+    
+                const data = await response.json();
+                console.log("Response Data:", data);
+    
+                if (data.message === 'Quantity updated successfully') {
+                    const qtyValElement = document.querySelector(`.qty-val[data-product-id="${productId}"]`);
+                    qtyValElement.innerText = data.quantity;
+    
+                    const priceElement = document.querySelector(`.price-val[data-product-id="${productId}"]`);
+                    const totalPriceElement = document.querySelector(`.total-price[data-product-id="${productId}"]`);
+    
+                    const price = parseFloat(priceElement.dataset.price);
+                    const total = price * data.quantity;
+    
+                    totalPriceElement.innerText = `$${total.toFixed(2)}`;
+    
+                    updateCartSubtotal();
+                } else {
+                    console.error('Error updating quantity:', data.error);
+                }
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+            }
+        }
+    
+        function updateCartSubtotal() {
+            let subtotal = 0;
+            const totalPriceElements = document.querySelectorAll('.total-price');
+    
+            totalPriceElements.forEach(element => {
+                const totalPrice = parseFloat(element.innerText.replace('$', ''));
+                subtotal += totalPrice;
+            });
+    
+            const subtotalElement = document.getElementById('cart-subtotal');
+            const totalElement = document.getElementById('cart-total');
+    
+            subtotalElement.innerText = `$${subtotal.toFixed(2)}`;
+            totalElement.innerText = `$${subtotal.toFixed(2)}`;
+        }
+    </script>
+    
       
       
 
@@ -529,6 +624,8 @@
         });
     }
     </script>
+
+    
     
     
 <%- include('../partials/footercopy') %>

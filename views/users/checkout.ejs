@@ -1,0 +1,328 @@
+<%- include('../partials/header') %>
+<%- include('../partials/headercopy') %>
+
+<style>
+    .error-message {
+      color: #dc3545;
+      font-size: 14px; 
+      margin-top: 5px; 
+    }
+    </style>
+
+
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addAddressModalLabel">Add Address</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addAddressForm">
+            <div class="mb-3">
+              <label for="addHouseName" class="form-label">House Name</label>
+              <input type="text" class="form-control" id="addHouseName">
+              <div id="houseNameError" class="error-message text-danger"></div>
+            </div>
+            <div class="mb-3">
+              <label for="addStreet" class="form-label">Street</label>
+              <input type="text" class="form-control" id="addStreet">
+              <div id="streetError" class="error-message text-danger"></div>
+            </div>
+            <div class="mb-3">
+              <label for="addCity" class="form-label">City</label>
+              <input type="text" class="form-control" id="addCity">
+              <div id="cityError" class="error-message text-danger"></div>
+            </div>
+            <div class="mb-3">
+              <label for="addState" class="form-label">State</label>
+              <input type="text" class="form-control" id="addState">
+              <div id="stateError" class="error-message text-danger"></div>
+            </div>
+            <div class="mb-3">
+              <label for="addCountry" class="form-label">Country</label>
+              <input type="text" class="form-control" id="addCountry">
+              <div id="countryError" class="error-message text-danger"></div>
+            </div>
+            <div class="mb-3">
+              <label for="addPostalCode" class="form-label">Postal Code</label>
+              <input type="text" class="form-control" id="addPostalCode">
+              <div id="postalCodeError" class="error-message text-danger"></div>
+            </div>
+            <div class="mb-3">
+              <label for="addPhoneNumber" class="form-label">Phone Number</label>
+              <input type="text" class="form-control" id="addPhoneNumber">
+              <div id="phoneNoError" class="error-message text-danger"></div>
+            </div>
+            <div class="mb-3">
+              <label for="addType" class="form-label">Address Type</label>
+              <select class="form-control" id="addType">
+                <option value="">Select Address Type</option>
+                <option value="Office">Office</option>
+                <option value="Home">Home</option>
+                <option value="Other">Other</option>
+              </select>
+              <div id="addressTypeError" class="error-message text-danger"></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="saveNewAddress()">Add Address</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+ <main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html" rel="nofollow">Home</a>
+                <span></span> Shop
+                <span></span> Checkout
+            </div>
+        </div>
+    </div>
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 mb-sm-15">  
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-25">
+                        <h4>Address Details</h4>
+                    </div>
+                        <button type="button"  id="address" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">Add Address</button>
+                        <% if (user.address.length) { %>
+                          <% user.address.forEach(function(add) { %>
+                            <div class="col-lg-4 mt-15">
+                              <div class="card mb-3 mb-lg-0">
+                                <div class="card-header">
+                                  <h5 class="mb-0"><%= add.type %> Address</h5>
+                                </div>
+                                <div class="card-body">
+                                  <address>
+                                    <%= add.houseName %><br>
+                                    <%= add.street %>,<br>
+                                    <%= add.city %>,<%= add.postalCode %> <br>
+                                    <%= add.phoneNumber %><br>
+                                    <%= add.state %>
+                                  </address>
+                                  <p><%= add.country %></p>
+                                  <!-- Edit button in address card -->
+                                  <!-- <a type="button" class="btn-small" data-bs-toggle="modal" data-bs-target="#editAddressModal" onclick="populateEditForm('<%= add._id %>', '<%= add.houseName %>', '<%= add.street %>', '<%= add.city %>', '<%= add.state %>', '<%= add.country %>', '<%= add.postalCode %>', '<%= add.phoneNumber %>', '<%= add.type %>')">Edit</a>
+                                  <a type="button" class="btn-small ml-15" onclick="confirmDelete('<%= add._id %>')">Delete</a> -->
+                                </div>
+                              </div>
+                            </div>
+                          <% }); %>
+                        <% } else { %>
+                          <p>No addresses found.</p>
+                        <% } %>
+                </div>
+               
+                    <div class="col-md-6">
+                        <div class="order_review ml-15">
+                            <div class="mb-20">
+                                <div class="text-center">
+                                <h4>Your Orders</h4>
+                            </div>
+                            </div>
+                            <div class="table-responsive order_table text-center">
+                                <table class="table mt-5">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="2">Product</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% if (cart && cart.product && cart.product.length > 0) { %>
+                                            <% cart.product.forEach(item => { %>
+                                                <tr>
+                                                    <td class="image product-thumbnail">
+                                                        <img src="/Productimages/<%= item.productId.media?.[0] || '/path/to/default/image.jpg' %>" alt="<%= item.productId.name %>">
+                                                    </td>
+                                                    <td>
+                                                        <h5><a href="/product/<%= item.productId._id %>"><%= item.productId.name %></a></h5> 
+                                                        <span class="product-qty">x <%= item.quantity %></span>
+                                                    </td>
+                                                    <td>$<%= (item.productId.price * item.quantity).toFixed(2) %></td>
+                                                </tr>
+                                            <% }) %>
+                                            <tr>
+                                                <th>SubTotal</th>
+                                                <td class="product-subtotal" colspan="2">$<%= cart.product.reduce((acc, item) => acc + item.productId.price * item.quantity, 0).toFixed(2) %></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shipping</th>
+                                                <td colspan="2"><em>Free Shipping</em></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total</th>
+                                                <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">$<%= cart.product.reduce((acc, item) => acc + item.productId.price * item.quantity, 0).toFixed(2) %></span></td>
+                                            </tr>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="3" class="text-center">Your cart is empty.</td>
+                                            </tr>
+                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                            <div class="payment_method">
+                                <div class="mb-25">
+                                    <h5>Payment</h5>
+                                </div>
+                                <div class="payment_option">
+                                    <div class="custome-radio">
+                                        <input class="form-check-input" required="" type="radio" name="payment_option" id="cod" checked="">
+                                        <label class="form-check-label" for="cod" data-bs-toggle="collapse" data-target="#codOption" aria-controls="codOption">Cash on Delivery</label>
+                                        <div class="form-group collapse in" id="codOption">
+                                            <p class="text-muted mt-5">Pay with cash upon delivery.</p>
+                                        </div>
+                                    </div>
+                                    <div class="custome-radio">
+                                        <input class="form-check-input" required="" type="radio" name="payment_option" id="wallet">
+                                        <label class="form-check-label" for="wallet" data-bs-toggle="collapse" data-target="#walletOption" aria-controls="walletOption">Wallet</label>
+                                        <div class="form-group collapse" id="walletOption">
+                                            <p class="text-muted mt-5">Pay using your wallet balance.</p>
+                                        </div>
+                                    </div>
+                                    <div class="custome-radio">
+                                        <input class="form-check-input" required="" type="radio" name="payment_option" id="razorpay">
+                                        <label class="form-check-label" for="razorpay" data-bs-toggle="collapse" data-target="#razorpayOption" aria-controls="razorpayOption">Razorpay</label>
+                                        <div class="form-group collapse" id="razorpayOption">
+                                            <p class="text-muted mt-5">Pay securely using Razorpay.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <a href="#" class="btn btn-fill-out btn-block mt-30" >Place Order</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </section>
+ </main>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+    <script>
+        function saveNewAddress() {
+          document.querySelectorAll('.error-message').forEach(elem => elem.textContent = '');
+      
+          const houseName = document.getElementById('addHouseName').value.trim();
+          const street = document.getElementById('addStreet').value.trim();
+          const city = document.getElementById('addCity').value.trim();
+          const state = document.getElementById('addState').value.trim();
+          const country = document.getElementById('addCountry').value.trim();
+          const postalCode = document.getElementById('addPostalCode').value.trim();
+          const phoneNumber = document.getElementById('addPhoneNumber').value.trim();
+          const addressType = document.getElementById('addType').value;
+      
+          let isValid = true;
+          if (houseName === '') {
+              document.getElementById('houseNameError').textContent = 'House Name is required';
+              isValid = false;
+          }
+      
+          if (street === '') {
+              document.getElementById('streetError').textContent = 'Street is required';
+              isValid = false;
+          }
+      
+          if (city === '') {
+              document.getElementById('cityError').textContent = 'City is required';
+              isValid = false;
+          }
+      
+          if (state === '') {
+              document.getElementById('stateError').textContent = 'State is required';
+              isValid = false;
+          }
+      
+          if (country === '') {
+              document.getElementById('countryError').textContent = 'Country is required';
+              isValid = false;
+          }
+          if (!/^\d{6}$/.test(postalCode)) {
+              document.getElementById('postalCodeError').textContent = 'Postal Code should contain 6 digits';
+              isValid = false;
+          }
+          if (!/^\d{10}$/.test(phoneNumber)) {
+              document.getElementById('phoneNoError').textContent = 'Phone Number should contain 10 digits';
+              isValid = false;
+          }
+          if (addressType === '') {
+              document.getElementById('addressTypeError').textContent = 'Please select Address Type';
+              isValid = false;
+          }
+      
+          if (isValid) {
+              const data = {
+                  houseName,
+                  street,
+                  city,
+                  state,
+                  country,
+                  postalCode,
+                  phoneNumber,
+                  addressType
+              };
+              fetch('/add-addresscheckout', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(data)
+              })
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('Network response was not ok');
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  if(data.success){
+                      Swal.fire({
+                          icon: 'success',
+                          title: 'Address Added Successfully',
+                          showConfirmButton: false,
+                          timer: 1500
+                      }).then(() => {
+                          $('#addAddressModal').modal('hide');
+                          document.getElementById('addAddressForm').reset();
+                          location.reload();
+                      });
+                  } else {
+                      Swal.fire({
+                          icon: 'error',
+                          title: 'Adding Address failed',
+                          text: data.message || 'Unknown error occurred'
+                      }).then(() => {
+                          $('#addAddressModal').modal('hide');
+                          document.getElementById('addAddressForm').reset();
+                          location.reload();
+                      });
+                  }
+              })
+              .catch(error => {
+                  console.error('There was a problem with the fetch operation:', error);
+              });
+          }
+        }
+      </script>
+      
+   
+<%- include('../partials/footercopy') %>
+<%- include('../partials/footer') %>

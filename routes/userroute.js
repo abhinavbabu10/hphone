@@ -40,6 +40,10 @@ userroute.post('/update-quantity',userController.updateQuantity)
 userroute.post('/remove-quantity',userController.removeQuantity)
 
 
+userroute.get('/checkout', userController.checkOut)
+userroute.post('/add-addresscheckout',userController.addAddressCheckOut)
+
+
 
 
 

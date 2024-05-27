@@ -469,6 +469,46 @@ const removeQuantity = async (req, res) => {
     }
 };
 
+const checkOut = async (req, res) =>{
+    try {
+        const userId = req.session.userData;
+        const user = await User.findById(userId)
+        const cart = await Cart.findOne({ userId:userId }).populate('product.productId');
+        res.render('checkout', { cart,user });
+      } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      }
+    };
+
+    const addAddressCheckOut = async (req,res) =>{
+        try {
+            const userId = req.session.userData;
+            const {houseName, street, city, state, country, postalCode, phoneNumber, addressType } = req.body;
+            const user = await User.findById(userId);
+            if (!user) {
+              return res.status(404).json({ success: false, message: 'User not found' });
+            }
+            const newAddress = {
+              houseName,
+              street,
+              city,
+              state,
+              country,
+              postalCode,
+              phoneNumber,
+              type: addressType
+            };
+            user.address.push(newAddress);
+            await user.save();
+            res.status(200).json({ success: true, message: 'Address added successfully' });
+          } catch (error) {
+            console.error('Error adding address:', error);
+            res.status(500).json({ success: false, message: 'Internal server error' });
+          }
+
+
+    }
 
 module.exports = {
     loadhome,
@@ -491,5 +531,7 @@ module.exports = {
     addtoCart,
     updateQuantity ,
     removeQuantity ,
+    checkOut,
+    addAddressCheckOut ,
     logout
 }
