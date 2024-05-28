@@ -2,6 +2,7 @@ const User = require('../models/userModel');
 const Category = require("../models/categoryModel")
 const Product = require("../models/productModel")
 const Cart = require("../models/cartModel")
+const Order = require("../models/orderModel")
 
 const bcrypt = require('bcrypt');
 const nodemailer = require("nodemailer");
@@ -254,7 +255,11 @@ const loadProfile = async(req,res) =>{
     try {
         const userId = req.session.userData
         const user = await User.findById(userId)
-        res.render('profile',{user})
+        const product = await Product.find({ isUnlisted: false })
+        const order = await Order.find({user:userId})
+        // const cart = await Cart.findOne({ userId:userId }).populate('product.productId');
+       res.render('profile',{user,order,product:product})
+       
     } catch (error) {
         console.log(error)
     }
@@ -538,6 +543,34 @@ const checkOut = async (req, res) =>{
 
     }
 
+    const confirmQuantity = async (req, res) => {
+        try{
+            const userId = req.session.userData;
+            const cart = await Cart.findOne({ userId:userId }).populate('product.productId');
+    
+            for(const item of cart.product){
+                const product= await Product.findById(item.productId);
+                if(!product){
+                    return res.json({success:false,message:"product not found"})
+                }
+                if (item.quantity <= 0 || item.quantity>product.stock){
+                    return res.json({success:false,message:"Quantity is invalid or out of stock"})
+                }
+    
+                
+            }
+            return res.json({success:true}) 
+    
+        }catch(error){
+            console.log(error.message);
+            return res.status(500).json({ success: false, message: 'Internal server error' });
+        }
+    }
+    
+    
+    
+      
+
 module.exports = {
     loadhome,
     loadsignup,
@@ -562,5 +595,6 @@ module.exports = {
     checkOut,
     addAddressCheckOut ,
     checkOutQuantity,
+    confirmQuantity,
     logout
 }

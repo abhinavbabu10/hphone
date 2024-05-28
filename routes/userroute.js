@@ -8,6 +8,7 @@ userroute.set("view engine", "ejs");
 userroute.set('views', './views/users');
 
 const userController = require("../controllers/userController");
+const orderController = require("../controllers/orderController")
 
 userroute.get('/',auth.isLogin,userController.loadhome);
 
@@ -39,9 +40,12 @@ userroute.post('/add-cart',userController.addtoCart)
 userroute.post('/update-quantity',userController.updateQuantity)
 userroute.post('/remove-quantity',userController.removeQuantity)
 userroute.post('/checkout-quantity',userController.checkOutQuantity)
+userroute.post('/confirm-quantity',userController.confirmQuantity)
 
 userroute.get('/checkout', userController.checkOut)
 userroute.post('/add-addresscheckout',userController.addAddressCheckOut)
+
+userroute.post('/placeorder',orderController.placeOrder)
 
 
 
