@@ -214,16 +214,16 @@ const verifyLogin = async (req, res) => {
         const user = req.session.userData;
         const userdata = await User.findOne({ email: email });
         if(userdata.is_admin ===1){
-            res.render('login', { message:"admin" ,user:''});
+           return res.render('login', { message:"admin" ,user:''});
         }
         if (userdata) {
             const passwordMatch = await bcrypt.compare(password, userdata.password);
             if (passwordMatch) {
                 if (userdata.is_verified) {
-                    res.render('login', { message: "user id blocked" ,user:''});
+                    return res.render('login', { message: "user id blocked" ,user:''});
                 } else {
                     req.session.userData = userdata.id;
-                    res.redirect('/');
+                   return res.redirect('/');
                 }
             } else {
                 res.render('login', { message: "Email and password are incorrect",user:'' });
@@ -257,7 +257,6 @@ const loadProfile = async(req,res) =>{
         const user = await User.findById(userId)
         const product = await Product.find({ isUnlisted: false })
         const order = await Order.find({user:userId})
-        // const cart = await Cart.findOne({ userId:userId }).populate('product.productId');
        res.render('profile',{user,order,product:product})
        
     } catch (error) {
@@ -391,9 +390,7 @@ const deleteAddress = async (req,res) =>{
     try {
       const productId = req.body.productId;
       const userId = req.session.userData;
-  
       let cart = await Cart.findOne({ userId: userId });
-  
       if (!cart) {
         cart = new Cart({ userId: userId });
       }
@@ -429,7 +426,7 @@ const deleteAddress = async (req,res) =>{
             console.error(err);
             res.status(500).send('Internal Server Error');
           }
-        };
+  };
         
 
   const updateQuantity = async (req,res) =>{

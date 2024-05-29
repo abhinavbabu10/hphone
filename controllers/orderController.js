@@ -78,7 +78,34 @@ const placeOrder = async (req, res) => {
   }
 };
 
+const loadOrderView = async (req, res) =>{
+ 
+  try {
+    const userId = req.session.userData
+    const {id} = req.query
+    const user = await User.findById(userId)
+    const product = await Product.find({ isUnlisted: false })
+    const order = await Order.findById(id)
+   res.render('orderview',{user,order,product:product})
+   
+} catch (error) {
+    console.log(error)
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = {
   placeOrder,
+  loadOrderView 
 };

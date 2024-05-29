@@ -10,7 +10,7 @@ userroute.set('views', './views/users');
 const userController = require("../controllers/userController");
 const orderController = require("../controllers/orderController")
 
-userroute.get('/',auth.isLogin,userController.loadhome);
+userroute.get('/',userController.loadhome);
 
 userroute.get('/signup',auth.isLogout,userController.loadsignup);
 userroute.post('/signup',userController.insertUser);
@@ -23,7 +23,7 @@ userroute.post('/otp',userController.verifyOTP)
 userroute.post('/resendOTP',userController.resendOTP)
 
 
-userroute.get('/shop',userController.loadShop)
+userroute.get('/shop',auth.isLogin,userController.loadShop)
 userroute.get('/shop-detail',userController.loadShopdetail)
 userroute.get('/logout', userController.logout)
 
@@ -35,7 +35,7 @@ userroute.post('/add-address',userController.addAddress)
 userroute.post('/edit-address',userController.updateAddress)
 userroute.post('/delete-address',userController.deleteAddress)
 
-userroute.get('/cart',userController.loadCart);
+userroute.get('/cart',auth.isLogin,userController.loadCart);
 userroute.post('/add-cart',userController.addtoCart)
 userroute.post('/update-quantity',userController.updateQuantity)
 userroute.post('/remove-quantity',userController.removeQuantity)
@@ -46,7 +46,7 @@ userroute.get('/checkout', userController.checkOut)
 userroute.post('/add-addresscheckout',userController.addAddressCheckOut)
 
 userroute.post('/placeorder',orderController.placeOrder)
-
+userroute.get('/orderview',orderController.loadOrderView)
 
 
 

@@ -133,11 +133,15 @@
                   </div>
           
                   <div class="product-action-1 show">
-                    <!-- <a aria-label="Add To Cart" class="action-btn hover-up" href="#" id="addToCartBtn" onclick="addToCart()"><i class="fi-rs-shopping-bag-add"></i></a> -->
+                  <% if(user) { %>
                     <button class="add-to-cart-button" data-id="<%= product.id %>" onclick="addToCart('<%= product.id %>')">
                       <i class="fi-rs-shopping-bag-add"></i>
                     </button>
                     <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                   <%}else {%>
+                   <a class="action-btn hover-up " href="/login"><i class="fi-rs-shopping-bag-add"></i></a> 
+                   <a aria-label="Add To Wishlist" class="action-btn hover-up" href="/login"><i class="fi-rs-heart"></i></a>
+                  <%}%>
                 </div>
                 </div>
               </div>

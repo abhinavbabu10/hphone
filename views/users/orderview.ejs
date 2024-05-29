@@ -1,0 +1,107 @@
+<%- include('../partials/header') %>
+<%- include('../partials/headercopy') %>
+
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        td:last-child {
+            text-align: center;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        a:hover {
+            color: #0056b3;
+        }
+    </style>
+<body>
+    <h1>Order Details</h1>
+    <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Order Date</th>
+            <th>Image</th>
+            <th>Order Status</th>
+            <th>Payment Status</th>
+            <th>Payment Method</th>
+            <th>Product Price</th>
+            <th>Quantity</th>
+            <th>Total Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+            <% if (order.items && order.items.length > 0) { %>
+            <% order.items.forEach(item => { %>
+              <tr>
+                <td><%= new Date(order.orderDate).toDateString() %></td>
+                <td><img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail" style="width: 100px; height: 120px;"></td>
+                <td data-input-id="<%= item._id %>"><%= item.status %></td>
+                <td><%= order.paymentStatus %></td>
+                <td><%= order.paymentMethod %></td>
+                <td>$<%= item.productPrice.toFixed(2) %></td>
+                <td><%= item.quantity %></td>
+                <td>$<%= (item.productPrice * item.quantity).toFixed(2) %></td>
+                <td>
+                  <% if(item.status === "Delivered") { %>
+                    <button class="btn btn-warning btn-sm" onclick="showReturnConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Return</button>
+                  <% } %>
+                  <% if(order.paymentStatus === "Failed") { %>
+                    <button class="btn btn-primary btn-sm" onclick="retryPayment('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Retry</button>
+                  <% } else { %>
+                    <% if(item.status !== "Cancelled") { %>
+                      <% if(item.status === "Pending" || item.status === "Confirmed") { %>
+                        <button class="btn btn-danger btn-sm" onclick="showCancelConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Cancel</button>
+                      <% } else { %>
+                        -
+                      <% } %>
+                    <% } else { %>
+                      <button class="btn btn-secondary btn-sm" data-input-id="<%= item._id %>" disabled>Order Cancelled</button>
+                    <% } %>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="9">No items found in this order.</td>
+                </tr>
+            <% } %>
+        </tbody>
+      </table>
+    
+</body>
+
+
+
+<%- include('../partials/footercopy') %>
+<%- include('../partials/footer') %>
