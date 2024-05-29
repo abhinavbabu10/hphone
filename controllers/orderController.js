@@ -93,6 +93,49 @@ const loadOrderView = async (req, res) =>{
 }
 }
 
+const cancelOrder = async (req, res) => {
+  const { orderId, itemId, cancellationReason } = req.body;
+
+  try {
+      const order = await Order.findById(orderId);
+
+      if (!order) {
+          return res.status(404).json({ message: 'Order not found' });
+      }
+
+      const item = order.items.id(itemId);
+
+      if (!item) {
+          return res.status(404).json({ message: 'Item not found in order' });
+      }
+
+
+      item.status = 'Cancelled';
+      item.cancellationReason = cancellationReason;
+      item.cancellationDate = new Date();
+
+      const product = await Product.findById(item.productId);
+      if (product) {
+          product.stock += item.quantity;
+          await product.save();
+      }
+
+      const allItemsCancelled = order.items.every(item => item.status === 'Cancelled');
+      if (allItemsCancelled) {
+          order.orderStatus = 'Cancelled';
+          order.cancellationReason = cancellationReason;
+      }
+
+      await order.save();
+
+      res.json({ message: 'Order has been cancelled successfully' });
+  } catch (error) {
+      console.error('Error cancelling order:', error);
+      res.status(500).json({ message: 'An error occurred while cancelling the order' });
+  }
+};
+
+
 
 
 
@@ -107,5 +150,6 @@ const loadOrderView = async (req, res) =>{
 
 module.exports = {
   placeOrder,
-  loadOrderView 
+  loadOrderView,
+  cancelOrder 
 };

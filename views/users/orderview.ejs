@@ -82,10 +82,11 @@
                       <% if(item.status === "Pending" || item.status === "Confirmed") { %>
                         <button class="btn btn-danger btn-sm" onclick="showCancelConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Cancel</button>
                       <% } else { %>
-                        -
                       <% } %>
+
                     <% } else { %>
                       <button class="btn btn-secondary btn-sm" data-input-id="<%= item._id %>" disabled>Order Cancelled</button>
+
                     <% } %>
                   <% } %>
                 </td>
@@ -99,7 +100,75 @@
         </tbody>
       </table>
     
+      <!-- <table id="summary-table" style="margin-top: 20px;">
+        <tbody>
+            <% if(order.couponAmount>0) { %>
+                <tr>
+                    <th>Coupon Amount</th>
+                    <td id="couponAmount"><%=order.couponAmount %></td>
+                </tr>
+            <%}%>
+            <tr>
+                <th>Grand Total</th>
+                <td id="grandTotal">$<%= order.billTotal.toFixed(2) %></td>
+            </tr>
+        </tbody>
+    </table> -->
+
+
+
 </body>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function showCancelConfirmation(orderId, itemId) {
+        Swal.fire({
+            title: 'Cancel Order',
+            html: 'Are you sure you want to cancel this order?<br><input type="text" id="cancellationReason" class="swal2-input" placeholder="Enter cancellation reason">',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No, keep it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const cancellationReason = document.getElementById('cancellationReason').value;
+                cancelOrder(orderId, itemId, cancellationReason);
+            }
+        });
+    }
+
+    async function cancelOrder(orderId, itemId, cancellationReason) {
+        try {
+            const response = await fetch('/cancelorder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ orderId, itemId, cancellationReason })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                Swal.fire('Order Cancelled', data.message, 'success');
+
+                document.querySelector(`[data-input-id="${itemId}"]`).textContent = 'Cancelled';
+                const cancelButton = document.querySelector(`button[data-input-id="${itemId}"]`);
+                cancelButton.innerHTML = 'Order Cancelled';
+                cancelButton.disabled = true;
+            location.reload()
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'An error occurred while cancelling the order', 'error');
+        }
+    }
+
+    </script>
+
+
+
 
 
 
