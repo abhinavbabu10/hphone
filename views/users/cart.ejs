@@ -642,14 +642,9 @@
                 const response = await checkQuantity();
                 
                 if (response.message === 'Cart processed successfully') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Stock Available',
-                        text: 'All items are in stock. Proceeding to checkout...',
-                        didClose: () => {
+                  
                             window.location.href = '/checkout';
-                        }
-                    });
+                       
                 } else if (response.message === 'Cart is empty or not found') {
                     Swal.fire({
                         icon: 'error',
