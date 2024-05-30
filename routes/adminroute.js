@@ -4,6 +4,8 @@ const userManagement = require("../controllers/userManagement")
 const adminController = require("../controllers/adminController")
 const categoryController = require("../controllers/categoryController");
 const productController = require("../controllers/productController");
+const orderController = require("../controllers/orderController")
+
 const path=require("path")
 
 const session=require("express-session")
@@ -48,6 +50,9 @@ adminRoute.get("/edit-product/:id",productController.editProduct)
 adminRoute.post("/edit-product/:id",productController.updateProduct)
 adminRoute.post("/delete-product/:id",productController.deleteProduct)
 adminRoute.post("/remove-image/:id",productController.removeImage)
+
+// order
+adminRoute.get("/order", orderController.loadOrder)
 
 
 module.exports=adminRoute

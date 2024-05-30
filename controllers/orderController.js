@@ -136,6 +136,16 @@ const cancelOrder = async (req, res) => {
 };
 
 
+const loadOrder = async (req,res) =>{
+  try {
+    const order = await Order.find()
+    res.render("order",{order})
+  } catch (error) {
+    console.log(error.message)
+  }
+}
+
+
 
 
 
@@ -151,5 +161,6 @@ const cancelOrder = async (req, res) => {
 module.exports = {
   placeOrder,
   loadOrderView,
-  cancelOrder 
+  cancelOrder,
+  loadOrder 
 };
