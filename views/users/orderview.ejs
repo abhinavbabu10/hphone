@@ -165,6 +165,49 @@
         }
     }
 
+    function showReturnConfirmation(orderId, itemId) {
+        Swal.fire({
+            title: 'Return Order',
+            html: 'Are you sure you want to return this order?<br><input type="text" id="returnReason" class="swal2-input" placeholder="Enter rearon for returning">',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, return it!',
+            cancelButtonText: 'No, keep it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const returnReason = document.getElementById('returnReason').value;
+                returnOrder(orderId, itemId, returnReason);
+            }
+        });
+    }
+
+    async function returnOrder(orderId, itemId, returnReason) {
+        try {
+            const response = await fetch('/returnorder', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ orderId, itemId, returnReason })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                Swal.fire('Order Cancelled', data.message, 'success');
+
+                document.querySelector(`[data-input-id="${itemId}"]`).textContent = 'Returned';
+                const cancelButton = document.querySelector(`button[data-input-id="${itemId}"]`);
+                cancelButton.innerHTML = 'Order Returned';
+                cancelButton.disabled = true,
+            (()=>{window.location.reload()})
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'An error occurred while cancelling the order', 'error');
+        }
+    }
+
     </script>
 
 

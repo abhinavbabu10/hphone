@@ -204,6 +204,32 @@ const loadOrderDetails = async(req,res) =>{
 
 }
 
+const returnOrder = async(req,res) =>{
+  try {
+    const { orderId, itemId, returnReason } = req.body;
+    const order = await Order.findById(orderId);
+    if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+    }
+    const item = order.items.id(itemId);
+    if (!item) {
+        return res.status(404).json({ message: 'Item not found in order' });
+    }
+
+    item.status = 'Returned';
+    item.reasonForReturn = returnReason;
+    item.returnDate = new Date();
+
+    await order.save();
+
+    res.status(200).json({ message: 'Order returned successfully' });
+} catch (error) {
+    console.error('Error returning order:', error);
+    res.status(500).json({ message: 'An error occurred while returning the order' });
+}
+
+}
+
 
 
 
@@ -220,5 +246,6 @@ module.exports = {
   cancelOrder,
   loadOrder,
   changeOrderStatus,
-  loadOrderDetails  
+  loadOrderDetails,
+  returnOrder
 };
