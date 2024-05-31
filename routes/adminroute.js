@@ -53,6 +53,8 @@ adminRoute.post("/remove-image/:id",productController.removeImage)
 
 // order
 adminRoute.get("/order", orderController.loadOrder)
+adminRoute.put("/changeStatus", orderController.changeOrderStatus)
+adminRoute.get("/orderdetails", orderController.loadOrderDetails)
 
 
 module.exports=adminRoute

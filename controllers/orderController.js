@@ -138,15 +138,71 @@ const cancelOrder = async (req, res) => {
 
 const loadOrder = async (req,res) =>{
   try {
-    const order = await Order.find()
-    res.render("order",{order})
-  } catch (error) {
-    console.log(error.message)
-  }
+    const page = parseInt(req.query.page) || 1;
+    const perPage=10;
+
+    const totalOrderCount= await Order.countDocuments({});
+    const totalPages = Math.ceil(totalOrderCount / perPage);
+
+    const skip = (page - 1) * perPage;
+    
+    const orders = await Order.find({}).populate('user').skip(skip).limit(perPage);
+    res.render("order", { orders,currentPage: page, totalPages   });
+} catch (error) {
+    console.log(error.message);
+}
 }
 
+const changeOrderStatus = async (req,res) =>{
+  try {
+    const { orderId, orderStatus } = req.body;
+   console.log(orderStatus);
+    
+    const order = await Order.findById(orderId);
 
+    if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+    }
+    order.orderStatus = orderStatus;
 
+  
+    if (orderStatus === "Shipped") {
+        order.items.forEach(item => {
+            item.status = "Shipped";
+        });
+    }
+
+    if (orderStatus === "Delivered") {
+        order.items.forEach(item => {
+            item.status = "Delivered";
+        });
+        if(order.paymentMethod==="COD"){
+            order.paymentStatus="Success"
+        }
+
+    }
+    await order.save();
+
+    res.status(200).json({ message: 'Order status updated successfully', order });
+} catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while updating order status' });
+}
+};
+
+const loadOrderDetails = async(req,res) =>{
+  try{
+    const orderId=req.query.id;
+    const order= await Order.findById(orderId);
+    const userId = req.session.userData
+    const user = await User.findById(userId)
+    res.render("orderdetails",{order,user})
+
+}catch(error){
+    console.log(error.message)
+}
+
+}
 
 
 
@@ -162,5 +218,7 @@ module.exports = {
   placeOrder,
   loadOrderView,
   cancelOrder,
-  loadOrder 
+  loadOrder,
+  changeOrderStatus,
+  loadOrderDetails  
 };
