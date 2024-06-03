@@ -131,6 +131,11 @@
                     <span><%= product.price %></span>
                     <span class="old-price"><%= product.oldPrice %></span>
                   </div>
+                  <div class="product-stock">
+                    <span class="stock-label">Available Stock: </span>
+                    <span class="stock-value"><%= product.stock %></span>
+                  </div>
+                 
           
                   <div class="product-action-1 show">
                   <% if(user) { %>
