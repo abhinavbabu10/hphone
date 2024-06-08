@@ -115,6 +115,8 @@ const insertUser = async (req, res) => {
 
 
 
+
+
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000);
 }
@@ -564,6 +566,18 @@ const checkOut = async (req, res) =>{
         }
     }
     
+    const forgotPassword = async (req,res) =>{
+        
+        try {
+            const userId = req.session.userData
+            const user = await User.findById(userId)
+           res.render('forgotpassword',{user})
+           
+        } catch (error) {
+            console.log(error)
+        }
+
+    }
     
     
       
@@ -582,6 +596,7 @@ module.exports = {
     loadProfile,
     editDetail,
     resetPassword,
+    forgotPassword ,
     addAddress,
     updateAddress,
     deleteAddress,

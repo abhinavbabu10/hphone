@@ -21,6 +21,10 @@ userroute.post('/login', userController.verifyLogin);
 userroute.get('/otp', userController.loadotp);
 userroute.post('/otp',userController.verifyOTP)
 userroute.post('/resendOTP',userController.resendOTP)
+userroute.get('/forgot',userController.forgotPassword)
+userroute.post('/forgot',userController.forgotPassword)
+
+
 
 
 userroute.get('/shop',auth.isLogin,userController.loadShop)

@@ -30,11 +30,14 @@ const blockUnblockuser = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal Server Error' });
       }
 
+      
 };
+
+
 
 
     
 module.exports = {
     loadcustomers,
-    blockUnblockuser 
+    blockUnblockuser
   }
