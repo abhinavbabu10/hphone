@@ -21,9 +21,13 @@ userroute.post('/login', userController.verifyLogin);
 userroute.get('/otp', userController.loadotp);
 userroute.post('/otp',userController.verifyOTP)
 userroute.post('/resendOTP',userController.resendOTP)
-userroute.get('/forgot',userController.forgotPassword)
-userroute.post('/forgot',userController.forgotPassword)
 
+
+userroute.get('/forgot',userController.forgottenPassword)
+userroute.post('/forgot',userController.forgotPassword)
+userroute.post('/test-email',userController.emailChecking)
+userroute.post('/otp-verification',userController.otpVerify)
+userroute.post('/updatePassword',userController.updatePassword)
 
 
 

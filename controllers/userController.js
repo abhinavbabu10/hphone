@@ -565,21 +565,100 @@ const checkOut = async (req, res) =>{
             return res.status(500).json({ success: false, message: 'Internal server error' });
         }
     }
-    
-    const forgotPassword = async (req,res) =>{
-        
+
+    const forgottenPassword = async (req,res) =>{
         try {
-            const userId = req.session.userData
-            const user = await User.findById(userId)
-           res.render('forgotpassword',{user})
-           
+         res.render('forgotpassword')
         } catch (error) {
             console.log(error)
         }
 
     }
     
+    const forgotPassword = async (req, res) => {
+     
+        try {
+            const { email } = req.body;
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ errorMessage: 'User not found' });
+            }
     
+            const otp = generateOTP();
+            req.session.otp = otp
+            const mailOptions = {
+                from: Email,
+                to: email,
+                subject: 'Your OTP for Password Reset',
+                text: `Your OTP for password reset is: ${otp}`
+            };
+    
+            transporter.sendMail(mailOptions, async (error, info) => {
+                if (error) {
+                    console.error(error);
+                    return res.status(500).json({ errorMessage: 'Error sending OTP. Please try again later.' });
+                }
+                console.log('Email sent: ' + info.response);
+
+    
+                res.json({ successMessage: 'OTP sent to your email address.' });
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ errorMessage: 'Server error. Please try again later.' });
+        }
+    };
+    
+    const emailChecking = async (req, res) => {
+       try {
+            const { email } = req.body;
+            const user = await User.findOne({ email });
+            if (user) {
+                res.json({ exists: true });
+            } else {
+                res.json({ exists: false });
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ errorMessage: 'Server error. Please try again later.' });
+        }
+    };
+
+    const otpVerify = async (req, res) => {
+       try {
+
+            const enteredOTP = req.body.otp;
+            if (enteredOTP != req.session.otp) {
+              return res.status(400).json({ success: false, errorMessage: 'Invalid OTP.' });
+          }
+            res.json({ success: true, message: 'OTP verified successfully.' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ errorMessage: 'Server error. Please try again later.' });
+        }
+    };
+
+
+    
+    const updatePassword = async (req, res) => {
+  
+        try {
+            const {email, newPassword } = req.body;
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ errorMessage: 'User not found' });
+            }
+            const spassword = await securePassword(newPassword);
+    
+            user.password = spassword;
+            await user.save();
+    
+            res.json({ successMessage: 'Password updated successfully.' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ errorMessage: 'Server error. Please try again later.' });
+        }
+    };
       
 
 module.exports = {
@@ -596,7 +675,11 @@ module.exports = {
     loadProfile,
     editDetail,
     resetPassword,
+    forgottenPassword,
     forgotPassword ,
+    emailChecking,
+    otpVerify,
+    updatePassword,
     addAddress,
     updateAddress,
     deleteAddress,
