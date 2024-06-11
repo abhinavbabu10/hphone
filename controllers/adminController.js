@@ -22,7 +22,7 @@ const verifyAdmin = async(req,res)=>{
                 if (userdata.is_admin=== 0) {
                     res.render('adminlogin', { message: "Email and password are incorrect" });
                 } else {
-                    req.session.userData = userdata.id;
+                    req.session.adminData = userdata.id;
                     res.redirect('/admin/home');
                 }
             } else {

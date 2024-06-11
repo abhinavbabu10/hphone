@@ -586,6 +586,7 @@ const checkOut = async (req, res) =>{
     
             const otp = generateOTP();
             req.session.otp = otp
+            console.log('og',otp)
             const mailOptions = {
                 from: Email,
                 to: email,
