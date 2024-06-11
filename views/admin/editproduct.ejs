@@ -265,20 +265,20 @@ cursor: pointer;
         PRODUCT_NAME_REQUIRED: 'Please enter a product name.',
         PRODUCT_NAME_MIN_LENGTH: 'Product name must be at least 3 characters long and contain only letters.',
         PRODUCT_DESCRIPTION_MIN_LENGTH: 'Product description must be at least 10 characters long.',
-        MEDIA_REQUIRED: 'Please select at least one media file.',
         MEDIA_INVALID_TYPE: 'Only image/jpeg, image/png, image/gif, and image/webp files are allowed.',
         PRICE_REQUIRED: 'Please enter the product price.',
         PRICE_INVALID: 'Price must be a positive number.',
         CATEGORY_REQUIRED: 'Please select a category.',
         STOCK_REQUIRED: 'Stock must be greater than 0.',
       };
-      
+    
       document.getElementById('productForm').addEventListener('submit', function(event) {
         event.preventDefault();
         document.querySelectorAll('.invalid-feedback').forEach(function(element) {
           element.textContent = '';
           element.classList.remove('d-block');
         });
+    
         var name = document.getElementById('productName');
         var nameError = document.querySelector('.name-error');
         if (!name.value) {
@@ -288,27 +288,24 @@ cursor: pointer;
           nameError.textContent = ERRORS.PRODUCT_NAME_MIN_LENGTH;
           nameError.classList.add('d-block');
         }
-      
+    
         var description = document.getElementById('productDescription');
         var descriptionError = document.querySelector('.description-error');
         if (description.value.length < 10) {
           descriptionError.textContent = ERRORS.PRODUCT_DESCRIPTION_MIN_LENGTH;
           descriptionError.classList.add('d-block');
         }
-      
+    
         var media = document.getElementById('productMedia');
         var mediaError = document.querySelector('.media-error');
-        if (!media.files.length) {
-          mediaError.textContent = ERRORS.MEDIA_REQUIRED;
-          mediaError.classList.add('d-block');
-        } else {
+        if (media.files.length > 0) {
           const fileType = media.files[0].type;
           if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(fileType)) {
             mediaError.textContent = ERRORS.MEDIA_INVALID_TYPE;
             mediaError.classList.add('d-block');
           }
         }
-      
+    
         var price = document.getElementById('productPrice');
         var priceError = document.querySelector('.price-error');
         if (!price.value) {
@@ -318,25 +315,27 @@ cursor: pointer;
           priceError.textContent = ERRORS.PRICE_INVALID;
           priceError.classList.add('d-block');
         }
-      
+    
         var category = document.getElementById('productCategory');
         var categoryError = document.querySelector('.category-error');
         if (category.value === '') {
           categoryError.textContent = ERRORS.CATEGORY_REQUIRED;
           categoryError.classList.add('d-block');
         }
-      
+    
         var stock = document.getElementById('productStock');
         var stockError = document.querySelector('.stock-error');
-        if (stock.value <= 0) {
-          stockError.textContent = ERRORS.STOCK_REQUIRED;
-          stockError.classList.add('d-block');
-        }
+        // if (stock.value <= 0) {
+        //   stockError.textContent = ERRORS.STOCK_REQUIRED;
+        //   stockError.classList.add('d-block');
+        // }
+    
         if (document.querySelectorAll('.invalid-feedback.d-block').length === 0) {
           this.submit();
         }
       });
-      </script>
+    </script>
+    
 
  <script>
     function removeImage(productId, imageId, index) {

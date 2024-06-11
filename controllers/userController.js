@@ -158,17 +158,16 @@ const loadotp = async (req, res) => {
     }
 }
 
-const loadShop = async (req,res) =>{
+const loadShop = async (req, res) => {
     try {
-
-        const user = req.session.userData
-        const category = await Category.find({ deleted: false }).sort({createdOn:-1})
-        const products = await Product.find({ isUnlisted: false })
-        res.render('shop',{category,products,user})
+        const user = req.session.userData;
+        const category = await Category.find({ deleted: false }).sort({ createdOn: -1 });
+        const products = await Product.find({ isUnlisted: false, stock: { $gt: 0 } });
+        res.render('shop', { category, products, user });
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
-}
+};
 
 
 const verifyOTP = async (req, res) => {
