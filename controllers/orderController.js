@@ -220,6 +220,14 @@ const returnOrder = async(req,res) =>{
     item.reasonForReturn = returnReason;
     item.returnDate = new Date();
 
+    const allItemsReturned = order.items.every(
+      (item) => item.status = 'Returned'
+    )
+
+    if(allItemsReturned){
+      order.orderStatus = 'Returned'
+    }
+
     await order.save();
 
     res.status(200).json({ message: 'Order returned successfully' });

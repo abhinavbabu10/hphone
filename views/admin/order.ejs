@@ -214,10 +214,12 @@
                                             <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
                                                 <i class="material-icons md-more_horiz"></i>
                                             </a>
+                                            <%if(order.orderStatus=="Pending" || order.orderStatus=="Shipped") {%>
                                             <div class="dropdown-menu">
                                                 <a class="dropdown-item" id="changeStatus<%= order._id %>" href="#" onclick="showChangeStatus('<%= order._id %>')">Change Status</a>
                                                 <!-- <a class="dropdown-item text-danger" href="#">Delete</a> -->
                                             </div>
+                                            <%}%>
                                         </div>
                                     </td>
                                 </tr>
@@ -285,7 +287,7 @@
             Confirmed: 'Confirmed',
             Shipped: 'Shipped',
             Delivered: 'Delivered',
-            Returned: 'Returned',
+            // Returned: 'Returned',
           };
       
           Swal.fire({
