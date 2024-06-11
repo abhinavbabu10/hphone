@@ -58,7 +58,7 @@ const loadhome = async (req, res) => {
 const loadsignup = async (req, res) => {
     try {
         const user = req.session.userData
-        res.render('signup',{user})
+        res.render('signup',{user,message:''})
     } catch (error) {
         console.log(error)
     }
@@ -92,6 +92,12 @@ const insertUser = async (req, res) => {
           if (!req.session) {
             throw new Error('Session middleware not initialized');
         }
+
+        const existingUser = await User.findOne({ email: email });
+        if (existingUser) {
+            return res.render('signup',{ user:null,message: 'Email already exists' });
+        }
+
         const otp = generateOTP();
           const userData = {
             name:username,
@@ -100,7 +106,7 @@ const insertUser = async (req, res) => {
             otp:otp
         };
        
-        req.session.userData=userData
+        req.session.userDetail=userData
        console.log(otp,"otp")
 
         sendOTPByEmail(email, otp);
@@ -168,8 +174,8 @@ const loadShop = async (req,res) =>{
 const verifyOTP = async (req, res) => {
     try {
         const enteredOTP = req.body.otp;
-        if (parseInt(enteredOTP) === req.session.userData.otp) {
-            const {name,email,password}=req.session.userData;
+        if (parseInt(enteredOTP) === req.session.userDetail.otp) {
+            const {name,email,password}=req.session.userDetail;
             const spassword = await securePassword(password);
             const newUser = new User({
                 name,
@@ -192,7 +198,7 @@ const verifyOTP = async (req, res) => {
 const resendOTP = async (req, res) => {
     try {
 
-         let email = req.session.userData.email
+         let email = req.session.userDetail.email
         const newOTP = Math.floor(100000 + Math.random() * 900000);
         req.session.userData.otp = newOTP;
 

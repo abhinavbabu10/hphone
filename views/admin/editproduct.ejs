@@ -20,6 +20,42 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
+<style>
+  .invalid-feedback {
+    color: red;
+    font-size: 12px;
+    display: none;
+  }
+
+  .invalid-feedback.d-block {
+    display: block;
+  }
+
+  .image-preview {
+display: flex;
+flex-wrap: wrap;
+margin-top: 10px;
+}
+.image-preview img {
+max-width: 150px;
+margin-right: 10px;
+margin-bottom: 10px;
+position: relative;
+}
+.image-preview .image-container {
+position: relative;
+}
+.image-preview .delete-btn {
+position: absolute;
+top: 5px;
+right: 5px;
+background: rgba(255, 0, 0, 0.8);
+color: white;
+border: none;
+border-radius: 50%;
+cursor: pointer;
+}
+</style>
 
 <body>
     <div class="screen-overlay"></div>
@@ -144,8 +180,9 @@
                         <div>
                             <label for="productMedia" class="form-label">Product Media</label>
                             <input type="file" class="form-control-file" id="productMedia" name="media" multiple >
-                            <div class="invalid-feedback"></div>
+                            <div class="invalid-feedback media-error"></div>
                           </div>
+                          <div class="image-preview" id="imagePreview"></div>
                         <div>
                           <label for="productPrice" class="form-label">Price</label>
                           <input type="number" class="form-control" id="productPrice" name="price" placeholder="Enter product price" value="<%= product.price %>" required>
@@ -166,18 +203,6 @@
                           <input type="number" class="form-control" id="productStock" name="stock" placeholder="Enter product stock" value="<%= product.stock %>" required>
                           <div class="invalid-feedback"></div>
                         </div>
-                        
-                        <!-- <% if (product.media.length > 0) { %>
-                            <div class="mt-2">
-                              <label class="form-label">Existing Images:</label>
-                              <% product.media.forEach(media => { %>
-                                <div>
-                                    <img src="/Productimages/<%= media %>" alt="Product Image" class="img-thumbnail" style="max-width: 100px;">
-                                  <button type="button" class="btn btn-danger btn-sm remove-image" data-image-id="<%= media %>">Remove</button>
-                                </div>
-                              <% }); %>
-                            </div>
-                          <% } %> -->
                           <% if (product.media.length > 0) { %>
                             <div class="mt-2">
                               <label class="form-label">Existing Images:</label>
@@ -191,7 +216,9 @@
                           <% } %>
                           
                         <button type="submit" class="btn btn-primary mt-3">Update Product</button>
-                      </form>
+                      </form> 
+
+                    
                     </section>
 
 
@@ -230,7 +257,86 @@
     <!-- Main Script -->
     <script src="assets/js/main.js" type="text/javascript"></script>
 
+   
 
+
+    <script>
+      const ERRORS = {
+        PRODUCT_NAME_REQUIRED: 'Please enter a product name.',
+        PRODUCT_NAME_MIN_LENGTH: 'Product name must be at least 3 characters long and contain only letters.',
+        PRODUCT_DESCRIPTION_MIN_LENGTH: 'Product description must be at least 10 characters long.',
+        MEDIA_REQUIRED: 'Please select at least one media file.',
+        MEDIA_INVALID_TYPE: 'Only image/jpeg, image/png, image/gif, and image/webp files are allowed.',
+        PRICE_REQUIRED: 'Please enter the product price.',
+        PRICE_INVALID: 'Price must be a positive number.',
+        CATEGORY_REQUIRED: 'Please select a category.',
+        STOCK_REQUIRED: 'Stock must be greater than 0.',
+      };
+      
+      document.getElementById('productForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        document.querySelectorAll('.invalid-feedback').forEach(function(element) {
+          element.textContent = '';
+          element.classList.remove('d-block');
+        });
+        var name = document.getElementById('productName');
+        var nameError = document.querySelector('.name-error');
+        if (!name.value) {
+          nameError.textContent = ERRORS.PRODUCT_NAME_REQUIRED;
+          nameError.classList.add('d-block');
+        } else if (name.value.length < 3) {
+          nameError.textContent = ERRORS.PRODUCT_NAME_MIN_LENGTH;
+          nameError.classList.add('d-block');
+        }
+      
+        var description = document.getElementById('productDescription');
+        var descriptionError = document.querySelector('.description-error');
+        if (description.value.length < 10) {
+          descriptionError.textContent = ERRORS.PRODUCT_DESCRIPTION_MIN_LENGTH;
+          descriptionError.classList.add('d-block');
+        }
+      
+        var media = document.getElementById('productMedia');
+        var mediaError = document.querySelector('.media-error');
+        if (!media.files.length) {
+          mediaError.textContent = ERRORS.MEDIA_REQUIRED;
+          mediaError.classList.add('d-block');
+        } else {
+          const fileType = media.files[0].type;
+          if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(fileType)) {
+            mediaError.textContent = ERRORS.MEDIA_INVALID_TYPE;
+            mediaError.classList.add('d-block');
+          }
+        }
+      
+        var price = document.getElementById('productPrice');
+        var priceError = document.querySelector('.price-error');
+        if (!price.value) {
+          priceError.textContent = ERRORS.PRICE_REQUIRED;
+          priceError.classList.add('d-block');
+        } else if (!/^\d+(\.\d+)?$/.test(price.value)) {
+          priceError.textContent = ERRORS.PRICE_INVALID;
+          priceError.classList.add('d-block');
+        }
+      
+        var category = document.getElementById('productCategory');
+        var categoryError = document.querySelector('.category-error');
+        if (category.value === '') {
+          categoryError.textContent = ERRORS.CATEGORY_REQUIRED;
+          categoryError.classList.add('d-block');
+        }
+      
+        var stock = document.getElementById('productStock');
+        var stockError = document.querySelector('.stock-error');
+        if (stock.value <= 0) {
+          stockError.textContent = ERRORS.STOCK_REQUIRED;
+          stockError.classList.add('d-block');
+        }
+        if (document.querySelectorAll('.invalid-feedback.d-block').length === 0) {
+          this.submit();
+        }
+      });
+      </script>
 
  <script>
     function removeImage(productId, imageId, index) {
@@ -256,6 +362,43 @@
   });
 }
  </script>
+
+ 
+<script>
+  document.getElementById('productMedia').addEventListener('change', function(event) {
+    const imagePreview = document.getElementById('imagePreview');
+    imagePreview.innerHTML = '';
+    
+    Array.from(event.target.files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imageContainer = document.createElement('div');
+        imageContainer.classList.add('image-container');
+        
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.alt = file.name;
+        imageContainer.appendChild(img);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.addEventListener('click', () => {
+          imagePreview.removeChild(imageContainer);
+          const dataTransfer = new DataTransfer();
+          const files = Array.from(event.target.files);
+          files.splice(index, 1);
+          files.forEach(file => dataTransfer.items.add(file));
+          event.target.files = dataTransfer.files;
+        });
+        imageContainer.appendChild(deleteBtn);
+        
+        imagePreview.appendChild(imageContainer);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+</script>
 
 
 

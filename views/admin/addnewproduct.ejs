@@ -29,6 +29,31 @@
         .invalid-feedback.d-block {
           display: block;
         }
+
+        .image-preview {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .image-preview img {
+      max-width: 150px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .image-preview .image-container {
+      position: relative;
+    }
+    .image-preview .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(255, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+    }
       </style>
       
 </head>
@@ -158,6 +183,8 @@
                           <input type="file" class="form-control-file" id="productMedia" name="media" multiple required>
                           <div class="invalid-feedback media-error"></div>
                         </div>
+    
+                           <div class="image-preview" id="imagePreview"></div>
                       
                         <div class="form-group">
                           <label for="productPrice" class="form-label">Price</label>
@@ -291,6 +318,42 @@
       }
     });
     </script>
+
+<script>
+  document.getElementById('productMedia').addEventListener('change', function(event) {
+    const imagePreview = document.getElementById('imagePreview');
+    imagePreview.innerHTML = '';
+    
+    Array.from(event.target.files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imageContainer = document.createElement('div');
+        imageContainer.classList.add('image-container');
+        
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.alt = file.name;
+        imageContainer.appendChild(img);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.addEventListener('click', () => {
+          imagePreview.removeChild(imageContainer);
+          const dataTransfer = new DataTransfer();
+          const files = Array.from(event.target.files);
+          files.splice(index, 1);
+          files.forEach(file => dataTransfer.items.add(file));
+          event.target.files = dataTransfer.files;
+        });
+        imageContainer.appendChild(deleteBtn);
+        
+        imagePreview.appendChild(imageContainer);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+</script>
   
 </body>
 </html>
