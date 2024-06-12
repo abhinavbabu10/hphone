@@ -3,6 +3,7 @@ const Category = require("../models/categoryModel")
 const Product = require("../models/productModel")
 const Cart = require("../models/cartModel")
 const Order = require("../models/orderModel")
+const Wishlist = require("../models/wishlistModel")
 
 const bcrypt = require('bcrypt');
 const nodemailer = require("nodemailer");
@@ -667,6 +668,58 @@ const checkOut = async (req, res) =>{
     };
       
 
+    const loadWishlist = async(req,res) =>{
+        try {
+            const userId = req.session.userData;
+            const user= await User.findById(userId);
+            const wishlist = await Wishlist.findOne({ userId: userId }).populate('product.productId');
+      
+            if (!wishlist) {
+                return res.render("wishList", { user,products: [] });
+            }
+      
+            const product = wishlist.product.map(item => item.productId);
+            const cart=await Cart.findOne({userId});
+            let cartCount=0;
+            if(cart){
+               cartCount=cart.product.length;
+            }
+            res.render("wishList", { product,user,cartCount });
+        } catch (error) {
+            console.error(error);
+        }
+      }
+
+      const addtoWishlist = async(req,res) =>{
+        try {
+            const userId = req.session.userData;
+            const { productId } = req.body;
+            let wishlist = await Wishlist.findOne({ userId: userId });
+      
+            if (!wishlist) {
+                wishlist = new Wishlist({
+                    userId: userId,
+                    product: [{ productId: productId }]
+                });
+            } else {
+                const existingProduct = wishlist.product.find(product => String(product.productId) === productId);
+      
+                if (existingProduct) {
+                    return res.status(200).json({ success: false, message: 'Product already exists in wishlist' });
+                }
+                wishlist.product.push({ productId: productId });
+            }
+            await wishlist.save();
+
+            res.status(200).json({ success: true, message: 'Product added to wishlist successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Internal server error' });
+        }
+      }
+
+      
+      
 module.exports = {
     loadhome,
     loadsignup,
@@ -697,5 +750,7 @@ module.exports = {
     addAddressCheckOut ,
     checkOutQuantity,
     confirmQuantity,
+    loadWishlist,
+    addtoWishlist,
     logout
 }

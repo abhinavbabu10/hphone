@@ -142,7 +142,9 @@
                     <button class="add-to-cart-button" data-id="<%= product.id %>" onclick="addToCart('<%= product.id %>')">
                       <i class="fi-rs-shopping-bag-add"></i>
                     </button>
-                    <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                    <button class="add-to-wishlist-button" data-id="<%= product.id %>" onclick="addToWishlist('<%= product.id %>')">
+                      <i class="fi-rs-heart"></i>
+                    </button>
                    <%}else {%>
                    <a class="action-btn hover-up " href="/login"><i class="fi-rs-shopping-bag-add"></i></a> 
                    <a aria-label="Add To Wishlist" class="action-btn hover-up" href="/login"><i class="fi-rs-heart"></i></a>
@@ -282,5 +284,53 @@ async function addToCart(productId) {
       }
     }
     </script>
+
+    
+
+<script>
+  async function addToWishlist(productId) {
+    try {
+      const response = await fetch('/add-wishlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId }),
+      });
+      const data = await response.json();
+      if(data.message ==  'Product already exists in wishlist') {
+        return Swal.fire({
+          title: 'Info',
+          text: 'Product is already in the wishlist.',
+          icon: 'info',
+          confirmButtonText: 'OK',
+        });
+      }
+      if (data.success) {
+        Swal.fire({
+          title: 'Success',
+          text: 'Product added to wishlist successfully!',
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+      } else {
+        Swal.fire({
+          title: 'Error',
+          text: data.error || 'An error occurred while adding the product to wishlist.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        title: 'Error',
+        text: 'An error occurred while adding the product to wishlist.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  }
+</script>
+
 
 <%- include('../partials/footercopy') %> <%- include('../partials/footer') %>
