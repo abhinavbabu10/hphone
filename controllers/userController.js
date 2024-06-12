@@ -675,7 +675,7 @@ const checkOut = async (req, res) =>{
             const wishlist = await Wishlist.findOne({ userId: userId }).populate('product.productId');
       
             if (!wishlist) {
-                return res.render("wishList", { user,products: [] });
+                return res.render("wishList", { user,product: [] });
             }
       
             const product = wishlist.product.map(item => item.productId);
@@ -718,6 +718,33 @@ const checkOut = async (req, res) =>{
         }
       }
 
+      const removeWishlist = async(req,res) =>{
+        try {
+            const { productId } = req.body;
+            const userId = req.session.userData;
+    
+            const wishlist = await Wishlist.findOne({ userId });
+    
+            if (!wishlist) {
+                return res.status(404).json({ success: false, message: 'Wishlist not found' });
+            }
+    
+            const indexToRemove = wishlist.product.findIndex(product => String(product.productId) === productId);
+    
+            if (indexToRemove === -1) {
+                return res.status(404).json({ success: false, message: 'Product not found in wishlist' });
+            }
+    
+
+            wishlist.product.splice(indexToRemove, 1);
+            await wishlist.save();
+    
+            res.status(200).json({success: true, message: 'Product removed from wishlist successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Internal server error' });
+        }
+    }
       
       
 module.exports = {
@@ -752,5 +779,6 @@ module.exports = {
     confirmQuantity,
     loadWishlist,
     addtoWishlist,
+    removeWishlist,
     logout
 }

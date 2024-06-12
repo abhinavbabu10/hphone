@@ -52,6 +52,7 @@ userroute.post('/confirm-quantity',userController.confirmQuantity)
 
 userroute.get('/wishlist',auth.isLogin,userController.loadWishlist)
 userroute.post('/add-wishlist',userController.addtoWishlist)
+userroute.post('/remove-wishlist',userController.removeWishlist)
 
 
 userroute.get('/checkout', userController.checkOut)
