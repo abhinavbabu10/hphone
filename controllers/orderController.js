@@ -3,11 +3,20 @@ const User = require("../models/userModel")
 const Product = require("../models/productModel")
 const Cart = require("../models/cartModel");
 
+const Razorpay = require("razorpay");
+require('dotenv').config();
+
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 const { v4: uuidv4 } = require('uuid');
 
 const placeOrder = async (req, res) => {
   try {
     const userId = req.session.userData;
+    
     const cart = await Cart.findOne({ userId }).populate("product.productId");
     if (!cart || !cart.product.length) {
       return res.status(400).json({ success: false, message: "Cart is empty" });
@@ -19,27 +28,57 @@ const placeOrder = async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
+
     let billTotal = 0;
     for (const item of cart.product) {
       billTotal += item.productId.price * item.quantity;
     }
-    const { addressId,  paymentMethod, total} = req.body;
+
+    const { addressId, paymentMethod, total } = req.body;
     const selectedAddress = user.address.id(addressId);
 
     if (!selectedAddress) {
       return res.status(400).json({ success: false, message: "Invalid address selected" });
     }
-     
-    
-  console.log("Received payment method:", paymentMethod);
-    if (paymentMethod === "COD") {
+
+    console.log("Received payment method:", paymentMethod);
+
+    if (paymentMethod === "Razorpay") {
+      console.log("Razorpay Key ID:", process.env.RAZORPAY_KEY_ID);
+      console.log("Razorpay Key Secret:", process.env.RAZORPAY_KEY_SECRET);
+      console.log("Online payment with Razorpay");
+      var options = {
+        amount: parseFloat(total) * 100, 
+        currency: "INR",
+        receipt: `receipt_${cart._id}`,
+      };
+      razorpayInstance.orders.create(options, function (err, order) {
+        if (!err) {
+          res.status(200).json({
+            success: true,
+            msg: "Order Created",
+            order_id: order.id,
+            amount:parseFloat(total) * 100,
+            key_id: process.env.RAZORPAY_KEY_ID,
+            product_name: "product",
+            description: "req.body.description",
+            contact:"1234567891",
+            name: user.name,
+            email: user.email,
+          });
+        } else {
+          console.log("Error creating Razorpay order:", err);
+          res.status(500).json({ success: false, message: "Error creating Razorpay order" });
+        }
+      });
+    } else if (paymentMethod === "COD") {
       const newOrder = new Order({
         oId: orderId,
         user: userId,
         items: cart.product.map((item) => ({
           productId: item.productId._id,
           name: item.productId.name,
-         media: item.productId.media,
+          media: item.productId.media,
           productPrice: item.productId.discountPrice > 0 ? item.productId.discountPrice : item.productId.price,
           quantity: item.quantity,
           price: item.productId.discountPrice > 0 ? item.productId.discountPrice * item.quantity : item.productId.price * item.quantity,
@@ -77,6 +116,86 @@ const placeOrder = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+const onlinePlaceOrder = async(req,res) => {
+  try {
+    const userId = req.session.userData;
+    const cart = await Cart.findOne({ userId }).populate("product.productId");
+
+    if (!cart || !cart.product.length) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+    }
+
+    const orderId = uuidv4();
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const { addressId, total, paymentMethod, paymentStatus, subtotal } = req.query;
+    const selectedAddress = user.address.id(addressId);
+
+    if (!selectedAddress) {
+      return res.status(400).json({ success: false, message: "Invalid address selected" });
+    }
+
+    let billTotal = 0;
+    for (const item of cart.product) {
+      billTotal += item.productId.price * item.quantity;
+    }
+
+    const newOrder = new Order({
+      oId: orderId,
+      user: userId,
+      items: cart.product.map((item) => ({
+        productId: item.productId._id,
+        name: item.productId.name,
+        media: item.productId.media,
+        productPrice: item.productId.discountPrice > 0 ? item.productId.discountPrice : item.productId.price,
+        quantity: item.quantity,
+        price: item.productId.discountPrice > 0 ? item.productId.discountPrice * item.quantity : item.productId.price * item.quantity,
+      })),
+      billTotal: parseInt(total),
+      shippingAddress: {
+        houseName: selectedAddress.houseName,
+        street: selectedAddress.street,
+        city: selectedAddress.city,
+        state: selectedAddress.state,
+        country: selectedAddress.country,
+        postalCode: selectedAddress.postalCode,
+      },
+      paymentMethod,
+      paymentStatus,
+    });
+
+    await newOrder.save();
+
+    if (newOrder.paymentStatus === "Success") {
+      for (const item of newOrder.items) {
+        const product = await Product.findById(item.productId);
+        if (!product) {
+          throw new Error(`Product with id ${item.productId} not found`);
+        }
+        product.stock -= item.quantity;
+        await product.save();
+      }
+
+      await Cart.findOneAndDelete({ userId });
+
+      res.status(201).json({ success: true, message: "Order placed successfully" });
+    } else if (newOrder.paymentStatus === "Failed") {
+      await Cart.findOneAndDelete({ userId });
+      res.status(201).json({ success: true, message: "Payment failed, please retry" });
+    } else {
+      res.status(400).json({ success: false, message: "Invalid payment status" });
+    }
+  } catch (error) {
+    console.error("Error completing order:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+}
+
 
 const loadOrderView = async (req, res) =>{
  
@@ -250,6 +369,7 @@ const returnOrder = async(req,res) =>{
 
 module.exports = {
   placeOrder,
+  onlinePlaceOrder,
   loadOrderView,
   cancelOrder,
   loadOrder,

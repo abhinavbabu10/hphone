@@ -59,6 +59,7 @@ userroute.get('/checkout', userController.checkOut)
 userroute.post('/add-addresscheckout',userController.addAddressCheckOut)
 
 userroute.post('/placeorder',orderController.placeOrder)
+userroute.post('/complete-order',orderController.onlinePlaceOrder)
 userroute.get('/orderview',orderController.loadOrderView)
 userroute.post("/cancelorder",orderController.cancelOrder )
 userroute.put("/returnorder",orderController.returnOrder)

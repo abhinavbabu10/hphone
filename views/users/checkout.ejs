@@ -329,7 +329,7 @@
 
 
 
-<script>
+<!-- <script>
     document.getElementById('placeOrderBtn').addEventListener('click', function(event) {
         event.preventDefault();
         const selectedAddressId = document.querySelector('input[name="address"]:checked').value;
@@ -436,8 +436,224 @@
         });
     }
     
-    </script>
-      
+    </script> -->
+   
+    
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.getElementById('placeOrderBtn').addEventListener('click', function(event) {
+        event.preventDefault();
+        const selectedAddressId = document.querySelector('input[name="address"]:checked').value;
+        if (!selectedAddressId) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Order Placement Failed',
+                text: 'Please select a shipping address.',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace('$', ''));
+        const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('$', ''));
+
+        confirmQuantity(selectedAddressId, selectedPaymentMethod, totalAmount, subtotal);
+    });
+
+    function confirmQuantity(addressId, paymentMethod, total, subtotal) {
+        fetch('/confirm-quantity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                addressId: addressId,
+                paymentMethod: paymentMethod,
+                total: total,
+                subtotal: subtotal
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (paymentMethod === "COD") {
+                    placeOrder(addressId, paymentMethod, total, subtotal);
+                } else if (paymentMethod === "Razorpay") {
+                    initiateRazorpayPayment(addressId, paymentMethod, total, subtotal);
+                }
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Order Placement Failed',
+                    text: data.message,
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Order Placement Failed',
+                text: 'An error occurred while confirming quantities.',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
+
+    function placeOrder(addressId, paymentMethod, total, subtotal) {
+        fetch('/placeorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                addressId: addressId,
+                paymentMethod: paymentMethod,
+                total: total,
+                subtotal: subtotal
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: data.message,
+                    text: 'View My Orders',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/profile';
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Order Placement Failed',
+                    text: data.message,
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Order Placement Failed',
+                text: 'An error occurred while placing the order.',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
+
+    function initiateRazorpayPayment(addressId, paymentMethod, total, subtotal) {
+        fetch('/placeorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                addressId: addressId,
+                paymentMethod: paymentMethod,
+                total: total,
+                subtotal: subtotal
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const options = {
+                    key: data.key_id ,
+                    amount: data.amount,
+                    currency: "INR",
+                    name: "HPHONE",
+                    description: data.description,
+                    order_id: data.order_id,
+                    handler: function (response) {
+                        completeOrderAfterPayment(addressId, total, paymentMethod, "Success", subtotal);
+                    },
+                    prefill: {
+                        contact: data.contact,
+                        name: data.name,
+                        email: data.email
+                    },
+                    notes: {
+                        description: data.description
+                    },
+                    theme: {
+                        color: "#F37254"
+                    }
+                };
+
+                const razorpayObject = new Razorpay(options);
+                razorpayObject.open();
+
+                razorpayObject.on('payment.failed', function (response) {
+                    console.error(response.error);
+                    completeOrderAfterPayment(addressId, total, paymentMethod, "Failed", subtotal);
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Order Placement Failed',
+                    text: data.message,
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Order Placement Failed',
+                text: 'An error occurred while initiating the payment.',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
+
+    function completeOrderAfterPayment(addressId, total, paymentMethod, paymentStatus, subtotal) {
+    fetch(`/complete-order?addressId=${addressId}&total=${total}&paymentMethod=${paymentMethod}&paymentStatus=${paymentStatus}&subtotal=${subtotal}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: data.message,
+                text: 'View My Orders',
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/profile';
+                }
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Order Completion Failed',
+                text: data.message,
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Order Completion Failed',
+            text: 'An error occurred while completing the order.',
+            confirmButtonText: 'OK'
+        });
+    });
+}
+</script>
    
 <%- include('../partials/footercopy') %>
 <%- include('../partials/footer') %>
