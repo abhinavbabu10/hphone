@@ -210,34 +210,6 @@
         }, 1000);
     }
 
-    // function verifyOTP(otp) {
-    //     fetch('/verifyOTP', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify({ enteredOtp: otp })
-    //     })
-    //     .then(response => {
-    //       document.getElementById('error-message').textContent =response.error
-    //         if (!response.ok) {
-    //             throw new Error('Network response was not ok');
-    //         }
-    //         // return response.json();
-    //         window.location.href = '/login';
-    //     })
-    //     .then(data => {
-    //         console.log('data', data)
-    //         if (!data.error) {
-    //             window.location.href = '/login';
-    //         }
-    //     })
-    //     .catch(error => {
-    //         console.error('Error:', error);
-    //         document.getElementById('error-message').textContent = 'Enter valid OTP.';
-    //     });
-    // }
-
     startTimer();
 
 </script> 

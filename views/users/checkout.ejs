@@ -325,118 +325,6 @@
           }
         }
       </script>
-
-
-
-
-<!-- <script>
-    document.getElementById('placeOrderBtn').addEventListener('click', function(event) {
-        event.preventDefault();
-        const selectedAddressId = document.querySelector('input[name="address"]:checked').value;
-        console.log(selectedAddressId);
-        if (!selectedAddressId) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Order Placement Failed',
-                text: 'Please select a shipping address.',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-        const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-        console.log(selectedPaymentMethod);
-        const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace('$', ''));
-    console.log(totalAmount);
-    const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('$', ''));
-    console.log(subtotal);
-
-        confirmQuantity(selectedAddressId, selectedPaymentMethod, totalAmount, subtotal);
-    });
-    
-    function confirmQuantity(addressId, paymentMethod, total, subtotal) {
-        fetch('/confirm-quantity', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                addressId: addressId,
-                paymentMethod: paymentMethod,
-                total: total,
-                subtotal: subtotal
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                placeOrder(addressId, paymentMethod, total, subtotal);
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Order Placement Failed',
-                    text: data.message,
-                    confirmButtonText: 'OK'
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Order Placement Failed',
-                text: 'An error occurred while confirming quantities.',
-                confirmButtonText: 'OK'
-            });
-        });
-    }
-    
-    function placeOrder(addressId, paymentMethod, total, subtotal) {
-        fetch('/placeorder', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                addressId: addressId,
-                paymentMethod: paymentMethod,
-                total: total,
-                subtotal: subtotal
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: data.message,
-                    text: 'View My Orders',
-                    confirmButtonText: 'OK'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '/profile';
-                    }
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Order Placement Failed',
-                    text: data.message,
-                    confirmButtonText: 'OK'
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Order Placement Failed',
-                text: 'An error occurred while placing the order.',
-                confirmButtonText: 'OK'
-            });
-        });
-    }
-    
-    </script> -->
    
     
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -461,46 +349,51 @@
         confirmQuantity(selectedAddressId, selectedPaymentMethod, totalAmount, subtotal);
     });
 
+
+
     function confirmQuantity(addressId, paymentMethod, total, subtotal) {
-        fetch('/confirm-quantity', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                addressId: addressId,
-                paymentMethod: paymentMethod,
-                total: total,
-                subtotal: subtotal
-            })
+    fetch('/confirm-quantity', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            addressId: addressId,
+            paymentMethod: paymentMethod,
+            total: total,
+            subtotal: subtotal
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (paymentMethod === "COD") {
-                    placeOrder(addressId, paymentMethod, total, subtotal);
-                } else if (paymentMethod === "Razorpay") {
-                    initiateRazorpayPayment(addressId, paymentMethod, total, subtotal);
-                }
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Order Placement Failed',
-                    text: data.message,
-                    confirmButtonText: 'OK'
-                });
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (paymentMethod === "COD") {
+                placeOrder(addressId, paymentMethod, total, subtotal);
+            } else if (paymentMethod === "Razorpay") {
+                initiateRazorpayPayment(addressId, paymentMethod, total, subtotal);
+            } else if (paymentMethod === "Wallet") {
+                placeOrder(addressId, paymentMethod, total, subtotal);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+        } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Order Placement Failed',
-                text: 'An error occurred while confirming quantities.',
+                text: data.message,
                 confirmButtonText: 'OK'
             });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Order Placement Failed',
+            text: 'An error occurred while confirming quantities.',
+            confirmButtonText: 'OK'
         });
-    }
+    });
+}
+
 
     function placeOrder(addressId, paymentMethod, total, subtotal) {
         fetch('/placeorder', {
@@ -654,6 +547,75 @@
     });
 }
 </script>
+
+<script>
+    function confirmWalletBalance(addressId, paymentMethod, total, subtotal) {
+        fetch(`/checkWalletBalance?totalAmount=${totalAmount}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("Wallet balance is sufficient.");
+                walletPlaceOrder(addressId, paymentMethod, total, subtotal);
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Insufficient Wallet Balance',
+                    text: data.message,
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error checking wallet balance:', error);
+        });
+    }
+
+    function walletPlaceOrder(addressId, paymentMethod, total, subtotal) {
+        fetch('/walletOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                addressId: addressId,
+                paymentMethod: paymentMethod,
+                total: total,
+                subtotal: subtotal
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Order response:", data);
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Order Placed Successfully',
+                    text: 'View My Orders',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "/account";
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Order Placement Failed',
+                    text: data.message
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error placing order:', error);
+        });
+    }
+</script>
+
+
    
 <%- include('../partials/footercopy') %>
 <%- include('../partials/footer') %>

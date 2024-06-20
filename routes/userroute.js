@@ -63,7 +63,8 @@ userroute.post('/complete-order',orderController.onlinePlaceOrder)
 userroute.get('/orderview',orderController.loadOrderView)
 userroute.post("/cancelorder",orderController.cancelOrder )
 userroute.put("/returnorder",orderController.returnOrder)
-
+userroute.put("/checkWalletBalance",orderController.confirmWalletBalance)
+userroute.post("/walletOrder",orderController.walletPlaceOrder)
 
 
 

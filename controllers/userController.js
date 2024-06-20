@@ -4,6 +4,7 @@ const Product = require("../models/productModel")
 const Cart = require("../models/cartModel")
 const Order = require("../models/orderModel")
 const Wishlist = require("../models/wishlistModel")
+const Wallet = require("../models/walletModel")
 
 const bcrypt = require('bcrypt');
 const nodemailer = require("nodemailer");
@@ -265,7 +266,8 @@ const loadProfile = async(req,res) =>{
         const user = await User.findById(userId)
         const product = await Product.find({ isUnlisted: false })
         const order = await Order.find({user:userId})
-       res.render('profile',{user,order,product:product})
+        const wallet = await Wallet.findOne({ user: userId });
+       res.render('profile',{user,order,product:product,wallet})
        
     } catch (error) {
         console.log(error)
@@ -410,7 +412,6 @@ const deleteAddress = async (req,res) =>{
       if (productIndex === -1) {
         cart.product.push({ productId: productId, quantity: 1 });
       } else {
-        // Product is already in the cart
         res.status(200).json({ success: false, error: 'Product already in cart' });
         return;
       }

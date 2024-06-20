@@ -68,13 +68,6 @@ const addProduct = async (req, res) => {
         const imagePath = path.join(__dirname, "..", "public", "Productimages", filename);
 
         fs.writeFileSync(imagePath, imageBuffer);
-
-        // try {
-        //   fs.unlinkSync(file.path);
-        // } catch (unlinkError) {
-        //   console.log("Error deleting file:", unlinkError.message);
-        // }
-
         processedImages.push(filename);
       }
 
