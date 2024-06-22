@@ -5,6 +5,7 @@ const adminController = require("../controllers/adminController")
 const categoryController = require("../controllers/categoryController");
 const productController = require("../controllers/productController");
 const orderController = require("../controllers/orderController")
+const couponController = require("../controllers/couponController")
 
 const path=require("path")
 
@@ -55,6 +56,11 @@ adminRoute.post("/remove-image/:id",productController.removeImage)
 adminRoute.get("/order", orderController.loadOrder)
 adminRoute.put("/changeStatus", orderController.changeOrderStatus)
 adminRoute.get("/orderdetails", orderController.loadOrderDetails)
+
+// coupon
+adminRoute.get("/coupon", couponController.loadCoupon)
+adminRoute.post('/add-coupon', couponController.addCoupon)
+
 
 
 module.exports=adminRoute
