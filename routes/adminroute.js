@@ -60,7 +60,8 @@ adminRoute.get("/orderdetails", orderController.loadOrderDetails)
 // coupon
 adminRoute.get("/coupon", couponController.loadCoupon)
 adminRoute.post('/add-coupon', couponController.addCoupon)
-
+adminRoute.post('/edit-coupon',couponController.editCoupon)
+adminRoute.post('/delete-coupon', couponController.deleteCoupon)
 
 
 module.exports=adminRoute

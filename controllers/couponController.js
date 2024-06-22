@@ -7,7 +7,6 @@ const Coupon = require("../models/couponModel")
 const loadCoupon = async (req, res) => {
     try {
       const coupons = await Coupon.find();
-  
       res.render('coupon', { coupons });
     } catch (error) {
       console.log(error);
@@ -16,11 +15,9 @@ const loadCoupon = async (req, res) => {
   };
 
 
-const addCoupon = async (req,res) =>{
+  const addCoupon = async (req, res) => {
     try {
-
         const coupons = await Coupon.find();
-  
         const { couponname, couponcode, discountamount, startDate, endDate, status, minimumamount } = req.body;
 
         if (!couponname || !couponcode || !discountamount || !startDate || !endDate || !status || !minimumamount) {
@@ -29,10 +26,9 @@ const addCoupon = async (req,res) =>{
 
         const existingCoupon = await Coupon.findOne({ couponcode });
         if (existingCoupon) {
-            return res.render("coupon",{ message: 'Coupon code already exists' , coupons});
+            return res.render("coupon", { message: 'Coupon code already exists', coupons });
         }
 
-   
         const newCoupon = new Coupon({
             couponname,
             couponcode,
@@ -43,18 +39,47 @@ const addCoupon = async (req,res) =>{
             minimumamount
         });
 
-   
         await newCoupon.save();
-        res.redirect("/admin/coupon");
 
-        res.status(201).json({ message: 'Coupon added successfully', coupon: newCoupon });
+        res.redirect("/admin/coupon");
     } catch (error) {
         console.error('Error adding coupon:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
+};
+
+
+
+const editCoupon = async (req, res) => {
+  try {
+    const { couponId, couponname, couponcode, discountamount, startDate, endDate, status, minimumamount } = req.body;
+    const coupon = await Coupon.findById(couponId);
+
+    if (!coupon) {
+      return res.status(404).json({ message: 'Coupon not found' });
+    }
+
+    coupon.couponname = couponname;
+    coupon.couponcode = couponcode;
+    coupon.discountamount = discountamount;
+    coupon.startDate = startDate;
+    coupon.endDate = endDate;
+    coupon.status = status;
+    coupon.minimumamount = minimumamount;
+     await coupon.save();
+
+    res.redirect("/admin/coupon");
+  } catch (error) {
+    console.error('Error editing coupon:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+
+const deleteCoupon = async(req,res) => {
 
 }
-
 
 
 
@@ -70,5 +95,7 @@ const addCoupon = async (req,res) =>{
   
   module.exports = {
     loadCoupon,
-    addCoupon
+    addCoupon,
+    editCoupon,
+    deleteCoupon
   };

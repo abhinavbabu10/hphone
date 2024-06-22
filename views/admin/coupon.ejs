@@ -67,6 +67,114 @@
             <br>
         </nav>
     </aside>
+
+          <!-- Create Coupon Modal -->
+          <div class="modal fade" id="createCouponModal" tabindex="-1" aria-labelledby="createCouponModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createCouponModalLabel">Create New Coupon</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="createCouponForm" action="/admin/add-coupon" method="POST">
+                            <div class="mb-3">
+                                <label for="couponname" class="form-label">Coupon Name</label>
+                                <input type="text" class="form-control" id="couponname" name="couponname" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="couponcode" class="form-label">Coupon Code</label>
+                                <input type="text" class="form-control" id="couponcode" name="couponcode" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="discountamount" class="form-label">Discount Amount</label>
+                                <input type="number" class="form-control" id="discountamount" name="discountamount" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="minimumamount" class="form-label">Minimum Amount</label>
+                                <input type="number" class="form-control" id="minimumamount" name="minimumamount" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+           <!-- Edit Coupon Modal -->
+           <div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editCouponModalLabel">Edit Coupon</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="editCouponForm" action="/admin/edit-coupon" method="POST">
+                        <div class="modal-body">
+                            <input type="hidden" id="editCouponId" name="couponId">
+                            <div class="mb-3">
+                                <label for="editCouponName" class="form-label">Coupon Name</label>
+                                <input type="text" class="form-control" id="editCouponName" name="couponname" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editCouponCode" class="form-label">Coupon Code</label>
+                                <input type="text" class="form-control" id="editCouponCode" name="couponcode" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editDiscountAmount" class="form-label">Discount Amount</label>
+                                <input type="number" class="form-control" id="editDiscountAmount" name="discountamount" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editStartDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="editStartDate" name="startDate" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editEndDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="editEndDate" name="endDate" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editStatus" class="form-label">Status</label>
+                                <select class="form-control" id="editStatus" name="status" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editMinimumAmount" class="form-label">Minimum Amount</label>
+                                <input type="number" class="form-control" id="editMinimumAmount" name="minimumamount" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        
+       
+        
+        
+
+
     <main class="main-wrap">
         <header class="main-header navbar">
             <div class="col-search">
@@ -149,9 +257,13 @@
                                 <td><%= coupon.startDate.toDateString() %></td>
                                 <td><%= coupon.endDate.toDateString() %></td>
                                 <td><%= coupon.status %></td>
+                                
                                 <td class="text-end">
-                                    <button class="btn btn-sm btn-warning" onclick="changeStatus('<%= coupon._id %>')">Change Status</button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteCoupon('<%= coupon._id %>')">Delete</button>
+                                     <button class="btn btn-sm btn-warning" data-id="<%= coupon._id %>"data-name="<%= coupon.couponname %>"data-code="<%= coupon.couponcode %>"  data-discount="<%= coupon.discountamount %>" data-start="<%= coupon.startDate.toISOString().slice(0, 10) %>" data-end="<%= coupon.endDate.toISOString().slice(0, 10) %>" data-status="<%= coupon.status %>"data-minimum="<%= coupon.minimumamount %>"onclick="openEditCouponModal(this)">Change Status</button>
+
+
+                                    <button class="btn btn-sm btn-danger">Delete</button>
+
                                 </td>
                             </tr>
                             <% }) %>
@@ -161,61 +273,13 @@
             </div>
         </section>
 
-        <!-- Create Coupon Modal -->
-        <div class="modal fade" id="createCouponModal" tabindex="-1" aria-labelledby="createCouponModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="createCouponModalLabel">Create New Coupon</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="createCouponForm" action="/admin/add-coupon" method="POST">
-                            <div class="mb-3">
-                                <label for="couponname" class="form-label">Coupon Name</label>
-                                <input type="text" class="form-control" id="couponname" name="couponname" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="couponcode" class="form-label">Coupon Code</label>
-                                <input type="text" class="form-control" id="couponcode" name="couponcode" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="discountamount" class="form-label">Discount Amount</label>
-                                <input type="number" class="form-control" id="discountamount" name="discountamount" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="startDate" class="form-label">Start Date</label>
-                                <input type="date" class="form-control" id="startDate" name="startDate" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="endDate" class="form-label">End Date</label>
-                                <input type="date" class="form-control" id="endDate" name="endDate" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="status" class="form-label">Status</label>
-                                <select class="form-select" id="status" name="status" required>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="minimumamount" class="form-label">Minimum Amount</label>
-                                <input type="number" class="form-control" id="minimumamount" name="minimumamount" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+   
 
 
 
         <footer class="main-footer font-xs">
             <!-- Footer content here -->
         </footer>
-
-
 
     </main>
 
@@ -229,8 +293,36 @@
     <script src="/Adminassets/js/vendors/jquery.fullscreen.min.js"></script>
     <script src="/Adminassets/js/main.js" type="text/javascript"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.15.6/dist/sweetalert2.all.min.js"></script>
+   
 
-
+    
+    <script>
+        function openEditCouponModal(button) {
+          
+            const couponId = button.getAttribute('data-id');
+            const couponName = button.getAttribute('data-name');
+            const couponCode = button.getAttribute('data-code');
+            const discountAmount = button.getAttribute('data-discount');
+            const startDate = button.getAttribute('data-start');
+            const endDate = button.getAttribute('data-end');
+            const status = button.getAttribute('data-status');
+            const minimumAmount = button.getAttribute('data-minimum');
+        
+            document.getElementById('editCouponId').value = couponId;
+            document.getElementById('editCouponName').value = couponName;
+            document.getElementById('editCouponCode').value = couponCode;
+            document.getElementById('editDiscountAmount').value = discountAmount;
+            document.getElementById('editStartDate').value = startDate;
+            document.getElementById('editEndDate').value = endDate;
+            document.getElementById('editStatus').value = status;
+            document.getElementById('editMinimumAmount').value = minimumAmount;
+        
+            // Show the modal
+            var editCouponModal = new bootstrap.Modal(document.getElementById('editCouponModal'));
+            editCouponModal.show();
+        }
+        </script>
 
 
 
