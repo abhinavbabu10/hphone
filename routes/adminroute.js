@@ -9,6 +9,8 @@ const couponController = require("../controllers/couponController")
 
 const path=require("path")
 
+const adminauth = require("../middleware/adminauth");
+
 const session=require("express-session")
 const secretKey = process.env.SECRET_KEY;
 
@@ -26,25 +28,29 @@ adminRoute.set("views","./views/admin")
 
 
 
-adminRoute.get('/', adminController.loadAdminLogin);
+adminRoute.get('/', adminauth.isAdminLogout, adminController.loadAdminLogin);
+
 adminRoute.post('/', adminController.verifyAdmin);
-adminRoute.get("/home", adminController.loadDashboard)
+
+adminRoute.get("/home",adminauth.isAdminLogin, adminController.loadDashboard);
+
+adminRoute.get('/logout',  adminController.adminlogout)
 
 
 
 // users
-adminRoute.get("/customer",userManagement.loadcustomers);
+adminRoute.get("/customer", adminauth.isAdminLogin, userManagement.loadcustomers);
 adminRoute.post('/users/:id',userManagement.blockUnblockuser);
 
 //category
-adminRoute.get("/category", categoryController.loadCategory);
+adminRoute.get("/category", adminauth.isAdminLogin, categoryController.loadCategory);
 adminRoute.post("/add-category", categoryController.addCategory);
 adminRoute.post("/update-category/:id", categoryController.editCategory)
 adminRoute.post("/delete-category/:id", categoryController.confirmDelete)
 
 //product
 
-adminRoute.get("/product", productController.loadProduct)
+adminRoute.get("/product", adminauth.isAdminLogin, productController.loadProduct)
 adminRoute.get("/add-product", productController.loadAddProduct)
 adminRoute.post("/add-product",productController.addProduct)
 adminRoute.get("/edit-product/:id",productController.editProduct)
@@ -53,12 +59,12 @@ adminRoute.post("/delete-product/:id",productController.deleteProduct)
 adminRoute.post("/remove-image/:id",productController.removeImage)
 
 // order
-adminRoute.get("/order", orderController.loadOrder)
+adminRoute.get("/order", adminauth.isAdminLogin, orderController.loadOrder)
 adminRoute.put("/changeStatus", orderController.changeOrderStatus)
 adminRoute.get("/orderdetails", orderController.loadOrderDetails)
 
 // coupon
-adminRoute.get("/coupon", couponController.loadCoupon)
+adminRoute.get("/coupon", adminauth.isAdminLogin, couponController.loadCoupon)
 adminRoute.post('/add-coupon', couponController.addCoupon)
 adminRoute.post('/edit-coupon',couponController.editCoupon)
 adminRoute.post('/delete-coupon/:id', couponController.deleteCoupon)
