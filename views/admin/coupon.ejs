@@ -262,7 +262,7 @@
                                      <button class="btn btn-sm btn-warning" data-id="<%= coupon._id %>"data-name="<%= coupon.couponname %>"data-code="<%= coupon.couponcode %>"  data-discount="<%= coupon.discountamount %>" data-start="<%= coupon.startDate.toISOString().slice(0, 10) %>" data-end="<%= coupon.endDate.toISOString().slice(0, 10) %>" data-status="<%= coupon.status %>"data-minimum="<%= coupon.minimumamount %>"onclick="openEditCouponModal(this)">Change Status</button>
 
 
-                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                     <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('<%= coupon._id %>')">Delete</button>
 
                                 </td>
                             </tr>
@@ -324,6 +324,54 @@
         }
         </script>
 
+   
+<script>
+    function confirmDelete(couponId) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'You will not be able to recover this coupon!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch(`/admin/delete-coupon/${couponId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: 'The coupon has been deleted.'
+              }).then(() => {
+                window.location.reload();
+              });
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong!'
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'An error occurred while deleting the coupon.'
+            });
+          });
+        }
+      });
+    }
+  </script>
 
 
 </body>

@@ -78,8 +78,15 @@ const editCoupon = async (req, res) => {
 
 
 const deleteCoupon = async(req,res) => {
-
-}
+  try {
+    const { id } = req.params;
+    await Coupon.findByIdAndDelete(id);
+    res.status(200).send({ message: 'Coupon deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting coupon:', error);
+    res.status(500).send({ message: 'Internal server error' });
+  }
+};
 
 
 

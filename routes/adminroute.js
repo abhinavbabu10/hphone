@@ -61,7 +61,7 @@ adminRoute.get("/orderdetails", orderController.loadOrderDetails)
 adminRoute.get("/coupon", couponController.loadCoupon)
 adminRoute.post('/add-coupon', couponController.addCoupon)
 adminRoute.post('/edit-coupon',couponController.editCoupon)
-adminRoute.post('/delete-coupon', couponController.deleteCoupon)
+adminRoute.post('/delete-coupon/:id', couponController.deleteCoupon)
 
 
 module.exports=adminRoute
