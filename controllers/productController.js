@@ -18,15 +18,27 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage }).array("media", 10);
 
 
-const loadProduct = async (req, res) => {
-  try {
-    const products = await Product.find({ isUnlisted: false })
-    res.render("product", { products: products })
 
+const loadProduct = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  try {
+      const products = await Product.find({ isUnlisted: false })
+          .skip(skip)
+          .limit(limit);
+      const totalProducts = await Product.countDocuments({ isUnlisted: false });
+      const totalPages = Math.ceil(totalProducts / limit);
+
+      res.render("product", { products, totalPages, currentPage: page });
   } catch (error) {
-    console.log(error.message)
+      console.log(error.message);
+      res.status(500).send('Internal Server Error');
   }
-}
+};
+
+
 
 
 const loadAddProduct = async (req, res) => {

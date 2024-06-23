@@ -333,21 +333,21 @@ const cancelOrder = async (req, res) => {
 
 
 
-const loadOrder = async (req,res) =>{
+const loadOrder = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const perPage=10;
+    const perPage = 10;
 
-    const totalOrderCount= await Order.countDocuments({});
+    const totalOrderCount = await Order.countDocuments({});
     const totalPages = Math.ceil(totalOrderCount / perPage);
-
     const skip = (page - 1) * perPage;
     
     const orders = await Order.find({}).populate('user').skip(skip).limit(perPage);
-    res.render("order", { orders,currentPage: page, totalPages   });
-} catch (error) {
+    res.render("order", { orders, currentPage: page, totalPages });
+  } catch (error) {
     console.log(error.message);
-}
+    res.status(500).send('Internal Server Error');
+  }
 }
 
 const changeOrderStatus = async (req,res) =>{

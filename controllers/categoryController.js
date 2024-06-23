@@ -2,14 +2,22 @@ const Category = require("../models/categoryModel")
 
 
 const loadCategory = async (req, res) => {
-  try {
-    const category = await Category.find({ deleted: false }).sort({createdOn:-1})
+  const page = parseInt(req.query.page) || 1; 
+  const limit = 10;
+  const skip = (page - 1) * limit;
 
-    res.render("category", { message: "", category: category })
+  try {
+      const category = await Category.find({ deleted: false }).sort({ createdOn: -1 }).skip(skip).limit(limit);
+      const totalCategories = await Category.countDocuments({ deleted: false });
+      const totalPages = Math.ceil(totalCategories / limit);
+
+      res.render("category", { message: "", category, totalPages, currentPage: page });
   } catch (error) {
-    console.log(error.message)
+      console.log(error.message);
+      res.status(500).send('Internal Server Error');
   }
-}
+};
+
 
 
 

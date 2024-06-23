@@ -5,15 +5,21 @@ const Product = require("../models/productModel")
 const Coupon = require("../models/couponModel")
 
 const loadCoupon = async (req, res) => {
-    try {
-      const coupons = await Coupon.find();
-      res.render('coupon', { coupons });
-    } catch (error) {
-      console.log(error);
-      res.status(500).send('Internal Server Error');
-    }
-  };
+  const page = parseInt(req.query.page) || 1; 
+  const limit = 10; 
+  const skip = (page - 1) * limit;
 
+  try {
+    const coupons = await Coupon.find().skip(skip).limit(limit);
+    const totalCoupons = await Coupon.countDocuments();
+    const totalPages = Math.ceil(totalCoupons / limit);
+
+    res.render('coupon', { coupons, totalPages, currentPage: page });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Internal Server Error');
+  }
+};
 
   const addCoupon = async (req, res) => {
     try {

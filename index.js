@@ -16,6 +16,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'views')));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname,'views'))
 
 app.use(nocache())
 app.use(session({
@@ -23,6 +25,7 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
+
 
 
 // USER ROUTE
@@ -33,6 +36,23 @@ app.use('/', userroute);
 
 const adminroute = require('./routes/adminroute');
 app.use('/admin',adminroute)
+
+// Middleware to handle undefined routes
+app.use((req, res, next) => {
+    const error = new Error("Not Found");
+    error.status = 404;
+    next(error);
+  });
+  
+  // Error handling middleware
+  app.use((err, req, res, next) => {
+    let url = "";
+    req.url.split("/")[1] === "admin" ? (url = "/admin/home") : (url = "/");
+    res.status(err.status || 500);
+    res.render("pagenotfound", { error: err, url: url,layout: false });
+  });
+
+
 
 app.listen(3000, function () {
     console.log('Listening to the server http://localhost:3000');

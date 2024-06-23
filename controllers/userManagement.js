@@ -1,15 +1,22 @@
 const User = require('../models/userModel')
 
-
 const loadcustomers = async (req, res) => {
-    try {
-        const users = await User.find({is_admin:0});
-        res.render('customer', { users });
-    } catch (err) {
-        console.error('Error fetching users:', err);
-        res.status(500).send('Internal Server Error');
-    }
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  try {
+      const users = await User.find({ is_admin: 0 }).skip(skip).limit(limit);
+      const totalUsers = await User.countDocuments({ is_admin: 0 });
+      const totalPages = Math.ceil(totalUsers / limit);
+
+      res.render('customer', { users, totalPages, currentPage: page });
+  } catch (err) {
+      console.error('Error fetching users:', err);
+      res.status(500).send('Internal Server Error');
+  }
 }
+
 
 const blockUnblockuser = async (req, res) => {
     try {

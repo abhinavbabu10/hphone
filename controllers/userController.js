@@ -164,13 +164,21 @@ const loadShop = async (req, res) => {
     try {
         const user = req.session.userData;
         const category = await Category.find({ deleted: false }).sort({ createdOn: -1 });
-        const products = await Product.find({ isUnlisted: false, stock: { $gt: 0 } });
-        res.render('shop', { category, products, user });
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; 
+        const skip = (page - 1) * limit;
+
+        const products = await Product.find({ isUnlisted: false, stock: { $gt: 0 } }).skip(skip).limit(limit);
+        const totalProducts = await Product.countDocuments({ isUnlisted: false, stock: { $gt: 0 } });
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        res.render('shop', { category, products, user, currentPage: page, totalPages });
     } catch (error) {
         console.log(error);
+        res.status(500).send('Internal Server Error');
     }
 };
-
 
 const verifyOTP = async (req, res) => {
     try {

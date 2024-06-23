@@ -157,26 +157,29 @@
           </div>
 
           <!--pagination-->
-          <div class="pagination-area mt-15 mb-sm-5 mb-lg-0">
-            <!-- <nav aria-label="Page navigation example">
-              <ul class="pagination justify-content-start">
-                <li class="page-item active">
-                  <a class="page-link" href="#">01</a>
-                </li>
-                <li class="page-item"><a class="page-link" href="#">02</a></li>
-                <li class="page-item"><a class="page-link" href="#">03</a></li>
-                <li class="page-item">
-                  <a class="page-link dot" href="#">...</a>
-                </li>
-                <li class="page-item"><a class="page-link" href="#">16</a></li>
-                <li class="page-item">
-                  <a class="page-link" href="#"
-                    ><i class="fi-rs-angle-double-small-right"></i
-                  ></a> -->
-                </li>
-              </ul>
-            </nav>
-          </div>
+          <div class="d-flex justify-content-center">
+            <div class="pagination-area mt-15 mb-50">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-start">
+                        <% if (currentPage > 1) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage - 1 %>">Previous</a>
+                        </li>
+                        <% } %>
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                        </li>
+                        <% } %>
+                        <% if (currentPage < totalPages) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage + 1 %>">Next</a>
+                        </li>
+                        <% } %>
+                    </ul>
+                </nav>
+            </div>
+        </div>
         </div>
 
         <div class="col-lg-3 primary-sidebar sticky-sidebar">
@@ -191,7 +194,7 @@
             </ul>
           </div>
         </div>
-      </div>
+       
     </div>
   </section>
 </main>
