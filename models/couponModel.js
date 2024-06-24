@@ -14,14 +14,6 @@ const couponSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    startDate: {
-        type: Date,
-        required: true
-    },
-    endDate: {
-        type: Date,
-        required: true
-    },
     status: {
         type: String,
         enum: ['active', 'inactive'],
