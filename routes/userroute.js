@@ -9,6 +9,7 @@ userroute.set('views', './views/users');
 
 const userController = require("../controllers/userController");
 const orderController = require("../controllers/orderController")
+const couponController = require("../controllers/couponController")
 
 userroute.get('/',userController.loadhome);
 
@@ -55,7 +56,7 @@ userroute.post('/add-wishlist',userController.addtoWishlist)
 userroute.post('/remove-wishlist',userController.removeWishlist)
 
 
-userroute.get('/checkout', userController.checkOut)
+userroute.get('/checkout',auth.isLogin, userController.checkOut)
 userroute.post('/add-addresscheckout',userController.addAddressCheckOut)
 
 userroute.post('/placeorder',orderController.placeOrder)
@@ -65,6 +66,8 @@ userroute.post("/cancelorder",orderController.cancelOrder )
 userroute.put("/returnorder",orderController.returnOrder)
 userroute.put("/checkWalletBalance",orderController.confirmWalletBalance)
 userroute.post("/walletOrder",orderController.walletPlaceOrder)
+
+userroute.post('/apply-coupon', couponController.applyCoupon)
 
 
 

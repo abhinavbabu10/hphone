@@ -99,7 +99,39 @@ const deleteCoupon = async(req,res) => {
 };
 
 
+const applyCoupon = async (req, res) => {
+  try {
+      const { couponCode, totalAmount } = req.body;
+     console.log("hiii")
+      const coupon = await Coupon.findOne({ couponcode: couponCode, status: 'active' });
 
+      if (!coupon) {
+          return res.json({ success: false, message: 'Invalid or inactive coupon code.' });
+      }
+
+      if (totalAmount < coupon.minimumamount) {
+          return res.json({
+              success: false,
+              message: `Minimum purchase amount of ₹${coupon.minimumamount} required for this coupon.`
+          });
+      }
+
+      const discountPercentage = coupon.discountamount;
+      const discountAmount = (totalAmount * discountPercentage) / 100;
+      const newTotalAmount = totalAmount - discountAmount;
+
+      res.json({
+          success: true,
+          discountAmount,
+          newTotalAmount,
+          message: 'Coupon applied successfully.'
+      });
+
+  } catch (error) {
+      console.error('Error applying coupon:', error);
+      res.status(500).json({ success: false, message: 'An error occurred while applying the coupon.' });
+  }
+};
 
 
 
@@ -114,5 +146,6 @@ const deleteCoupon = async(req,res) => {
     loadCoupon,
     addCoupon,
     editCoupon,
-    deleteCoupon
+    deleteCoupon,
+    applyCoupon 
   };

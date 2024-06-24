@@ -92,7 +92,7 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                   <div class="form-check">
                     <input class="form-check-input" type="radio" name="coupon" id="<%= coupon.couponcode %>" value="<%= coupon.couponcode %>">
-                    <label class="form-check-label" for="<%= coupon.couponcode %>">
+                    <label class="form-check-label"  for="<%= coupon.couponcode %>">
                       <%= coupon.couponname %> - Code: <%= coupon.couponcode %> - Minimum amount: <%= coupon.minimumamount %> - Discount amount: <%= coupon.discountamount %>
                     </label>
                   </div>
@@ -103,7 +103,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button id="applyCouponBtn" type="button" class="btn btn-primary" onclick="applyCoupon()">Apply Coupon</button>
+          <button id="applyCouponBtn" type="button" class="btn btn-primary">Apply Coupon</button>
         </div>
       </div>
     </div>
@@ -190,7 +190,7 @@
                                                     <td>$<%= (item.productId.price * item.quantity).toFixed(2) %></td>
                                                 </tr>
                                             <% }) %>
-                                            <tr>
+                                            <tr id="subtotalRow">
                                                 <th>SubTotal</th>
                                                 <td class="product-subtotal" colspan="2">$<span id="subtotal"><%= cart.product.reduce((acc, item) => acc + item.productId.price * item.quantity, 0).toFixed(2) %></td>
                                             </tr>
@@ -200,7 +200,7 @@
                                             </tr>
                                             <tr>
                                                 <th>Total</th>
-                                                <td colspan="2" class="product-subtotal"><span  id="totalAmount" class="font-xl text-brand fw-900">$<%= cart.product.reduce((acc, item) => acc + item.productId.price * item.quantity, 0).toFixed(2) %></span></td>
+                                                <td colspan="2" class="product-subtotal"><span id="totalAmount" class="font-xl text-brand fw-900">$<%= cart.product.reduce((acc, item) => acc + item.productId.price * item.quantity, 0).toFixed(2) %></span></td>
                                             </tr>
                                         <% } else { %>
                                             <tr>
@@ -209,6 +209,7 @@
                                         <% } %>
                                     </tbody>
                                 </table>
+                                
                             </div>
 
                             <div class="coupon-section">
@@ -655,58 +656,83 @@
     }
 </script>
 
+
 <script>
-    function applyCoupon() {
-    const couponCode = document.getElementById('couponCode').value;
-    if (couponCode) {
-        fetch('/apply-coupon', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ couponCode, orderSubtotal: document.getElementById('orderSubtotal').value }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+    document.getElementById("applyCouponBtn").addEventListener("click", applyCoupon);
+
+    async function applyCoupon() {
+        const couponCode = document.querySelector(".form-check-input").value;
+        const totalAmountElement = document.getElementById('totalAmount');
+        const totalAmount = parseFloat(totalAmountElement.textContent.replace('$', ''));
+
+        try {
+            const response = await fetch('/apply-coupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ couponCode, totalAmount }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Success',
-                    text: data.message
+                    title: 'Coupon Applied!',
+                    text: `You saved ₹${result.discountAmount}. New total amount is ₹${result.newTotalAmount}.`,
                 });
-                document.getElementById('applyCouponBtn').style.display = 'none';
-                document.getElementById('removeCouponBtn').style.display = 'block';
-                document.getElementById('orderSubtotal').value = data.newSubtotal;
-               
-                document.getElementById('subtotalDisplay').textContent = `Subtotal: $${data.newSubtotal}`;
-               
-                var applyCouponModal = bootstrap.Modal.getInstance(document.getElementById('applyCouponModal'));
-                applyCouponModal.hide();
+
+                totalAmountElement.textContent = `$${result.newTotalAmount.toFixed(2)}`;
+
+             
+                let discountRow = document.getElementById('discountRow');
+                if (!discountRow) {
+                    const subtotalRow = document.getElementById('subtotalRow');
+                    discountRow = document.createElement('tr');
+                    discountRow.id = 'discountRow';
+
+                    const discountTh = document.createElement('th');
+                    discountTh.textContent = 'Discount';
+
+                    const discountTd = document.createElement('td');
+                    discountTd.colSpan = 2;
+                    discountTd.textContent = `-₹${result.discountAmount.toFixed(2)}`;
+
+                    discountRow.appendChild(discountTh);
+                    discountRow.appendChild(discountTd);
+
+                    subtotalRow.parentNode.insertBefore(discountRow, subtotalRow.nextSibling);
+
+
+
+
+                } else {
+                    discountRow.querySelector('td').textContent = `-₹${result.discountAmount.toFixed(2)}`;
+                }
+                const applyCouponModal = document.getElementById('applyCouponModal');
+                const modalInstance = bootstrap.Modal.getInstance(applyCouponModal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
             } else {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: data.message
+                    text: result.message,
                 });
             }
-        })
-        .catch(error => {
+        } catch (error) {
+            console.error('Error applying coupon:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'An error occurred while applying the coupon.'
+                text: 'An error occurred while applying the coupon.',
             });
-        });
-    } else {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Warning',
-            text: 'Please enter a coupon code.'
-        });
+        }
     }
-}
-
 </script>
+
 
 
    
