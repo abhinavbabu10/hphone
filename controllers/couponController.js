@@ -2,6 +2,7 @@
 const Coupon = require("../models/couponModel")
 
 const loadCoupon = async (req, res) => {
+
   const page = parseInt(req.query.page) || 1; 
   const limit = 10; 
   const skip = (page - 1) * limit;
@@ -16,44 +17,48 @@ const loadCoupon = async (req, res) => {
     console.log(error);
     res.status(500).send('Internal Server Error');
   }
+
 };
 
-  const addCoupon = async (req, res) => {
-    try {
-        const { couponname, couponcode, discountamount, status, minimumamount } = req.body;
+const addCoupon = async (req, res) => {
+  try {
+      const { couponname, couponcode, discountamount, status, minimumamount } = req.body;
+      
 
-        if (!couponname || !couponcode || !discountamount || !status || !minimumamount) {
-            return res.status(400).json({ message: 'All fields are required' });
-        }
+      if (!couponname || !couponcode || !discountamount || !status || !minimumamount) {
+          return res.status(400).json({ message: 'All fields are required' });
+      }
 
-        const existingCoupon = await Coupon.findOne({ couponname });
-        if (existingCoupon) {
-          const page = parseInt(req.query.page) || 1; 
-          const limit = 10; 
-          const skip = (page - 1) * limit;
+      const existingCoupon = await Coupon.findOne({ couponname });
+      if (existingCoupon) {
+        const page = parseInt(req.query.page) || 1; 
+        const limit = 10; 
+        const skip = (page - 1) * limit;
 
-       const coupons = await Coupon.find().skip(skip).limit(limit);
-       const totalCoupons = await Coupon.countDocuments();
-      const totalPages = Math.ceil(totalCoupons / limit);
-            return res.render("coupon", { message: 'Coupon code already exists', coupons, totalPages, currentPage: page });
-        }
+     const coupons = await Coupon.find().skip(skip).limit(limit);
+     const totalCoupons = await Coupon.countDocuments();
+    const totalPages = Math.ceil(totalCoupons / limit);
+          return res.render("coupon", { message: 'Coupon code already exists', coupons, totalPages, currentPage: page });
+      }
 
-        const newCoupon = new Coupon({
-            couponname,
-            couponcode,
-            discountamount,
-            status,
-            minimumamount
-        });
+      const newCoupon = new Coupon({
+          couponname,
+          couponcode,
+          discountamount,
+          status,
+          minimumamount
+      });
 
-        await newCoupon.save();
-
-       
-    } catch (error) {
-        console.error('Error adding coupon:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+      await newCoupon.save();
+      res.redirect('/admin/coupon')
+     
+  } catch (error) {
+      console.error('Error adding coupon:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
 };
+
+
 
 
 
