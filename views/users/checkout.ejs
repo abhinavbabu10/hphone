@@ -74,6 +74,41 @@
     </div>
   </div>
 
+  <!-- applycouponmodal -->
+   <div class="modal fade" id="applyCouponModal" tabindex="-1" aria-labelledby="applyCouponModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="applyCouponModalLabel">Apply Coupon</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group mb-3">
+          </div>
+          <div class="available-coupons">
+            <h6>Available Coupons:</h6>
+            <ul class="list-group">
+              <% coupons.forEach(coupon => { %>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="coupon" id="<%= coupon.couponcode %>" value="<%= coupon.couponcode %>">
+                    <label class="form-check-label" for="<%= coupon.couponcode %>">
+                      <%= coupon.couponname %> - Code: <%= coupon.couponcode %> - Minimum amount: <%= coupon.minimumamount %> - Discount amount: <%= coupon.discountamount %>
+                    </label>
+                  </div>
+                </li>
+              <% }); %>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button id="applyCouponBtn" type="button" class="btn btn-primary" onclick="applyCoupon()">Apply Coupon</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
  <main class="main">
     <div class="page-header breadcrumb-wrap">
@@ -96,7 +131,7 @@
                         <h4>Address Details</h4>
                     </div>
                     <button type="button" id="address" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">Add Address</button>
-                  <% if (user && user.address && user.address.length > 0) { %>
+                    <% if (user && user.address && user.address.length > 0) { %>
                         <% user.address.forEach(function(add) { %>
                             <div class="col-lg-4 mt-15">
                                 <div class="card mb-3 mb-lg-0">
@@ -104,20 +139,19 @@
                                         <h5 class="mb-0"><%= add.type %> Address</h5>
                                     </div>
                                     <div class="card-body">
-                                        <input type="radio" name="address" value="<%= add._id %>" id="address_<%= add._id %>">
-                                        <label for="address_<%= add._id %>">
-                                            <address>
-                                                <%= add.houseName %><br>
-                                                <%= add.street %>,<br>
-                                                <%= add.city %>, <%= add.postalCode %><br>
-                                                <%= add.phoneNumber %><br>
-                                                <%= add.state %>
-                                            </address>
-                                            <p><%= add.country %></p>
-                                        </label>
-                                        <!-- Edit button in address card -->
-                                        <!-- <a type="button" class="btn-small" data-bs-toggle="modal" data-bs-target="#editAddressModal" onclick="populateEditForm('<%= add._id %>', '<%= add.houseName %>', '<%= add.street %>', '<%= add.city %>', '<%= add.state %>', '<%= add.country %>', '<%= add.postalCode %>', '<%= add.phoneNumber %>', '<%= add.type %>')">Edit</a>
-                                        <a type="button" class="btn-small ml-15" onclick="confirmDelete('<%= add._id %>')">Delete</a> -->
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="address" value="<%= add._id %>" id="address_<%= add._id %>">
+                                            <label class="form-check-label" for="address_<%= add._id %>">
+                                                <address>
+                                                    <%= add.houseName %><br>
+                                                    <%= add.street %>,<br>
+                                                    <%= add.city %>, <%= add.postalCode %><br>
+                                                    <%= add.phoneNumber %><br>
+                                                    <%= add.state %>
+                                                </address>
+                                                <p><%= add.country %></p>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -176,6 +210,12 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            <div class="coupon-section">
+                                <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#applyCouponModal">Apply Coupon</button>
+                                
+                            </div>
+
                             <div class="bt-1 border-color-1 mt-30 mb-30"></div>
                             <div class="payment_method">
                                 <div class="mb-25">
@@ -613,6 +653,59 @@
             console.error('Error placing order:', error);
         });
     }
+</script>
+
+<script>
+    function applyCoupon() {
+    const couponCode = document.getElementById('couponCode').value;
+    if (couponCode) {
+        fetch('/apply-coupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ couponCode, orderSubtotal: document.getElementById('orderSubtotal').value }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message
+                });
+                document.getElementById('applyCouponBtn').style.display = 'none';
+                document.getElementById('removeCouponBtn').style.display = 'block';
+                document.getElementById('orderSubtotal').value = data.newSubtotal;
+               
+                document.getElementById('subtotalDisplay').textContent = `Subtotal: $${data.newSubtotal}`;
+               
+                var applyCouponModal = bootstrap.Modal.getInstance(document.getElementById('applyCouponModal'));
+                applyCouponModal.hide();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while applying the coupon.'
+            });
+        });
+    } else {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Warning',
+            text: 'Please enter a coupon code.'
+        });
+    }
+}
+
 </script>
 
 

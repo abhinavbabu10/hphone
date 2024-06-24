@@ -5,6 +5,7 @@ const Cart = require("../models/cartModel")
 const Order = require("../models/orderModel")
 const Wishlist = require("../models/wishlistModel")
 const Wallet = require("../models/walletModel")
+const Coupon = require('../models/couponModel')
 
 const bcrypt = require('bcrypt');
 const nodemailer = require("nodemailer");
@@ -521,7 +522,8 @@ const checkOut = async (req, res) =>{
         const userId = req.session.userData;
         const user = await User.findById(userId)
         const cart = await Cart.findOne({ userId:userId }).populate('product.productId');
-        res.render('checkout', { cart,user });
+        const coupons = await Coupon.find({})
+        res.render('checkout', { cart,user,coupons });
       } catch (err) {
         console.error(err);
         res.status(500).send('Internal Server Error');
