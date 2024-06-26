@@ -89,39 +89,84 @@ const logout = async (req,res) =>{
 }
 
 
+// const insertUser = async (req, res) => {
+//     try {
+//         const { username, email, password, referralCode } = req.body;
+//           if (!req.session) {
+//             throw new Error('Session middleware not initialized');
+//         }
+
+//         const existingUser = await User.findOne({ email: email });
+//         if (existingUser) {
+//             return res.render('signup',{ user:null,message: 'Email already exists' });
+//         }
+
+//         const otp = generateOTP();
+       
+//         const userData = {
+//             name:username,
+//             email:email,
+//             password:password,
+//             referralCode: referralCode || null,
+//             otp:otp
+//         };
+       
+//         req.session.userDetail=userData
+//        console.log(otp,"otp")
+       
+
+//         sendOTPByEmail(email, otp);
+//         res.redirect('/otp');
+
+//         } catch (error) {
+//         console.error('Error inserting user:', error);
+//         res.status(500).send('Error inserting user');
+//      }
+// };
+
+
 const insertUser = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
-          if (!req.session) {
+        const { username, email, password, referralCode } = req.body;
+        if (!req.session) {
             throw new Error('Session middleware not initialized');
         }
 
         const existingUser = await User.findOne({ email: email });
         if (existingUser) {
-            return res.render('signup',{ user:null,message: 'Email already exists' });
+            return res.render('signup', { user: null, message: 'Email already exists' });
+        }
+
+        // Check if the referral code is valid
+        let referrer = null;
+        if (referralCode) {
+            referrer = await User.findOne({ referralCode: referralCode });
+            if (!referrer) {
+                return res.render('signup', { user: null, message: 'Invalid referral code' });
+            }
         }
 
         const otp = generateOTP();
-          const userData = {
-            name:username,
-            email:email,
-            password:password,
-            otp:otp
+
+        const userData = {
+            name: username,
+            email: email,
+            password: password,
+            referralCode: referralCode || null,
+            otp: otp
         };
-       
-        req.session.userDetail=userData
-       console.log(otp,"otp")
+
+        req.session.userDetail = userData;
+        req.session.referrer = referrer; // Save referrer information in the session
+        console.log(otp, "otp");
 
         sendOTPByEmail(email, otp);
         res.redirect('/otp');
-
-        } catch (error) {
+    } catch (error) {
         console.error('Error inserting user:', error);
         res.status(500).send('Error inserting user');
-     }
+    }
 };
-
-
 
 
 
@@ -130,6 +175,9 @@ function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000);
 }
 
+function generateReferralCode() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  }
 
 
 function sendOTPByEmail(userEmail, otp) {
@@ -181,20 +229,76 @@ const loadShop = async (req, res) => {
     }
 };
 
+// const verifyOTP = async (req, res) => {
+//     try {
+//         const enteredOTP = req.body.otp;
+//         if (parseInt(enteredOTP) === req.session.userDetail.otp) {
+//             const {name,email,password}=req.session.userDetail;
+//             const spassword = await securePassword(password);
+//             const referralCode = generateReferralCode();
+//             const newUser = new User({
+//                 name,
+//                 email,
+//                 password: spassword,
+//                 is_admin:0,
+//                 referalCode: referralCode
+//             });
+
+//             await newUser.save();
+
+
+//             res.redirect('/login');
+//         } else {
+//             res.render('otp', { errorMessage: 'Incorrect OTP' });
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Internal server error' });
+//     }
+// };
+
 const verifyOTP = async (req, res) => {
     try {
+        console.log(req.body)
         const enteredOTP = req.body.otp;
         if (parseInt(enteredOTP) === req.session.userDetail.otp) {
-            const {name,email,password}=req.session.userDetail;
+            const { name, email, password } = req.session.userDetail;
             const spassword = await securePassword(password);
+            const referralCode = generateReferralCode();
+            console.log(referralCode,"koi")
+            
             const newUser = new User({
                 name,
                 email,
                 password: spassword,
-                is_admin:0,
+                is_admin: 0,
+                referralCode: referralCode
             });
 
             await newUser.save();
+
+            const newWallet = new Wallet({
+                user: newUser._id,
+                walletBalance: 50,
+                transactions: [{
+                    amount: 50,
+                    description: 'Signup Bonus',
+                    type: 'credit'
+                }]
+            });
+            await newWallet.save();
+
+            if (req.session.referrer) {
+                const referrerWallet = await Wallet.findOne({ user: req.session.referrer._id });
+                referrerWallet.walletBalance += 100;
+                referrerWallet.transactions.push({
+                    amount: 100,
+                    description: 'Referral Bonus',
+                    type: 'credit'
+                });
+                await referrerWallet.save();
+            }
+
             res.redirect('/login');
         } else {
             res.render('otp', { errorMessage: 'Incorrect OTP' });
@@ -204,6 +308,7 @@ const verifyOTP = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
 
 const resendOTP = async (req, res) => {
     try {

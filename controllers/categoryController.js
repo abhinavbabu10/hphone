@@ -1,4 +1,5 @@
 const Category = require("../models/categoryModel")
+const Product = require("../models/productModel")
 
 
 const loadCategory = async (req, res) => {
@@ -20,13 +21,12 @@ const loadCategory = async (req, res) => {
 
 
 
-
 const addCategory = async (req, res) => {
   try {
     const { name } = req.body;
     const trimmedName = name.trim();
     const formattedName = trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
-    const category = await Category.find({ deleted: false }).sort({ createdOn: -1 });
+
 
     const existingCategory = await Category.findOne({
       name: { $regex: new RegExp(`^${formattedName}$`, 'i') },
@@ -34,7 +34,14 @@ const addCategory = async (req, res) => {
     });
 
     if (existingCategory) {
-      return res.render("category", { message: 'Category already exists', category });
+      const page = parseInt(req.query.page) || 1; 
+      const limit = 10; 
+      const skip = (page - 1) * limit;
+
+        const category = await Category.find({ deleted: false }).sort({ createdOn: -1 }).skip(skip).limit();
+      const totalCategories = await Category.countDocuments();
+      const totalPages = Math.ceil(totalCategories / limit);
+     return res.render("category", { message: 'Category already exists', category, totalPages, currentPage: page });
     } else {
       const newCategory = new Category({
         name: formattedName,
@@ -51,25 +58,49 @@ const addCategory = async (req, res) => {
 
 
 
-
 const editCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, status } = req.body;
+    const { name, status, discount } = req.body;
+    const trimmedName = name.trim();
+    const formattedName = trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
+
+    
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ success: false, error: 'invalid_name', message: 'Category name is required' });
+    }
+
+    const existingCategory = await Category.findOne({ name: formattedName });
+    if (existingCategory && existingCategory._id.toString() !== id) {
+      return res.status(400).json({ success: false, error: 'category_exists', message: 'Category already exists' });
+    }
+
+    
     const updatedCategory = await Category.findByIdAndUpdate(
       id,
-      { name, status },
+      { name: formattedName, status, discount },
+      { new: true }
     );
 
     if (!updatedCategory) {
       return res.status(404).json({ error: 'Category not found' });
     }
-    res.status(200).json(updatedCategory);
+
+    if (discount) {
+      const products = await Product.find({ category: updatedCategory.name });
+      for (const product of products) {
+        const discountPrice = parseInt(product.price - (product.price * (discount / 100)));
+        await Product.findByIdAndUpdate(product._id, { discountPrice });
+      }
+    }
+
+    res.status(200).json({ success: true, category: updatedCategory });
   } catch (error) {
     console.error('Error updating category:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 const confirmDelete = async (req, res) => {
 
@@ -89,6 +120,7 @@ const confirmDelete = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while deleting the category' });
   }
 };
+
 
 
 

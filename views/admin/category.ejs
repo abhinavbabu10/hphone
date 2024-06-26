@@ -67,6 +67,47 @@
             <br>
         </nav>
     </aside>
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editCategoryForm">
+              <input type="hidden" id="editCategoryId">
+              <div class="mb-3">
+                <label for="editCategoryName" class="form-label">Category Name</label>
+                <input type="text" class="form-control" id="editCategoryName" required>
+                <div id="editCategoryNameError" class="invalid-feedback"></div>
+              </div>
+              <div class="mb-3">
+                <label for="editCategoryStatus" class="form-label">Status</label>
+                <select class="form-select" id="editCategoryStatus" required>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editCategoryDiscount" class="form-label">Discount (%)</label>
+                <input type="number" class="form-control" id="editCategoryDiscount" min="0" max="100" required>
+                <div id="editCategoryDiscountError" class="invalid-feedback">Discount must be between 0 and 100.</div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <!-- <button type="button" class="btn btn-primary" onclick="validateForm()">Save Changes</button> -->
+            <button type="button" class="btn btn-primary" onclick="validateForm($('#editCategoryModal #editCategoryId').val())">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
     <main class="main-wrap">
       <header class="main-header navbar">
         <div class="col-search">
@@ -165,31 +206,38 @@
 
                     <div class="col-md-9">
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                              <thead>
-                                <tr>
-                                  <th>No</th>
-                                  <th>Name</th>
-                                  <th>Status</th>
-                                  <th>Action</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <% category.forEach((category, index) => { %>
-                                <tr>
-                                  <td><%= index + 1 %></td>
-                                  <td><%= category.name %></td>
-                                  <td><%= category.status %></td>
-                                  <td>
-                                    <div>
-                                      <button class="btn btn-primary btn-sm" onclick="editCategory('<%= category._id %>', '<%= category.name %>', '<%= category.status %>')">Edit</button>
-                                      <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('<%= category._id %>')">Delete</button>
-                                    </div>
-                                  </td>
-                                </tr>
-                                <% }) %>
-                              </tbody>
-                            </table>
+                          <table class="table table-hover">
+                            <thead>
+                              <tr>
+                                <th>No</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Discount</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <% category.forEach((category, index) => { %>
+                              <tr>
+                                <td><%= index + 1 %></td>
+                                <td><%= category.name %></td>
+                                <td><%= category.status %></td>
+                                <% if (category.discount) { %>
+                                <td><%= category.discount %>%</td>
+                                <% } else { %>
+                                <td>Nil</td>
+                                <% } %>
+                                <td>
+                                  <div>
+                                    <button class="btn btn-primary btn-sm" onclick="showEditModal('<%= category._id %>', '<%= category.name %>', '<%= category.status %>', '<%= category.discount %>')">Edit</button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('<%= category._id %>')">Delete</button>
+                                  </div>
+                                </td>
+                              </tr>
+                              <% }) %>
+                            </tbody>
+                          </table>
+                          
                           </div>
                         </div>
             </div> 
@@ -265,67 +313,78 @@
   </script>
     
     <script>
-      function editCategory(categoryId, categoryName, categoryStatus) {
-        Swal.fire({
-          title: 'Edit Category',
-          html: `
-            <input id="categoryNameInput" class="swal2-input" value="${categoryName}">
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="categoryStatus" id="activeRadio" value="active" ${categoryStatus === 'active' ? 'checked' : ''}>
-              <label class="form-check-label" for="activeRadio">Active</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="categoryStatus" id="inactiveRadio" value="inactive" ${categoryStatus === 'inactive' ? 'checked' : ''}>
-              <label class="form-check-label" for="inactiveRadio">Inactive</label>
-            </div>
-          `,
-          showCancelButton: true,
-          confirmButtonText: 'Save',
-          preConfirm: () => {
-            const categoryName = document.getElementById('categoryNameInput').value;
-            const categoryStatus = document.querySelector('input[name="categoryStatus"]:checked').value;
-            return { categoryName, categoryStatus };
-          }
-        }).then((result) => {
-          if (result.isConfirmed) {
-            fetch(`/admin/update-category/${categoryId}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                name: result.value.categoryName,
-                status: result.value.categoryStatus
-              })
-            })
-            .then(response => {
-              if (response.ok) {
-                Swal.fire({
-                  icon: 'success',
-                  title: 'Success',
-                  text: 'Category updated successfully'
-                }).then(() => {
-                  window.location.reload();
-                });
-              } else {
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Error',
-                  text: 'Failed to update category'
-                });
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'An error occurred while updating the category'
-              });
-            });
-          }
-        });
+function showEditModal(categoryId, categoryName, categoryStatus, discount) {
+  $('#editCategoryId').val(categoryId);   
+  $('#editCategoryName').val(categoryName);
+  $('#editCategoryNameError').empty();
+  $('#editCategoryStatus').val(categoryStatus);
+  $('#editCategoryDiscount').val(discount);
+  $('#editCategoryDiscountError').empty();
+  $('#editCategoryModal').modal('show');
+}
+
+function validateForm(categoryId) {
+  const discountInput = document.getElementById('editCategoryDiscount');
+  const discountError = document.getElementById('editCategoryDiscountError');
+  const discountValue = parseFloat(discountInput.value);
+
+  if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
+    discountInput.classList.add('is-invalid');
+    discountError.textContent = 'Discount must be between 0 and 100';
+    return false;
+  } else {
+    discountInput.classList.remove('is-invalid');
+    discountError.textContent = '';
+    saveChanges(categoryId);
+  }
+}
+
+
+function saveChanges(categoryId) {
+  const categoryName = $('#editCategoryName').val();
+  const categoryStatus = $('#editCategoryStatus').val();
+  const categoryDiscount = $('#editCategoryDiscount').val();
+
+  fetch(`/admin/update-category/${categoryId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ 
+      name: categoryName, 
+      status: categoryStatus, 
+      discount: categoryDiscount 
+    }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const row = $(`#categoryRow-${categoryId}`);
+      row.find('.categoryName').text(categoryName);
+      row.find('.categoryStatus').text(categoryStatus.charAt(0).toUpperCase() + categoryStatus.slice(1));
+      row.find('.categoryDiscount').text(categoryDiscount + '%');
+      location.reload()
+    } else {
+      console.error('Failed to update category:', data.message);
+      if (data.error === 'category_exists') {
+        $('#editCategoryNameError').text('Category already exists').show();
+      } else {
+        $('#editCategoryNameError').text(data.message).show();
       }
+    }
+
+  })
+  .catch(error => {
+    console.error('Error updating category:', error);
+    $('#editCategoryNameError').text('An error occurred while updating the category').show();
+  });
+}
+
+$('#editCategoryForm').on('submit', function(event) {
+  event.preventDefault();
+  const categoryId = $('#editCategoryId').val();
+  validateForm(categoryId);
+});
 
 
   function confirmDelete(categoryId) {

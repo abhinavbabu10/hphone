@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema({
         }
     }],
 
+    referralCode: {
+     type: String,
+    },
+
     is_admin:{
         type:Number,
         default:0

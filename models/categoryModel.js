@@ -20,7 +20,13 @@ const categorySchema = new mongoose.Schema({
   deleted: {
     type: Boolean,
     default: false
-  }
+  },
+
+  discount:{
+    type:Number,
+    default:0
+}
+
 });
 
 module.exports = mongoose.model('Category', categorySchema);

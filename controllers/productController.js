@@ -124,6 +124,59 @@ let editProduct = async (req, res) => {
 
 const newupload = multer({ storage: storage }).array("media", 10);
 
+// const updateProduct = async (req, res) => {
+//   try {
+//     newupload(req, res, async function (err) {
+//       if (err instanceof multer.MulterError) {
+//         console.log("Multer error:", err);
+//         res.status(500).send("Error uploading images");
+//         return;
+//       } else if (err) {
+//         console.log("Unknown error:", err);
+//         res.status(500).send("Unknown error occurred");
+//         return;
+//       }
+
+//       const processedImages = [];
+//       for (const file of req.files) {
+//         const imageBuffer = await sharp(file.path)
+//           .resize(1200,1200)
+//           .toBuffer();
+
+//         const filename = `cropped_${Date.now()}-${file.originalname}`;
+//         const imagePath = path.join(__dirname, "..", "public", "Productimages", filename);
+
+//         fs.writeFileSync(imagePath, imageBuffer);
+
+//         processedImages.push(filename);
+//       }
+
+//       const productId = req.params.id;
+//       const { name, description, price, category, stock } = req.body;
+      
+//       const product = await Product.findById(productId);
+//       if (!product) {
+//         res.status(404).send(`Product not found with ID ${productId}`);
+//         return;
+//       }
+//       product.name = name;
+//       product.description = description;
+//       product.price = price;
+//       product.category = category;
+//       product.stock = stock;
+//       product.media = product.media.concat(processedImages);
+
+//       await product.save();
+
+//       res.redirect("/admin/product");
+//     });
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send(`Error updating product: ${error.message}`);
+//   }
+// };
+
 const updateProduct = async (req, res) => {
   try {
     newupload(req, res, async function (err) {
@@ -140,7 +193,7 @@ const updateProduct = async (req, res) => {
       const processedImages = [];
       for (const file of req.files) {
         const imageBuffer = await sharp(file.path)
-          .resize(1200,1200)
+          .resize(1200, 1200)
           .toBuffer();
 
         const filename = `cropped_${Date.now()}-${file.originalname}`;
@@ -152,18 +205,20 @@ const updateProduct = async (req, res) => {
       }
 
       const productId = req.params.id;
-      const { name, description, price, category, stock } = req.body;
-      
+      const { name, description, price, category, stock, discountPrice } = req.body;
+
       const product = await Product.findById(productId);
       if (!product) {
         res.status(404).send(`Product not found with ID ${productId}`);
         return;
       }
+      
       product.name = name;
       product.description = description;
       product.price = price;
       product.category = category;
       product.stock = stock;
+      product.discountPrice = discountPrice;
       product.media = product.media.concat(processedImages);
 
       await product.save();
@@ -176,6 +231,7 @@ const updateProduct = async (req, res) => {
     res.status(500).send(`Error updating product: ${error.message}`);
   }
 };
+
 
 
 const deleteProduct = async (req, res) => {

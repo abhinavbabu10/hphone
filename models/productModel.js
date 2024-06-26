@@ -30,10 +30,18 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  
   createdOn: 
   { type: Date,
 required: true,
-default: Date.now }
+default: Date.now
+ },
+
+discountPrice:{
+  type:Number,
+  default:0,
+  min:0
+}
 });
 
 module.exports = mongoose.model('Product', productSchema);
