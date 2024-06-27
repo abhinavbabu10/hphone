@@ -229,6 +229,8 @@ const loadShop = async (req, res) => {
     }
 };
 
+
+
 // const verifyOTP = async (req, res) => {
 //     try {
 //         const enteredOTP = req.body.otp;
@@ -256,6 +258,10 @@ const loadShop = async (req, res) => {
 //         res.status(500).json({ error: 'Internal server error' });
 //     }
 // };
+
+
+
+
 
 const verifyOTP = async (req, res) => {
     try {

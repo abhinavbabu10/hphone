@@ -18,6 +18,12 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+
+  categoryDiscountPrice:{
+    type: Number,
+    default:0
+  },
+  
   stock: {
     type: Number,
     required: true
