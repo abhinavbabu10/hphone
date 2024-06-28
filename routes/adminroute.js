@@ -6,6 +6,7 @@ const categoryController = require("../controllers/categoryController");
 const productController = require("../controllers/productController");
 const orderController = require("../controllers/orderController")
 const couponController = require("../controllers/couponController")
+const salesreportManagement = require("../controllers/salesreportManagement")
 
 const path=require("path")
 
@@ -69,5 +70,7 @@ adminRoute.post('/add-coupon', couponController.addCoupon)
 adminRoute.post('/edit-coupon',couponController.editCoupon)
 adminRoute.post('/delete-coupon/:id', couponController.deleteCoupon)
 
+// salesreport
+adminRoute.get("/salesreport", adminauth.isAdminLogin , salesreportManagement.loadSales)
 
 module.exports=adminRoute
