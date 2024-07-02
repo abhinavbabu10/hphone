@@ -166,63 +166,6 @@ cursor: pointer;
                         <h2 class="content-title">Edit Product</h2>
                      </div>
                     </div>
-                    
-                    <!-- <form method="post" action="/admin/edit-product/<%= product._id %>" enctype="multipart/form-data" id="productForm">
-                      <div>
-                        <label for="productName" class="form-label">Product Name</label>
-                        <input type="text" class="form-control" id="productName" name="name" placeholder="Enter product name" value="<%= product.name %>" required>
-                        <div class="invalid-feedback"></div>
-                      </div>
-                      <div>
-                        <label for="productDescription" class="form-label">Product Description</label>
-                        <textarea class="form-control" id="productDescription" name="description" placeholder="Enter product description" required><%= product.description %></textarea>
-                        <div class="invalid-feedback"></div>
-                      </div>
-                      <div>
-                        <label for="productMedia" class="form-label">Product Media</label>
-                        <input type="file" class="form-control-file" id="productMedia" name="media" multiple>
-                        <div class="invalid-feedback media-error"></div>
-                      </div>
-                      <div class="image-preview" id="imagePreview"></div>
-                      <div>
-                        <label for="productPrice" class="form-label">Price</label>
-                        <input type="number" class="form-control" id="productPrice" name="price" placeholder="Enter product price" value="<%= product.price %>" required>
-                        <div class="invalid-feedback"></div>
-                      </div>
-                      <div>
-                        <label for="productDiscountPrice" class="form-label">Discount Price</label>
-                        <input type="number" class="form-control" id="productDiscountPrice" name="discountPrice" placeholder="Enter discount price" value="<%= product.discountPrice %>" min="0" required>
-                        <div class="invalid-feedback"></div>
-                      </div>
-                      <div>
-                        <label for="productCategory" class="form-label">Category</label>
-                        <select class="form-control" id="productCategory" name="category" required>
-                          <option value="" disabled>Select a category</option>
-                          <% category.forEach(category => { %>
-                            <option value="<%= category._id %>" <%= product.category === category._id.toString() ? 'selected' : '' %>><%= category.name %></option>
-                          <% }); %>
-                        </select>
-                        <div class="invalid-feedback">Please select a category.</div>
-                      </div>
-                      <div>
-                        <label for="productStock" class="form-label">Stock</label>
-                        <input type="number" class="form-control" id="productStock" name="stock" placeholder="Enter product stock" value="<%= product.stock %>" required>
-                        <div class="invalid-feedback"></div>
-                      </div>
-                      <% if (product.media.length > 0) { %>
-                        <div class="mt-2">
-                          <label class="form-label">Existing Images:</label>
-                          <% product.media.forEach((media, index) => { %>
-                            <div>
-                              <img src="/Productimages/<%= media %>" alt="Product Image" class="img-thumbnail" style="max-width: 100px;">
-                              <button type="button" class="btn btn-danger btn-sm remove-image" data-image-id="<%= media %>" onclick="removeImage('<%= product._id %>', '<%= media %>', <%= index %>)">Remove</button>
-                            </div>
-                          <% }); %>
-                        </div>
-                      <% } %>
-                      <button type="submit" class="btn btn-primary mt-3">Update Product</button>
-                    </form>
-                      -->
 
                     
                       <form method="post" action="/admin/edit-product/<%= product._id %>" enctype="multipart/form-data" id="productForm">
@@ -248,14 +191,15 @@ cursor: pointer;
                           <div class="invalid-feedback"></div>
                         </div>
                         <div>
-                          <label for="productDiscountPrice" class="form-label">Discount Price</label>
+                          <label for="productDiscountPrice" class="form-label">ProductDiscount Price</label>
                           <input type="number" class="form-control" id="productDiscountPrice" name="discountPrice" placeholder="Enter discount price" value="<%= product.discountPrice %>" min="0" required>
                           <div class="invalid-feedback"></div>
                         </div>
                         <div>
                           <label for="productCategoryDiscountPrice" class="form-label">Category Discount Price</label>
-                          <input type="number" class="form-control" id="productCategoryDiscountPrice" name="categoryDiscountPrice" placeholder="Enter category discount price" value="<%= product.categoryDiscountPrice %>" min="0" required>
+                          <input type="number" class="form-control" id="productCategoryDiscountPrice" name="categoryDiscountPrice" placeholder="Enter category discount price" value="<%= product.categoryDiscountPrice %>" min="0" disabled>
                           <div class="invalid-feedback"></div>
+                        </div>
                         </div>
                         <div>
                           <label for="productCategory" class="form-label">Category</label>

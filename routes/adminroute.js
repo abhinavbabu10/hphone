@@ -72,5 +72,7 @@ adminRoute.post('/delete-coupon/:id', couponController.deleteCoupon)
 
 // salesreport
 adminRoute.get("/salesreport", adminauth.isAdminLogin , salesreportManagement.loadSales)
+adminRoute.post("/filterorder", salesreportManagement.filterOrders)
+adminRoute.post('/generate-pdf',salesreportManagement.pdfDownload)
 
 module.exports=adminRoute

@@ -74,7 +74,7 @@
     </aside>
 
           <!-- Create Coupon Modal -->
-        <div class="modal fade" id="createCouponModal" tabindex="-1" aria-labelledby="createCouponModalLabel" aria-hidden="true">
+        <!-- <div class="modal fade" id="createCouponModal" tabindex="-1" aria-labelledby="createCouponModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -115,11 +115,60 @@
                     </div>
                 </div>
             </div>
+        </div> -->
+        
+        <div class="modal fade" id="createCouponModal" tabindex="-1" aria-labelledby="createCouponModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createCouponModalLabel">Create New Coupon</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="createCouponForm" action="/admin/add-coupon" method="POST">
+                            <div class="mb-3">
+                                <label for="couponname" class="form-label">Coupon Name</label>
+                                <input type="text" class="form-control" id="couponname" name="couponname" required>
+                                <span class="text-danger" id="couponNameError"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="couponcode" class="form-label">Coupon Code</label>
+                                <input type="text" class="form-control" id="couponcode" name="couponcode" required>
+                                <span class="text-danger" id="couponCodeError"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="discountpercentage" class="form-label">Discount Percentage</label>
+                                <input type="number" class="form-control" id="discountpercentage" name="discountpercentage" required>
+                                <span class="text-danger" id="discountpercentageError"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="maximumDiscountAmount" class="form-label">Maximum Discount Amount</label>
+                                <input type="number" class="form-control" id="maximumDiscountAmount" name="maximumDiscountAmount" required>
+                                <span class="text-danger" id="maximumDiscountAmountError"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="minimumamount" class="form-label">Minimum Amount</label>
+                                <input type="number" class="form-control" id="minimumamount" name="minimumamount" required>
+                                <span class="text-danger" id="minimumAmountError"></span>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
         
 
+
            <!-- Edit Coupon Modal -->
-        <div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
+        <!-- <div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -161,8 +210,56 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         
+        <div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editCouponModalLabel">Edit Coupon</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editCouponForm" action="/admin/edit-coupon" method="POST">
+                            <input type="hidden" id="editCouponId" name="couponId">
+                            <div class="mb-3">
+                                <label for="editCouponName" class="form-label">Coupon Name</label>
+                                <input type="text" class="form-control" id="editCouponName" name="couponname" required>
+                                <span class="text-danger" id="editCouponNameError"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editCouponCode" class="form-label">Coupon Code</label>
+                                <input type="text" class="form-control" id="editCouponCode" name="couponcode" required>
+                                <span class="text-danger" id="editCouponCodeError"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editdiscountpercentage" class="form-label">Discount Percentage</label>
+                                <input type="number" class="form-control" id="editdiscountpercentage" name="discountpercentage" required>
+                                <span class="text-danger" id="editdiscountpercentageError"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editStatus" class="form-label">Status</label>
+                                <select class="form-select" id="editStatus" name="status" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editMinimumAmount" class="form-label">Minimum Amount</label>
+                                <input type="number" class="form-control" id="editMinimumAmount" name="minimumamount" required>
+                                <span class="text-danger" id="editMinimumAmountError"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editMaximumDiscountAmount" class="form-label">Maximum Discount Amount</label>
+                                <input type="number" class="form-control" id="editMaximumDiscountAmount" name="maximumDiscountAmount" required>
+                                <span class="text-danger" id="editMaximumDiscountAmountError"></span>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         
 
@@ -241,7 +338,8 @@
                             <tr>
                                 <th>Coupon Name</th>
                                 <th>Coupon Code</th>
-                                <th>Discount Amount</th>
+                                <th>Discount Percentage</th>
+                                <th>Maximum Discount Amount</th>
                                 <th>Status</th>
                                 <th class="text-end">Action</th>
                             </tr>
@@ -251,17 +349,25 @@
                             <tr>
                                 <td><%= coupon.couponname %></td>
                                 <td><%= coupon.couponcode %></td>
-                                <td><%= coupon.discountamount %></td>
+                                <td><%= coupon.discountpercentage %> %</td>
+                                <td><%= coupon.maximumDiscountAmount %></td>
                                 <td><%= coupon.status %></td>
-                                
                                 <td class="text-end">
-                                     <button class="btn btn-sm btn-warning" data-id="<%= coupon._id %>"data-name="<%= coupon.couponname %>"data-code="<%= coupon.couponcode %>"  data-discount="<%= coupon.discountamount %>"  data-status="<%= coupon.status %>"data-minimum="<%= coupon.minimumamount %>"onclick="openEditCouponModal(this)">Change Status</button>
-                                     <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('<%= coupon._id %>')">Delete</button>
+                                    <button class="btn btn-sm btn-warning" data-id="<%= coupon._id %>"
+                                            data-name="<%= coupon.couponname %>"
+                                            data-code="<%= coupon.couponcode %>"
+                                            data-discount="<%= coupon.discountpercentage %>"
+                                            data-maximum="<%= coupon.maximumDiscountAmount %>"
+                                            data-status="<%= coupon.status %>"
+                                            data-minimum="<%= coupon.minimumamount %>"
+                                            onclick="openEditCouponModal(this)">Change Status</button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('<%= coupon._id %>')">Delete</button>
                                 </td>
                             </tr>
                             <% }) %>
                         </tbody>
                     </table>
+                    
 
                 </div>
             </div>
@@ -317,7 +423,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.15.6/dist/sweetalert2.all.min.js"></script>
    
 
-    
+<!--     
     <script>
         function openEditCouponModal(button) {
           
@@ -339,13 +445,39 @@
             var editCouponModal = new bootstrap.Modal(document.getElementById('editCouponModal'));
             editCouponModal.show();
         }
+        </script> -->
+
+        <script>
+            function openEditCouponModal(button) {
+                const couponId = button.getAttribute('data-id');
+                const couponName = button.getAttribute('data-name');
+                const couponCode = button.getAttribute('data-code');
+                const discountPercentage = button.getAttribute('data-discount');
+                const status = button.getAttribute('data-status');
+                const minimumAmount = button.getAttribute('data-minimum');
+                const maximumDiscountAmount = button.getAttribute('data-maximum');
+                
+                document.getElementById('editCouponId').value = couponId;
+                document.getElementById('editCouponName').value = couponName;
+                document.getElementById('editCouponCode').value = couponCode;
+                document.getElementById('editdiscountpercentage').value = discountPercentage;
+                document.getElementById('editStatus').value = status;
+                document.getElementById('editMinimumAmount').value = minimumAmount;
+                document.getElementById('editMaximumDiscountAmount').value = maximumDiscountAmount;
+                
+                // Show the modal
+                var editCouponModal = new bootstrap.Modal(document.getElementById('editCouponModal'));
+                editCouponModal.show();
+            }
         </script>
+        
 
 <script>
    document.getElementById('couponname').addEventListener('input', validateCouponForm);
 document.getElementById('couponcode').addEventListener('input', validateCouponForm);
-document.getElementById('discountamount').addEventListener('input', validateCouponForm);
+document.getElementById('discountpercentage').addEventListener('input', validateCouponForm);
 document.getElementById('minimumamount').addEventListener('input', validateCouponForm);
+document.getElementById('maximumDiscountAmount').addEventListener('input', validateCouponForm);
 
 document.getElementById('createCouponForm').addEventListener('submit', function(event) {
     event.preventDefault();
@@ -359,17 +491,20 @@ function validateCouponForm() {
     
     const couponName = document.getElementById('couponname').value.trim();
     const couponCode = document.getElementById('couponcode').value.trim();
-    const discountAmount = document.getElementById('discountamount').value.trim();
+    const discountPercentage  = document.getElementById('discountpercentage').value.trim();
+    const maximumDiscountAmount = document.getElementById('maximumDiscountAmount').value.trim();
     const minimumAmount = document.getElementById('minimumamount').value.trim();
     
     const couponNameError = document.getElementById('couponNameError');
     const couponCodeError = document.getElementById('couponCodeError');
-    const discountAmountError = document.getElementById('discountAmountError');
+    const discountPercentageError = document.getElementById('discountpercentageError');
+    const maximumDiscountAmountError = document.getElementById('maximumDiscountAmountError');
     const minimumAmountError = document.getElementById('minimumAmountError');
 
     couponNameError.textContent = '';
     couponCodeError.textContent = '';
-    discountAmountError.textContent = '';
+    discountPercentageError.textContent = '';
+    maximumDiscountAmountError.textContent = '';
     minimumAmountError.textContent = '';
     
     if (couponName === '' || couponName.length < 3) {
@@ -383,8 +518,13 @@ function validateCouponForm() {
         isValid = false;
     }
     
-    if (isNaN(discountAmount) || discountAmount <= 0) {
-        discountAmountError.textContent = 'Discount amount must be a positive number';
+    if (isNaN(discountPercentage) || discountPercentage  <= 0) {
+        discountPercentageError.textContent = 'Discount amount must be a positive number';
+        isValid = false;
+    }
+
+    if (isNaN(maximumDiscountAmount) || maximumDiscountAmount <= 0) {
+        maximumDiscountAmountError.textContent = 'Maximum discount amount must be a positive number';
         isValid = false;
     }
     
@@ -395,14 +535,14 @@ function validateCouponForm() {
     
     return isValid;
 }
-  
     </script>
 
 <script>
     document.getElementById('editCouponName').addEventListener('input', validateEditCouponForm);
     document.getElementById('editCouponCode').addEventListener('input', validateEditCouponForm);
-    document.getElementById('editDiscountAmount').addEventListener('input', validateEditCouponForm);
+    document.getElementById('editdiscountpercentage').addEventListener('input', validateEditCouponForm);
     document.getElementById('editMinimumAmount').addEventListener('input', validateEditCouponForm);
+    document.getElementById('editMaximumDiscountAmount').addEventListener('input', validateEditCouponForm);
     
     document.getElementById('editCouponForm').addEventListener('submit', function(event) {
         event.preventDefault();
@@ -412,46 +552,54 @@ function validateCouponForm() {
     });
     
     function validateEditCouponForm() {
-        let isValid = true;
-    
-        const couponName = document.getElementById('editCouponName').value.trim();
-        const couponCode = document.getElementById('editCouponCode').value.trim();
-        const discountAmount = document.getElementById('editDiscountAmount').value.trim();
-        const minimumAmount = document.getElementById('editMinimumAmount').value.trim();
-    
-        const couponNameError = document.getElementById('editCouponNameError');
-        const couponCodeError = document.getElementById('editCouponCodeError');
-        const discountAmountError = document.getElementById('editDiscountAmountError');
-        const minimumAmountError = document.getElementById('editMinimumAmountError');
-    
-        couponNameError.textContent = '';
-        couponCodeError.textContent = '';
-        discountAmountError.textContent = '';
-        minimumAmountError.textContent = '';
-    
-        if (couponName === '' || couponName.length < 3) {
-            couponNameError.textContent = 'Coupon name must be at least 3 characters long';
-            isValid = false;
-        }
-    
-        const codePattern = /^[A-Z0-9]{5,10}$/;
-        if (!codePattern.test(couponCode)) {
-            couponCodeError.textContent = 'Coupon code must be 5-10 uppercase letters or digits';
-            isValid = false;
-        }
-    
-        if (isNaN(discountAmount) || discountAmount <= 0) {
-            discountAmountError.textContent = 'Discount amount must be a positive number';
-            isValid = false;
-        }
-    
-        if (isNaN(minimumAmount) || minimumAmount <= 0) {
-            minimumAmountError.textContent = 'Minimum amount must be a positive number';
-            isValid = false;
-        }
-    
-        return isValid;
+    let isValid = true;
+
+    const couponName = document.getElementById('editCouponName').value.trim();
+    const couponCode = document.getElementById('editCouponCode').value.trim();
+    const discountPercentage  = document.getElementById('editdiscountpercentage').value.trim();
+    const minimumAmount = document.getElementById('editMinimumAmount').value.trim();
+    const maximumDiscountAmount = document.getElementById('editMaximumDiscountAmount').value.trim();
+
+    const couponNameError = document.getElementById('editCouponNameError');
+    const couponCodeError = document.getElementById('editCouponCodeError');
+    const discountPercentageError = document.getElementById('editdiscountpercentageError');
+    const minimumAmountError = document.getElementById('editMinimumAmountError');
+    const maximumDiscountAmountError = document.getElementById('editMaximumDiscountAmountError');
+
+    couponNameError.textContent = '';
+    couponCodeError.textContent = '';
+    discountPercentageError.textContent = '';
+    minimumAmountError.textContent = '';
+    maximumDiscountAmountError.textContent = '';
+
+    if (couponName === '' || couponName.length < 3) {
+        couponNameError.textContent = 'Coupon name must be at least 3 characters long';
+        isValid = false;
     }
+
+    const codePattern = /^[A-Z0-9]{5,10}$/;
+    if (!codePattern.test(couponCode)) {
+        couponCodeError.textContent = 'Coupon code must be 5-10 uppercase letters or digits';
+        isValid = false;
+    }
+
+    if (isNaN(discountPercentage ) || discountPercentage  <= 0) {
+        discountPercentageError.textContent = 'Discount amount must be a positive number';
+        isValid = false;
+    }
+
+    if (isNaN(minimumAmount) || minimumAmount <= 0) {
+        minimumAmountError.textContent = 'Minimum amount must be a positive number';
+        isValid = false;
+    }
+
+    if (isNaN(maximumDiscountAmount) || maximumDiscountAmount <= 0) {
+        maximumDiscountAmountError.textContent = 'Maximum discount amount must be a positive number';
+        isValid = false;
+    }
+
+    return isValid;
+}
     </script>
     
     

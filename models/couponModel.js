@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const couponSchema = new mongoose.Schema({
     couponname: {
         type: String,
@@ -10,7 +9,7 @@ const couponSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    discountamount: {
+    discountpercentage: {
         type: Number,
         required: true
     },
@@ -22,13 +21,19 @@ const couponSchema = new mongoose.Schema({
     minimumamount: {
         type: Number,
         required: true
-    }
+    },
+    maximumDiscountAmount: {
+        type: Number,
+        required: true
+    },
+    usedBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"User",
+    }]
 },
-    {
-        timestamps: true
-    })
+{
+    timestamps: true
+});
 
+module.exports = mongoose.model('Coupon', couponSchema);
 
-
-
-module.exports = mongoose.model('Coupon', couponSchema)

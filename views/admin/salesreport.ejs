@@ -173,14 +173,16 @@
                     </div>
                     <div class="table-container">
                         <div class="filter-buttons" id="filterButtons">
-                            <button class="btn btn-primary" data-filter="daily">Daily</button>
-                            <button class="btn btn-primary" data-filter="weekly">Weekly</button>
-                            <button class="btn btn-primary" data-filter="monthly">Monthly</button>
-                            <button class="btn btn-primary" data-filter="yearly">Yearly</button>
+                            <button class="btn btn-primary" data-filter="daily" id="dailyButton">Daily</button>
+                            <button class="btn btn-primary" data-filter="weekly" id="weeklyButton" >Weekly</button>
+                            <button class="btn btn-primary" data-filter="monthly" id="monthlyButton">Monthly</button>
+                            <button class="btn btn-primary" data-filter="yearly" id="yearlyButton">Yearly</button>
                             <input type="date" id="startDate">
                             <input type="date" id="endDate">
                             <button class="btn btn-primary btn-sm" id="filterCustom">Filter</button>
                         </div>
+
+
                         <div class="table-wrapper">
                             <div class="table-responsive">
                                 <table class="table table-hover">
@@ -236,7 +238,7 @@
                             </div>
                             <div class="download-buttons">
                                 <button class="btn btn-success" onclick="downloadExcel()">Download Excel</button>
-                                <button class="btn btn-danger" onclick="downloadPDF()">Download PDF</button>
+                                <button class="btn btn-danger" id ='downloadPDFButton'>Download PDF</button>
                             </div>
                         </div>
                     </div>
@@ -288,10 +290,218 @@
     <!-- Main Script -->
     <script src="/Adminassets/js/main.js" type="text/javascript"></script>
     <script src="/Adminassets/js/custom-chart.js" type="text/javascript"></script>
+
+  
+    
+    <script>
+        let selectedFilterType = 'all';
+    
+        function createOrderRow(order) {
+            const row = document.createElement('tr');
+    
+            const dateCell = document.createElement('td');
+            dateCell.textContent = new Date(order.orderDate).toLocaleDateString();
+            row.appendChild(dateCell);
+    
+            const orderNumberCell = document.createElement('td');
+            orderNumberCell.textContent = order.oId;
+            row.appendChild(orderNumberCell);
+    
+            const customerCell = document.createElement('td');
+            customerCell.textContent = order.user.name;
+            row.appendChild(customerCell);
+    
+            const productsCell = document.createElement('td');
+            order.items.forEach(item => {
+                const productItem = document.createElement('div');
+                productItem.className = 'product-item';
+                productItem.textContent = item.productId.name;
+                productsCell.appendChild(productItem);
+            });
+            row.appendChild(productsCell);
+    
+            const quantityCell = document.createElement('td');
+            order.items.forEach(item => {
+                const quantityItem = document.createElement('div');
+                quantityItem.className = 'product-item';
+                quantityItem.textContent = item.quantity;
+                quantityCell.appendChild(quantityItem);
+            });
+            row.appendChild(quantityCell);
+    
+            const priceCell = document.createElement('td');
+            order.items.forEach(item => {
+                const priceItem = document.createElement('div');
+                priceItem.className = 'product-item';
+                priceItem.textContent = item.productPrice.toFixed(2);
+                priceCell.appendChild(priceItem);
+            });
+            row.appendChild(priceCell);
+    
+            const discountCell = document.createElement('td');
+            discountCell.textContent = order.couponAmount.toFixed(2);
+            row.appendChild(discountCell);
+    
+            const totalPriceCell = document.createElement('td');
+            totalPriceCell.className = 'text-end';
+            totalPriceCell.textContent = order.billTotal.toFixed(2);
+            row.appendChild(totalPriceCell);
+    
+            return row;
+        }
+    
+        function updateSalesReport(data) {
+            const salesTableBody = document.getElementById('salesTableBody');
+            salesTableBody.innerHTML = '';
+    
+            let totalDiscountAmount = 0;
+            let totalSalesAmount = 0;
+            let totalSalesCount = 0;
+    
+            data.orders.forEach(order => {
+                const orderRow = createOrderRow(order);
+                salesTableBody.appendChild(orderRow);
+    
+                totalDiscountAmount += order.couponAmount;
+                totalSalesAmount += order.billTotal;
+                totalSalesCount += 1;
+            });
+    
+            document.getElementById('total-discount').textContent = totalDiscountAmount.toFixed(2);
+            document.getElementById('total-sales-amount').textContent = totalSalesAmount.toFixed(2);
+            document.getElementById('sales-count').textContent = totalSalesCount;
+        }
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            function filterSalesReport(filterType, startDate, endDate) {
+                selectedFilterType = filterType; // Update the selected filter type
+    
+                const filterParams = {
+                    filter: filterType,
+                    startDate: startDate || null,
+                    endDate: endDate || null
+                };
+    
+                console.log('Sending filterParams:', filterParams);
+    
+                fetch('/admin/filterorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(filterParams)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    updateSalesReport(data);
+                })
+                .catch(error => console.error('Error:', error));
+            }
+    
+            const filterCustom = document.getElementById('filterCustom');
+            if (filterCustom) {
+                filterCustom.addEventListener('click', () => {
+                    const startDate = document.getElementById('startDate').value;
+                    const endDate = document.getElementById('endDate').value;
+                    filterSalesReport('custom', startDate, endDate);
+                });
+            }
+    
+            const buttons = {
+                'dailyButton': 'daily',
+                'weeklyButton': 'weekly',
+                'monthlyButton': 'monthly',
+                'yearlyButton': 'yearly'
+            };
+            Object.entries(buttons).forEach(([id, filterType]) => {
+                const button = document.getElementById(id);
+                if (button) {
+                    button.addEventListener('click', () => filterSalesReport(filterType));
+                }
+            });
+    
+            const downloadPDFButton = document.getElementById('downloadPDFButton');
+            if (downloadPDFButton) {
+                downloadPDFButton.onclick = () => {
+                    const startDate = document.getElementById('startDate').value;
+                    const endDate = document.getElementById('endDate').value;
+                    const filterParams = {
+                        filter: selectedFilterType,
+                        startDate: startDate || null,
+                        endDate: endDate || null
+                    };
+                    downloadPDF(filterParams);
+                };
+            }
+        });
+    
+        function downloadPDF(filterParams) {
+            console.log('filterParams for PDF:', filterParams);
+    
+            if (!filterParams || Object.keys(filterParams).length === 0) {
+                console.error('Error: filterParams is empty');
+                return;
+            }
+    
+            fetch('/admin/generate-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(filterParams)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                let url = window.URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = url;
+                a.download = 'sales_report.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(error => console.error('Error generating PDF:', error));
+        }
+    </script>
+    
+
+    
+   
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
+    <script>
+        function downloadExcel() {
+            const table = document.querySelector('.table-responsive table');
+            const ws = XLSX.utils.table_to_sheet(table);
+    
+   
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'SalesReport');
+    
+       
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+    
+    
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sales_report.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+        }
+    </script>
+    
+    
+
 </body>
-
-
-
-
-
 </html>

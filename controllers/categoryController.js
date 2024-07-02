@@ -86,12 +86,11 @@ const editCategory = async (req, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    if (discount) {
-      const products = await Product.find({ category: updatedCategory.name });
+      const products = await Product.find({category :  updatedCategory._id});
       for (const product of products) {
         const discountPrice = parseInt(product.price - (product.price * (discount / 100)));
-        await Product.findByIdAndUpdate(product._id, { discountPrice });
-      }
+        product.categoryDiscountPrice = discountPrice;
+        await product.save();
     }
 
     res.status(200).json({ success: true, category: updatedCategory });
@@ -100,6 +99,9 @@ const editCategory = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+
+
 
 
 const confirmDelete = async (req, res) => {

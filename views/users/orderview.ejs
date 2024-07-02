@@ -55,11 +55,11 @@
             <th>Payment Method</th>
             <th>Product Price</th>
             <th>Quantity</th>
-            <th>Total Price</th>
+            <!-- <th>Total Price</th> -->
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
+         <!-- <tbody>
             <% if (order.items && order.items.length > 0) { %>
             <% order.items.forEach(item => { %>
               <tr>
@@ -97,10 +97,11 @@
                     <td colspan="9">No items found in this order.</td>
                 </tr>
             <% } %>
-        </tbody>
+        </tbody> 
+          
       </table>
     
-      <!-- <table id="summary-table" style="margin-top: 20px;">
+      <table id="summary-table" style="margin-top: 20px;">
         <tbody>
             <% if(order.couponAmount>0) { %>
                 <tr>
@@ -115,7 +116,93 @@
         </tbody>
     </table> -->
 
-
+    <tbody>
+        <% if (order.items && order.items.length > 0) { %>
+            <% order.items.forEach(item => { %>
+                <tr>
+                    <td><%= new Date(order.orderDate).toDateString() %></td>
+                    <td><img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail" style="width: 100px; height: 120px;"></td>
+                    <td data-input-id="<%= item._id %>"><%= item.status %></td>
+                    <td><%= order.paymentStatus %></td>
+                    <td><%= order.paymentMethod %></td>
+    
+                    <% 
+                        // Calculate the effective price of the product considering discounts
+                        let effectivePrice = item.productPrice;
+                        if (item.categoryDiscountPrice && item.categoryDiscountPrice > 0) {
+                            effectivePrice = item.categoryDiscountPrice;
+                        } else if (item.discountPrice && item.discountPrice > 0) {
+                            effectivePrice = item.discountPrice;
+                        }
+                    %>
+    
+                    <td>$<%= effectivePrice.toFixed(2) %></td>
+                    <td><%= item.quantity %></td>
+                    <!-- <td>$<%= (effectivePrice * item.quantity).toFixed(2) %></td> -->
+    
+                    <td>
+                        <% if (item.status === "Delivered") { %>
+                            <button class="btn btn-warning btn-sm" onclick="showReturnConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Return</button>
+                        <% } %>
+                        <% if (order.paymentStatus === "Failed") { %>
+                            <button class="btn btn-primary btn-sm" onclick="retryPayment('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Retry</button>
+                        <% } else { %>
+                            <% if (item.status !== "Cancelled") { %>
+                                <% if (item.status === "Pending" || item.status === "Confirmed") { %>
+                                    <button class="btn btn-danger btn-sm" onclick="showCancelConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Cancel</button>
+                                <% } %>
+                            <% } else { %>
+                                <button class="btn btn-secondary btn-sm" data-input-id="<%= item._id %>" disabled>Order Cancelled</button>
+                            <% } %>
+                        <% } %>
+                    </td>
+                </tr>
+            <% }); %>
+        <% } else { %>
+            <tr>
+                <td colspan="9">No items found in this order.</td>
+            </tr>
+        <% } %>
+    </tbody>
+    
+    </table>
+    
+    <!-- <table id="summary-table" style="margin-top: 20px;">
+        <tbody>
+            <% if (order.couponAmount > 0) { %>
+                <tr>
+                    <th>Coupon Amount</th>
+                    <td id="couponAmount">-$<%= order.couponAmount.toFixed(2) %></td>
+                </tr>
+            <% } %>
+            <tr>
+                <th>Grand Total</th>
+                <td id="grandTotal">$<%= order.billTotal.toFixed(2) %></td>
+            </tr>
+        </tbody>
+    </table> -->
+    <table id="summary-table" style="margin-top: 20px;">
+        <tbody>
+            <% order.items.forEach(function(item) { %>
+                <tr>
+                    <th><%= item.name %></th>
+                    <td>$<%= item.price.toFixed(2) %></td>
+                </tr>
+            <% }); %>
+            <% if (order.couponAmount > 0) { %>
+                <tr>
+                    <th>Coupon Discount</th>
+                    <td id="couponDiscount">-$<%= order.couponAmount.toFixed(2) %></td>
+                </tr>
+            <% } %>
+            <tr>
+                <th>Grand Total</th>
+                <td id="grandTotal">$<%= (order.billTotal - order.couponAmount).toFixed(2) %></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    
 
 </body>
 

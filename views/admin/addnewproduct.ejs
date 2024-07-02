@@ -163,55 +163,6 @@
                         <h2 class="content-title">Add New Product</h2>
                      </div>
                     </div>
-
-
-
-                      <!-- <form method="post" action="/admin/add-product" enctype="multipart/form-data" id="productForm">
-                        <div class="form-group">
-                          <label for="productName" class="form-label">Product Name</label>
-                          <input type="text" class="form-control" id="productName" name="name" placeholder="Enter product name" required>
-                          <div class="invalid-feedback name-error"></div>
-                        </div>
-                      
-                        <div class="form-group">
-                          <label for="productDescription" class="form-label">Product Description</label>
-                          <textarea class="form-control" id="productDescription" name="description" placeholder="Enter product description" required></textarea>
-                          <div class="invalid-feedback description-error"></div>
-                        </div>
-                      
-                        <div class="form-group">
-                          <label for="productMedia" class="form-label">Product Media</label>
-                          <input type="file" class="form-control-file" id="productMedia" name="media" multiple required>
-                          <div class="invalid-feedback media-error"></div>
-                        </div>
-    
-                           <div class="image-preview" id="imagePreview"></div>
-                      
-                        <div class="form-group">
-                          <label for="productPrice" class="form-label">Price</label>
-                          <input type="number" class="form-control" id="productPrice" name="price" placeholder="Enter product price" required>
-                          <div class="invalid-feedback price-error"></div>
-                        </div>
-                      
-                        <div class="form-group">
-                          <label for="productCategory" class="form-label">Category</label>
-                          <select class="form-control" id="productCategory" name="category" required>
-                            <option value="" selected disabled>Select a category</option>
-                            <% category.forEach(category => { %>
-                              <option value="<%= category._id %>"><%= category.name %></option>
-                            <% }); %>
-                          </select>
-                          <div class="invalid-feedback category-error"></div>
-                        </div>
-                      
-                        <div class="form-group">
-                          <label for="productStock" class="form-label">Stock</label>
-                          <input type="number" class="form-control" id="productStock" name="stock" placeholder="Enter product stock" required>
-                          <div class="invalid-feedback stock-error"></div>
-                        </div>
-                      
-                        <button type="submit" class="btn btn-primary mt-3">Add Product</button>
-                      </form> -->
                    
                       <form method="post" action="/admin/add-product" enctype="multipart/form-data" id="productForm">
                         <div class="form-group">
@@ -272,19 +223,6 @@
                     
 
         <footer class="main-footer font-xs">
-            <!-- <div class="row pb-30 pt-15">
-                <div class="col-sm-6">
-                    <script>
-                    document.write(new Date().getFullYear())
-                    </script> ©, Evara - HTML Ecommerce Template .
-                </div>
-                <div class="col-sm-6">
-                    <div class="text-sm-end">
-                        All rights reserved
-                    </div>
-                </div>
-            </div>
-        </footer> -->
     </main>
 
     <script src="Adminassets/js/vendors/jquery-3.6.0.min.js"></script>
