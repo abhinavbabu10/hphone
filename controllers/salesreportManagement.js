@@ -90,7 +90,6 @@ const filterOrders = async (req, res) => {
 
 
 
-
 const pdfDownload = async (req, res) => {
   try {
     const { filter, startDate, endDate } = req.body;
@@ -104,7 +103,7 @@ const pdfDownload = async (req, res) => {
             $gte: moment().startOf('day').toDate(),
             $lte: moment().endOf('day').toDate()
           }
-        });
+        }).populate('user').populate('items.productId');
         break;
       case 'weekly':
         orders = await Order.find({
@@ -112,7 +111,7 @@ const pdfDownload = async (req, res) => {
             $gte: moment().startOf('week').toDate(),
             $lte: moment().endOf('week').toDate()
           }
-        });
+        }).populate('user').populate('items.productId');
         break;
       case 'monthly':
         orders = await Order.find({
@@ -120,7 +119,7 @@ const pdfDownload = async (req, res) => {
             $gte: moment().startOf('month').toDate(),
             $lte: moment().endOf('month').toDate()
           }
-        });
+        }).populate('user').populate('items.productId');
         break;
       case 'yearly':
         orders = await Order.find({
@@ -128,7 +127,7 @@ const pdfDownload = async (req, res) => {
             $gte: moment().startOf('year').toDate(),
             $lte: moment().endOf('year').toDate()
           }
-        });
+        }).populate('user').populate('items.productId');
         break;
       case 'custom':
         if (startDate && endDate) {
@@ -137,7 +136,7 @@ const pdfDownload = async (req, res) => {
               $gte: new Date(startDate),
               $lte: new Date(endDate)
             }
-          });
+          }).populate('user').populate('items.productId');
         } else {
           return res.status(400).send("Start date and end date are required for custom filter");
         }
@@ -164,12 +163,13 @@ const pdfDownload = async (req, res) => {
 
     // Prepare table data
     const tableData = {
-      headers: ['Order ID', 'Order Date', 'Customer Name', 'Total Amount'],
+      headers: ['Order Date', 'Customer Name', 'Total Amount', 'Discount', 'Products'],
       rows: orders.map(order => [
-        order._id.toString(),
         moment(order.orderDate).format('YYYY-MM-DD'),
         order.user.name, // Adjust according to your schema
-        `$${order.billTotal.toFixed(2)}`
+        `$${order.billTotal.toFixed(2)}`,
+        `$${(order.couponAmount || 0).toFixed(2)}`,
+        order.items.map(item => item.productId.name).join(', ') // Adjust according to your schema
       ])
     };
 

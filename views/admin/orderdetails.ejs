@@ -1,4 +1,16 @@
- <style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/Adminassets/imgs/theme/airfavicon.jpeg">
+    <!-- Template CSS -->
+    <link href="/Adminassets/css/main.css" rel="stylesheet" type="text/css" />
+
+    <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -9,7 +21,7 @@
             text-align: center;
             margin-top: 20px;
         }
-        table {
+        .table-container {
             width: 90%;
             margin: 20px auto;
             border-collapse: collapse;
@@ -17,6 +29,10 @@
             overflow: hidden;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             background-color: #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
         th, td {
             padding: 12px 15px;
@@ -27,71 +43,105 @@
             background-color: #f2f2f2;
             font-weight: bold;
         }
-        td:last-child {
+        td.center {
             text-align: center;
         }
-        a {
+        .img-thumbnail {
+            width: 100px;
+            height: 120px;
+        }
+        .pagination-area {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .pagination {
+            display: inline-block;
+            padding: 10px 0;
+        }
+        .pagination a {
             color: #007bff;
+            padding: 8px 16px;
             text-decoration: none;
-            transition: color 0.3s ease;
+            transition: background-color 0.3s;
+            border: 1px solid #ddd;
+            margin: 0 4px;
         }
-        a:hover {
-            color: #0056b3;
+        .pagination a.active {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
         }
-
-        .table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.table th,
-.table td {
-    padding: 8px;
-    text-align: center;
-    border: 1px solid #dddddd;
-}
-
-.center {
-    text-align: center;
-}
-</style>
-
-
-
-
+        .pagination a:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
 <body>
     <h1>Order Details</h1>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Order Id</th>
-                <th>Order Date</th>
-                <th>Payment Method</th>
-                <th>Payment Status</th>
-                <th>Shipping Address</th>
-                <th>Product Price</th>
-                <th>Quantity</th>
-                <th>Order Status</th>
-                <th>Product Image</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% order.items.forEach(item => { %>
+    <div class="table-container">
+        <table class="table">
+            <thead>
                 <tr>
-                    <td class="center"><%= order.oId %></td>
-                    <td class="center"><%= order.orderDate.toDateString() %></td>
-                    <td class="center"><%= order.paymentMethod %></td>
-                    <td class="center"><%= order.paymentStatus %></td>
-                    <td class="center">
-                        <% let shippingAddress = order.shippingAddress; %>
-                        <%= shippingAddress.houseName %>, <%= shippingAddress.street %>, <%= shippingAddress.city %>, <%= shippingAddress.state %>, <%= shippingAddress.country %>, <%= shippingAddress.postalCode %>
-                    </td>
-                    <td class="center">$<%= item.productPrice.toFixed(2) %></td>
-                    <td class="center"><%= item.quantity %></td>
-                    <td class="center" data-input-id="<%= item._id %>"><%= item.status %></td>
-                    <td class="center"><img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail" style="width: 100px; height: 120px;"></td>
+                    <th>Order Date</th>
+                    <th>Payment Method</th>
+                    <th>Payment Status</th>
+                    <th>Shipping Address</th>
+                    <th>Product Price</th>
+                    <th>Quantity</th>
+                    <th>Order Status</th>
+                    <th>Product Image</th>
                 </tr>
-            <% }); %>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <% order.items.forEach(item => { %>
+                    <tr>
+                        <td class="center"><%= order.orderDate.toDateString() %></td>
+                        <td class="center"><%= order.paymentMethod %></td>
+                        <td class="center"><%= order.paymentStatus %></td>
+                        <td class="center">
+                            <% let shippingAddress = order.shippingAddress; %>
+                            <%= shippingAddress.street %>, <%= shippingAddress.city %>, <%= shippingAddress.state %>, <%= shippingAddress.country %>, <%= shippingAddress.postalCode %>
+                        </td>
+                        <td class="center">$<%= item.productPrice.toFixed(2) %></td>
+                        <td class="center"><%= item.quantity %></td>
+                        <td class="center"><%= item.status %></td>
+                        <td class="center"><img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail"></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-area">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <% if (currentPage > 1) { %>
+                <li class="page-item">
+                    <a class="page-link" href="?id=<%= order._id %>&page=<%= currentPage - 1 %>">Previous</a>
+                </li>
+                <% } %>
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="?id=<%= order._id %>&page=<%= i %>"><%= i %></a>
+                </li>
+                <% } %>
+                <% if (currentPage < totalPages) { %>
+                <li class="page-item">
+                    <a class="page-link" href="?id=<%= order._id %>&page=<%= currentPage + 1 %>">Next</a>
+                </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+
+    <script src="/Adminassets/js/vendors/jquery-3.6.0.min.js"></script>
+    <script src="/Adminassets/js/vendors/bootstrap.bundle.min.js"></script>
+    <script src="/Adminassets/js/vendors/select2.min.js"></script>
+    <script src="/Adminassets/js/vendors/perfect-scrollbar.js"></script>
+    <script src="/Adminassets/js/vendors/jquery.fullscreen.min.js"></script>
+    <script src="/Adminassets/js/vendors/chart.js"></script>
+    <!-- Main Script -->
+    <script src="/Adminassets/js/main.js" type="text/javascript"></script>
+    <script src="/Adminassets/js/custom-chart.js" type="text/javascript"></script>
 </body>
+</html>

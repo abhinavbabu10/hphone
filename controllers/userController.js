@@ -89,28 +89,81 @@ const logout = async (req,res) =>{
 }
 
 
+// const insertUser = async (req, res) => {
+//     try {
+//         const { username, email, password, referralCode } = req.body;
+//         if (!req.session) {
+//             throw new Error('Session middleware not initialized');
+//         }
+
+//         const existingUser = await User.findOne({ email: email });
+//         if (existingUser) {
+//             return res.render('signup', { user: null, message: 'Email already exists' });
+//         }
+
+     
+//         let referrer = null;
+//         if (referralCode) {
+//             referrer = await User.findOne({ referralCode: referralCode });
+//             if (!referrer) {
+//                 return res.render('signup', { user: null, message: 'Invalid referral code' });
+//             }
+//         }
+
+//         const otp = generateOTP();
+
+//         const userData = {
+//             name: username,
+//             email: email,
+//             password: password,
+//             referralCode: referralCode || null,
+//             otp: otp
+//         };
+
+//         req.session.userDetail = userData;
+//         req.session.referrer = referrer; 
+//         console.log(otp, "otp");
+
+//         sendOTPByEmail(email, otp);
+//         res.redirect('/otp');
+//     } catch (error) {
+//         console.error('Error inserting user:', error);
+//         res.status(500).send('Error inserting user');
+//     }
+// };
+
 const insertUser = async (req, res) => {
     try {
         const { username, email, password, referralCode } = req.body;
+        console.log('Request body:', req.body);
+
         if (!req.session) {
             throw new Error('Session middleware not initialized');
         }
+        console.log('Session middleware initialized');
 
         const existingUser = await User.findOne({ email: email });
         if (existingUser) {
+            console.log('Email already exists:', email);
             return res.render('signup', { user: null, message: 'Email already exists' });
         }
+        console.log('No existing user with email:', email);
 
-     
         let referrer = null;
         if (referralCode) {
+            console.log('Referral code provided:', referralCode);
             referrer = await User.findOne({ referralCode: referralCode });
             if (!referrer) {
+                console.log('Invalid referral code:', referralCode);
                 return res.render('signup', { user: null, message: 'Invalid referral code' });
             }
+            console.log('Referrer found:', referrer);
+        } else {
+            console.log('No referral code provided');
         }
 
         const otp = generateOTP();
+        console.log('Generated OTP:', otp);
 
         const userData = {
             name: username,
@@ -119,13 +172,17 @@ const insertUser = async (req, res) => {
             referralCode: referralCode || null,
             otp: otp
         };
+        console.log('User data:', userData);
 
         req.session.userDetail = userData;
-        req.session.referrer = referrer; 
-        console.log(otp, "otp");
+        req.session.referrer = referrer;
+        console.log('User detail and referrer set in session');
 
         sendOTPByEmail(email, otp);
+        console.log('OTP sent to email:', email);
+
         res.redirect('/otp');
+        console.log('Redirecting to /otp');
     } catch (error) {
         console.error('Error inserting user:', error);
         res.status(500).send('Error inserting user');
@@ -199,6 +256,60 @@ const loadShop = async (req, res) => {
 
 
 
+// const verifyOTP = async (req, res) => {
+//     try {
+//         console.log(req.body)
+//         const enteredOTP = req.body.otp;
+//         if (parseInt(enteredOTP) === req.session.userDetail.otp) {
+//             const { name, email, password } = req.session.userDetail;
+//             const spassword = await securePassword(password);
+//             const referralCode = generateReferralCode();
+//             console.log(referralCode,"koi")
+            
+//             const newUser = new User({
+//                 name,
+//                 email,
+//                 password: spassword,
+//                 is_admin: 0,
+//                 referralCode: referralCode
+//             });
+
+//             await newUser.save();
+
+            
+//             if (req.session.referrer) {
+//                 const referrerWallet = await Wallet.findOne({ user: req.session.referrer._id });
+//                 referrerWallet.walletBalance += 100;
+//                 referrerWallet.transactions.push({
+//                     amount: 100,
+//                     description: 'Referral Bonus',
+//                     type: 'credit'
+//                 });
+//                 await referrerWallet.save();
+
+
+//                 const newWallet = new Wallet({
+//                     user: newUser._id,
+//                     walletBalance: 50,
+//                     transactions: [{
+//                         amount: 50,
+//                         description: 'Signup Bonus',
+//                         type: 'credit'
+//                     }]
+//                 });
+//                 await newWallet.save();
+//             }
+
+//             res.redirect('/login');
+//         } else {
+//             res.render('otp', { errorMessage: 'Incorrect OTP' });
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Internal server error' });
+//     }
+// };
+
 const verifyOTP = async (req, res) => {
     try {
         console.log(req.body)
@@ -219,26 +330,32 @@ const verifyOTP = async (req, res) => {
 
             await newUser.save();
 
-            const newWallet = new Wallet({
-                user: newUser._id,
-                walletBalance: 50,
-                transactions: [{
-                    amount: 50,
-                    description: 'Signup Bonus',
-                    type: 'credit'
-                }]
-            });
-            await newWallet.save();
-
             if (req.session.referrer) {
                 const referrerWallet = await Wallet.findOne({ user: req.session.referrer._id });
-                referrerWallet.walletBalance += 100;
-                referrerWallet.transactions.push({
-                    amount: 100,
-                    description: 'Referral Bonus',
-                    type: 'credit'
+                
+                if (referrerWallet) {
+                    referrerWallet.walletBalance += 100;
+                    referrerWallet.transactions.push({
+                        amount: 100,
+                        description: 'Referral Bonus',
+                        type: 'credit'
+                    });
+                    await referrerWallet.save();
+                } else {
+                   
+                    console.log('Referrer wallet not found');
+                }
+
+                const newWallet = new Wallet({
+                    user: newUser._id,
+                    walletBalance: 50,
+                    transactions: [{
+                        amount: 50,
+                        description: 'Signup Bonus',
+                        type: 'credit'
+                    }]
                 });
-                await referrerWallet.save();
+                await newWallet.save();
             }
 
             res.redirect('/login');
@@ -250,6 +367,87 @@ const verifyOTP = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+// const verifyOTP = async (req, res) => {
+//     try {
+//         console.log('Request body:', req.body);
+//         const enteredOTP = req.body.otp;
+//         console.log('Entered OTP:', enteredOTP);
+//         console.log('Session user OTP:', req.session.userDetail.otp);
+
+//         if (parseInt(enteredOTP) === req.session.userDetail.otp) {
+//             const { name, email, password } = req.session.userDetail;
+//             console.log('User details from session:', { name, email, password });
+
+//             const spassword = await securePassword(password);
+//             console.log('Secured password:', spassword);
+
+//             const referralCode = generateReferralCode();
+//             console.log('Generated referral code:', referralCode);
+
+//             const newUser = new User({
+//                 name,
+//                 email,
+//                 password: spassword,
+//                 is_admin: 0,
+//                 referralCode: referralCode
+//             });
+
+//             await newUser.save();
+//             console.log('New user saved:', newUser);
+
+//             if (req.session.referrer) {
+//                 console.log('Referrer found in session:', req.session.referrer._id);
+
+//                 const referrerWallet = await Wallet.findOne({ user : req.session.referrer._id });
+//                 console.log('Referrer wallet:', referrerWallet);
+
+//                 // const userId = req.session.referrer._id;
+//                 // const referrerWallet = await Wallet.find({ user: userId });
+
+//                 console.log("JJJJ",referrerWallet)
+//                 if (referrerWallet) {
+//                     console.log("oi")
+//                     referrerWallet.walletBalance += 100;
+//                     referrerWallet.transactions.push({
+//                         amount: 100,
+//                         description: 'Referral Bonus',
+//                         type: 'credit'
+//                     });
+//                     await referrerWallet.save();
+//                     console.log('Referrer wallet updated:', referrerWallet);
+//                 } else {
+//                     // Handle the case where referrerWallet is not found
+//                     console.log('Referrer wallet not found');
+//                     // You may want to create a new wallet for the referrer or take other actions
+//                 }
+
+//                 const newWallet = new Wallet({
+//                     user: newUser._id,
+//                     walletBalance: 50,
+//                     transactions: [{
+//                         amount: 50,
+//                         description: 'Signup Bonus',
+//                         type: 'credit'
+//                     }]
+//                 });
+//                 await newWallet.save();
+//                 console.log('New wallet created for user:', newWallet);
+//             }
+
+//             res.redirect('/login');
+//             console.log('Redirecting to /login');
+//         } else {
+//             console.log('Incorrect OTP entered');
+//             res.render('otp', { errorMessage: 'Incorrect OTP' });
+//         }
+//     } catch (error) {
+//         console.error('Error in verifyOTP:', error);
+//         res.status(500).json({ error: 'Internal server error' });
+//     }
+// };
+
+
 
 
 const resendOTP = async (req, res) => {

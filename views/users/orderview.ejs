@@ -44,7 +44,7 @@
         }
     </style>
 <body>
-    <h1>Order Details</h1>
+    <h1>Order View</h1>
     <table class="table table-hover">
         <thead>
           <tr>
@@ -59,63 +59,7 @@
             <th>Actions</th>
           </tr>
         </thead>
-         <!-- <tbody>
-            <% if (order.items && order.items.length > 0) { %>
-            <% order.items.forEach(item => { %>
-              <tr>
-                <td><%= new Date(order.orderDate).toDateString() %></td>
-                <td><img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail" style="width: 100px; height: 120px;"></td>
-                <td data-input-id="<%= item._id %>"><%= item.status %></td>
-                <td><%= order.paymentStatus %></td>
-                <td><%= order.paymentMethod %></td>
-                <td>$<%= item.productPrice.toFixed(2) %></td>
-                <td><%= item.quantity %></td>
-                <td>$<%= (item.productPrice * item.quantity).toFixed(2) %></td>
-                <td>
-                  <% if(item.status === "Delivered") { %>
-                    <button class="btn btn-warning btn-sm" onclick="showReturnConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Return</button>
-                  <% } %>
-                  <% if(order.paymentStatus === "Failed") { %>
-                    <button class="btn btn-primary btn-sm" onclick="retryPayment('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Retry</button>
-                  <% } else { %>
-                    <% if(item.status !== "Cancelled") { %>
-                      <% if(item.status === "Pending" || item.status === "Confirmed") { %>
-                        <button class="btn btn-danger btn-sm" onclick="showCancelConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Cancel</button>
-                      <% } else { %>
-                      <% } %>
-
-                    <% } else { %>
-                      <button class="btn btn-secondary btn-sm" data-input-id="<%= item._id %>" disabled>Order Cancelled</button>
-
-                    <% } %>
-                  <% } %>
-                </td>
-              </tr>
-            <% }); %>
-            <% } else { %>
-                <tr>
-                    <td colspan="9">No items found in this order.</td>
-                </tr>
-            <% } %>
-        </tbody> 
-          
-      </table>
-    
-      <table id="summary-table" style="margin-top: 20px;">
-        <tbody>
-            <% if(order.couponAmount>0) { %>
-                <tr>
-                    <th>Coupon Amount</th>
-                    <td id="couponAmount"><%=order.couponAmount %></td>
-                </tr>
-            <%}%>
-            <tr>
-                <th>Grand Total</th>
-                <td id="grandTotal">$<%= order.billTotal.toFixed(2) %></td>
-            </tr>
-        </tbody>
-    </table> -->
-
+       
     <tbody>
         <% if (order.items && order.items.length > 0) { %>
             <% order.items.forEach(item => { %>
@@ -181,6 +125,11 @@
             </tr>
         </tbody>
     </table> -->
+
+
+
+
+
     <table id="summary-table" style="margin-top: 20px;">
         <tbody>
             <% order.items.forEach(function(item) { %>
@@ -202,7 +151,7 @@
         </tbody>
     </table>
     
-    
+  
 
 </body>
 

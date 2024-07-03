@@ -3,6 +3,7 @@ const User = require("../models/userModel")
 const Product = require("../models/productModel")
 const Cart = require("../models/cartModel");
 const Wallet = require("../models/walletModel")
+const Coupon = require("../models/couponModel")
 const Razorpay = require("razorpay");
 require('dotenv').config();
 
@@ -269,6 +270,71 @@ const loadOrderView = async (req, res) =>{
 
 
 
+
+
+// const cancelOrder = async (req, res) => {
+//   const { orderId, itemId, cancellationReason } = req.body;
+
+//   try {
+//       const order = await Order.findById(orderId);
+
+//       if (!order) {
+//           return res.status(404).json({ message: 'Order not found' });
+//       }
+
+//       const item = order.items.id(itemId);
+
+//       if (!item) {
+//           return res.status(404).json({ message: 'Item not found in order' });
+//       }
+
+//       item.status = 'Cancelled';
+//       item.cancellationReason = cancellationReason;
+//       item.cancellationDate = new Date();
+
+//       const product = await Product.findById(item.productId);
+//       if (product) {
+//           product.stock += item.quantity;
+//           await product.save();
+//       }
+
+//       const allItemsCancelled = order.items.every(item => item.status === 'Cancelled');
+//       if (allItemsCancelled) {
+//           order.orderStatus = 'Cancelled';
+//           order.cancellationReason = cancellationReason;
+//       }
+
+//       await order.save();
+
+//       let wallet = await Wallet.findOne({ user: order.user });
+//       if (!wallet) {
+//           wallet = new Wallet({
+//               user: order.user,
+//               walletBalance: 0,
+//               amountSpent: 0,
+//               transactions: []
+//           });
+//       }
+
+//       const refundAmount = item.quantity * item.price;
+//       wallet.walletBalance += refundAmount;
+//       wallet.transactions.push({
+//           amount: refundAmount,
+//           description: `Refund for cancelled order ${orderId}`,
+//           type: 'Refund',
+//           transactionDate: new Date()
+//       });
+
+//       await wallet.save();
+
+//       res.json({ message: 'Order has been cancelled and amount refunded successfully' });
+//   } catch (error) {
+//       console.error('Error cancelling order:', error);
+//       res.status(500).json({ message: 'An error occurred while cancelling the order' });
+//   }
+// };
+
+
 const cancelOrder = async (req, res) => {
   const { orderId, itemId, cancellationReason } = req.body;
 
@@ -313,11 +379,25 @@ const cancelOrder = async (req, res) => {
           });
       }
 
+      
       const refundAmount = item.quantity * item.price;
-      wallet.walletBalance += refundAmount;
+      let couponDiscount = 0;
+      if (order.couponCode) {
+          const coupon = await Coupon.findOne({ couponcode: order.couponCode });
+          if (coupon) {
+              const discount = (refundAmount * coupon.discountpercentage) / 100;
+              couponDiscount = Math.min(discount, coupon.maximumDiscountAmount);
+              if (allItemsCancelled) {
+                  coupon.usedBy.pull(order.user);
+                  await coupon.save();
+              }
+          }
+      }
+      const totalRefundAmount = refundAmount + couponDiscount;
+      wallet.walletBalance += totalRefundAmount;
       wallet.transactions.push({
-          amount: refundAmount,
-          description: `Refund for cancelled order ${orderId}`,
+          amount: totalRefundAmount,
+          description: `Refund for cancelled order ${orderId} (Including coupon discount)`,
           type: 'Refund',
           transactionDate: new Date()
       });
@@ -342,14 +422,20 @@ const loadOrder = async (req, res) => {
     const totalOrderCount = await Order.countDocuments({});
     const totalPages = Math.ceil(totalOrderCount / perPage);
     const skip = (page - 1) * perPage;
+
+    const orders = await Order.find({})
+      .populate('user')
+      .sort({ orderDate: -1 })
+      .skip(skip)
+      .limit(perPage);
     
-    const orders = await Order.find({}).populate('user').skip(skip).limit(perPage);
     res.render("order", { orders, currentPage: page, totalPages });
   } catch (error) {
     console.log(error.message);
     res.status(500).send('Internal Server Error');
   }
 }
+
 
 const changeOrderStatus = async (req,res) =>{
   try {
@@ -388,19 +474,45 @@ const changeOrderStatus = async (req,res) =>{
 }
 };
 
-const loadOrderDetails = async(req,res) =>{
-  try{
-    const orderId=req.query.id;
-    const order= await Order.findById(orderId);
-    const userId = req.session.userData
-    const user = await User.findById(userId)
-    res.render("orderdetails",{order,user})
 
-}catch(error){
-    console.log(error.message)
-}
 
-}
+const loadOrderDetails = async (req, res) => {
+  try {
+    const orderId = req.query.id;
+    const userId = req.session.userData;
+
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10; // Number of items per page
+    const skip = (page - 1) * limit;
+
+    // Fetch the order with paginated items
+    const order = await Order.findById(orderId)
+      .populate({
+        path: 'items',
+        options: {
+          skip: skip,
+          limit: limit
+        }
+      })
+      .exec();
+
+    const user = await User.findById(userId);
+
+    // Calculate total pages
+    const totalItems = order.items.length;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.render('orderdetails', {
+      order,
+      user,
+      currentPage: page,
+      totalPages: totalPages
+    });
+  } catch (error) {
+    console.log(error.message);
+  }
+};
 
 
 const returnOrder = async (req, res) => {
