@@ -32,7 +32,7 @@ userroute.post('/updatePassword',userController.updatePassword)
 
 
 
-userroute.get('/shop',auth.isLogin,userController.loadShop)
+userroute.get('/shop',auth.isLogin, userController.loadShop)
 userroute.get('/shop-detail',userController.loadShopdetail)
 userroute.get('/logout', userController.logout)
 
@@ -70,6 +70,8 @@ userroute.post("/walletOrder",orderController.walletPlaceOrder)
 userroute.post('/apply-coupon', couponController.applyCoupon)
 userroute.post('/remove-coupon' , couponController.removeCoupon)
 
+userroute.get('/success', userController.loadGoogle)
+ 
 
 
 module.exports = userroute;

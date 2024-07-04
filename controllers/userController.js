@@ -22,6 +22,14 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+const loadGoogle = async (req,res) =>{
+    try {
+         req.session.userData = req.user;
+         res.redirect('/')
+    } catch (error) {
+      console.log('error from usercontroller loadSuccesGoogle',error);
+    }
+}
 
 
 // PASSWORD HASHING//
@@ -43,7 +51,6 @@ const securePassword = async (password) => {
 
 const loadhome = async (req, res) => {
     try {
-
         const users = req.session.userData
         const user = await User.findById(users)
  
@@ -1004,6 +1011,7 @@ const checkOut = async (req, res) =>{
       
       
 module.exports = {
+    loadGoogle,
     loadhome,
     loadsignup,
     loadlogin,
