@@ -156,6 +156,7 @@
 </body>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
     function showCancelConfirmation(orderId, itemId) {
@@ -243,6 +244,126 @@
             Swal.fire('Error', 'An error occurred while cancelling the order', 'error');
         }
     }
+
+
+    function retryPayment(orderId, total) {
+    console.log("billtotal", total);
+    fetch("/retryOrder", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            orderId: orderId,
+            total: total
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log("success");
+            const options = {
+                key: data.key_id,
+                amount: data.amount,
+                currency: "INR",
+                name:  "HPHONE",
+                description: data.description,
+                order_id: data.order_id,
+                handler: function (response) {
+                    console.log(response);
+                    retryOrderPlace(orderId, total, "Success"); 
+                },
+                prefill: {
+                    contact: data.contact,
+                    name: data.name, 
+                    email: data.email
+                },
+                notes: {
+                    description: data.description
+                },
+                theme: {
+                    color: "#F37254"
+                }
+            };
+
+            const razorpayObject = new Razorpay(options);
+            console.log(razorpayObject);
+            razorpayObject.open();
+
+            razorpayObject.on('payment.failed', function (response) {
+                console.error(response.error);
+                retryOrderPlace(orderId, total, "Failed"); 
+            });
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Order Placement Failed',
+                text: data.msg
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error placing order:', error);
+    });
+}
+
+function retryOrderPlace(orderId,total,status){
+    fetch(`/retryOnlineOrder`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(
+                       {
+                       orderId,
+                       total,
+                       status
+                    
+                        
+                    })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if(data.message === "Order placed successfully"){
+                Swal.fire({
+                icon: "success",
+                title: 'Order Confirmed',
+                text: "Your payment was successful and the order has been placed.",
+                confirmButtonText: "OK"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    location.reload();
+                }
+            });
+
+            }else if (data.message ==="Payment failed retry" ){
+                Swal.fire({
+                icon: "error",
+                title: 'Payment Failed',
+                text: data.message,
+                confirmButtonText: "Ok"
+            })
+            }
+            
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Order Placement Failed',
+                text: data.message
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error confirming order:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Order Placement Failed',
+            text: 'There was an error confirming your order. Please try again.'
+        });
+    });
+}
+
 
     </script>
 

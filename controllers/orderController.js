@@ -590,8 +590,63 @@ const walletPlaceOrder = async (req, res) => {
 };
 
 
+const retryOrderPayment = async (req,res) =>{
+  try{
 
+    const userId = req.session.userData;
+      const user = await User.findById(userId);
+    const {orderId,total}=req.body;
+    
 
+    var options = {
+      amount: parseFloat(total) * 100, 
+      currency: "INR",
+      receipt: `reciept_${orderId}`,
+    };
+    razorpayInstance.orders.create(options, function (err, order) {
+    
+      if (!err) {
+        res.status(200).json({
+          success: true,
+          msg: "Order Created",
+          order_id: order.id,
+          amount: parseFloat(total) * 100,
+          key_id:  process.env.RAZORPAY_KEY_ID,
+          product_name: "product",
+          description: "req.body.description",
+          contact:"1234567891",
+          name:  user.name,
+          email: user.email,
+        });
+      } else {
+        console.log("error --->", err);
+      }
+    });
+
+  }catch(error){
+    console.log(error.message)
+  }
+}
+
+const retryOnlineOrder = async (req,res) =>{
+  try{
+    const {orderId,total,status}=req.body;
+    const order= await Order.findById(orderId);
+
+    order.paymentStatus=status;
+
+    order.save();
+    if(order.paymentStatus=="Failed"){
+     return res.status(201).json({ success: true, message: "Payment failed retry" }); 
+    }
+   return res
+    .status(201)
+    .json({ success: true, message: "Order placed successfully" });
+
+  }catch(error){
+    console.log(error.message)
+  }
+}
 
 
 module.exports = {
@@ -604,6 +659,8 @@ module.exports = {
   loadOrderDetails,
   returnOrder,
   confirmWalletBalance ,
-  walletPlaceOrder 
+  walletPlaceOrder ,
+  retryOrderPayment ,
+  retryOnlineOrder 
 
 };
