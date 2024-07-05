@@ -61,19 +61,19 @@ app.use('/admin',adminroute)
 
 
 // Middleware to handle undefined routes
-app.use((req, res, next) => {
-    const error = new Error("Not Found");
-    error.status = 404;
-    next(error);
-  });
+// app.use((req, res, next) => {
+//     const error = new Error("Not Found");
+//     error.status = 404;
+//     next(error);
+//   });
   
-  // Error handling middleware
-  app.use((err, req, res, next) => {
-    let url = "";
-    req.url.split("/")[1] === "admin" ? (url = "/admin/home") : (url = "/");
-    res.status(err.status || 500);
-    res.render("pagenotfound", { error: err, url: url,layout: false });
-  });
+//   // Error handling middleware
+//   app.use((err, req, res, next) => {
+//     let url = "";
+//     req.url.split("/")[1] === "admin" ? (url = "/admin/home") : (url = "/");
+//     res.status(err.status || 500);
+//     res.render("pagenotfound", { error: err, url: url,layout: false });
+//   });
 
 
 

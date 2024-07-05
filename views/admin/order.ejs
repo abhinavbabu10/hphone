@@ -179,20 +179,20 @@
                             </thead>
                             <tbody>
                                 <% orders.forEach(order => { %>
-                                <tr>
-                                    <td>
-                                        <% order.items.forEach(item => { %>
-                                            <% if (item.media && item.media.length > 0) { %>
-                                                <img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail" style="width: 100px; height: 120px;">
-                                            <% } else { %>
-                                                <img src="/Productimages/default.png" alt="Default Image" class="img-thumbnail" style="width: 100px; height: 120px;">
-                                            <% } %>
-                                        <% }); %>
-                                    </td>
-                                    <td><b><%= order.user.name %></b></td>
-                                    <td><%= order.user.email %></td>
-                                    <td>$<%= order.billTotal.toFixed(2) %></td>
-                                    <td>
+                                    <tr>
+                                        <td>
+                                            <% order.items.forEach(item => { %>
+                                                <% if (item.media && item.media.length > 0) { %>
+                                                    <img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail" style="width: 100px; height: 120px;">
+                                                <% } else { %>
+                                                    <img src="/Productimages/default.png" alt="Default Image" class="img-thumbnail" style="width: 100px; height: 120px;">
+                                                <% } %>
+                                            <% }); %>
+                                        </td>
+                                        <td><b><%= order.user ? order.user.name : 'No User' %></b></td>
+                                        <td><%= order.user ? order.user.email : 'No Email' %></td>
+                                        <td>$<%= order.billTotal.toFixed(2) %></td>
+                                        <td>
                                         <% switch (order.orderStatus) {
                                             case 'Pending':
                                                 %><span class="badge rounded-pill alert-warning"><%= order.orderStatus %></span><%

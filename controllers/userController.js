@@ -237,85 +237,78 @@ const loadotp = async (req, res) => {
     }
 }
 
+
 const loadShop = async (req, res) => {
     try {
-        const user = req.session.userData;
-        const category = await Category.find({ deleted: false }).sort({ createdOn: -1 });
-
-        const page = parseInt(req.query.page) || 1;
-        const limit = 10; 
-        const skip = (page - 1) * limit;
-
-        const products = await Product.find({ isUnlisted: false, stock: { $gt: 0 } }).skip(skip).limit(limit);
-        const totalProducts = await Product.countDocuments({ isUnlisted: false, stock: { $gt: 0 } });
-        const totalPages = Math.ceil(totalProducts / limit);
-
-        res.render('shop', { category, products, user, currentPage: page, totalPages });
+      const user = req.session.userData;
+      const category = await Category.find({ deleted: false }).sort({ createdOn: -1 });
+  
+      const { category: selectedCategory, sort, limit, page = 1, search } = req.query;
+      const productsPerPage = limit === 'all' ? 0 : parseInt(limit) || 10;
+      const skip = (page - 1) * productsPerPage;
+  
+      let query = { isUnlisted: false, stock: { $gt: 0 } };
+      let sortOption = {};
+  
+      if (selectedCategory) {
+        query.category = selectedCategory;
+      }
+  
+      if (search) {
+        query.name = { $regex: search, $options: "i" };
+      }
+  
+      if (sort) {
+        switch (sort) {
+          case 'price_asc':
+            sortOption.price = 1;
+            break;
+          case 'price_desc':
+            sortOption.price = -1;
+            break;
+          case 'new_arrivals':
+            sortOption.createdOn = -1;
+            break;
+          case 'rating':
+            sortOption.rating = -1;
+            break;
+          case 'name_asc':
+            sortOption.name = 1;
+            break;
+          case 'name_desc':
+            sortOption.name = -1;
+            break;
+          default:
+            sortOption = {};
+        }
+      }
+  
+      const [products, totalProducts] = await Promise.all([
+        Product.find(query).sort(sortOption).skip(skip).limit(productsPerPage),
+        Product.countDocuments(query)
+      ]);
+  
+      const totalPages = Math.ceil(totalProducts / productsPerPage);
+  
+      res.render('shop', {
+        category,
+        products,
+        user,
+        currentPage: parseInt(page),
+        totalPages,
+        selectedCategory,
+        sortOption,
+        search  // Pass the search term to the view
+      });
     } catch (error) {
-        console.log(error);
-        res.status(500).send('Internal Server Error');
+      console.error('Error fetching products:', error);
+      res.status(500).send('Internal Server Error');
     }
-};
+  };
+  
 
-
-
-
-
-
-
-// const verifyOTP = async (req, res) => {
-//     try {
-//         console.log(req.body)
-//         const enteredOTP = req.body.otp;
-//         if (parseInt(enteredOTP) === req.session.userDetail.otp) {
-//             const { name, email, password } = req.session.userDetail;
-//             const spassword = await securePassword(password);
-//             const referralCode = generateReferralCode();
-//             console.log(referralCode,"koi")
-            
-//             const newUser = new User({
-//                 name,
-//                 email,
-//                 password: spassword,
-//                 is_admin: 0,
-//                 referralCode: referralCode
-//             });
-
-//             await newUser.save();
-
-            
-//             if (req.session.referrer) {
-//                 const referrerWallet = await Wallet.findOne({ user: req.session.referrer._id });
-//                 referrerWallet.walletBalance += 100;
-//                 referrerWallet.transactions.push({
-//                     amount: 100,
-//                     description: 'Referral Bonus',
-//                     type: 'credit'
-//                 });
-//                 await referrerWallet.save();
-
-
-//                 const newWallet = new Wallet({
-//                     user: newUser._id,
-//                     walletBalance: 50,
-//                     transactions: [{
-//                         amount: 50,
-//                         description: 'Signup Bonus',
-//                         type: 'credit'
-//                     }]
-//                 });
-//                 await newWallet.save();
-//             }
-
-//             res.redirect('/login');
-//         } else {
-//             res.render('otp', { errorMessage: 'Incorrect OTP' });
-//         }
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ error: 'Internal server error' });
-//     }
-// };
+  
+  
 
 const verifyOTP = async (req, res) => {
     try {
@@ -374,85 +367,6 @@ const verifyOTP = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-
-// const verifyOTP = async (req, res) => {
-//     try {
-//         console.log('Request body:', req.body);
-//         const enteredOTP = req.body.otp;
-//         console.log('Entered OTP:', enteredOTP);
-//         console.log('Session user OTP:', req.session.userDetail.otp);
-
-//         if (parseInt(enteredOTP) === req.session.userDetail.otp) {
-//             const { name, email, password } = req.session.userDetail;
-//             console.log('User details from session:', { name, email, password });
-
-//             const spassword = await securePassword(password);
-//             console.log('Secured password:', spassword);
-
-//             const referralCode = generateReferralCode();
-//             console.log('Generated referral code:', referralCode);
-
-//             const newUser = new User({
-//                 name,
-//                 email,
-//                 password: spassword,
-//                 is_admin: 0,
-//                 referralCode: referralCode
-//             });
-
-//             await newUser.save();
-//             console.log('New user saved:', newUser);
-
-//             if (req.session.referrer) {
-//                 console.log('Referrer found in session:', req.session.referrer._id);
-
-//                 const referrerWallet = await Wallet.findOne({ user : req.session.referrer._id });
-//                 console.log('Referrer wallet:', referrerWallet);
-
-//                 // const userId = req.session.referrer._id;
-//                 // const referrerWallet = await Wallet.find({ user: userId });
-
-//                 console.log("JJJJ",referrerWallet)
-//                 if (referrerWallet) {
-//                     console.log("oi")
-//                     referrerWallet.walletBalance += 100;
-//                     referrerWallet.transactions.push({
-//                         amount: 100,
-//                         description: 'Referral Bonus',
-//                         type: 'credit'
-//                     });
-//                     await referrerWallet.save();
-//                     console.log('Referrer wallet updated:', referrerWallet);
-//                 } else {
-//                     // Handle the case where referrerWallet is not found
-//                     console.log('Referrer wallet not found');
-//                     // You may want to create a new wallet for the referrer or take other actions
-//                 }
-
-//                 const newWallet = new Wallet({
-//                     user: newUser._id,
-//                     walletBalance: 50,
-//                     transactions: [{
-//                         amount: 50,
-//                         description: 'Signup Bonus',
-//                         type: 'credit'
-//                     }]
-//                 });
-//                 await newWallet.save();
-//                 console.log('New wallet created for user:', newWallet);
-//             }
-
-//             res.redirect('/login');
-//             console.log('Redirecting to /login');
-//         } else {
-//             console.log('Incorrect OTP entered');
-//             res.render('otp', { errorMessage: 'Incorrect OTP' });
-//         }
-//     } catch (error) {
-//         console.error('Error in verifyOTP:', error);
-//         res.status(500).json({ error: 'Internal server error' });
-//     }
-// };
 
 
 
