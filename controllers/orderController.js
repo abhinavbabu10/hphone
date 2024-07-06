@@ -6,6 +6,9 @@ const Wallet = require("../models/walletModel")
 const Coupon = require("../models/couponModel")
 const Razorpay = require("razorpay");
 require('dotenv').config();
+const moment = require('moment')
+const PDFdocument = require('pdfkit')
+const PDFDocument = require("pdfkit-table");
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -589,17 +592,90 @@ const walletPlaceOrder = async (req, res) => {
   }
 };
 
+const downloadInvoice = async (req, res) =>{
+  try {
+    const { orderId } = req.query;
 
-const retryOrderPayment = async (req,res) =>{
+    const order = await Order.findById(orderId).populate("user");
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    generateInvoicePDF(order, res);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+async function generateInvoicePDF(order, res) {
+  const doc = new PDFDocument();
+  const filename = `invoice_${order._id}.pdf`;
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+  doc.pipe(res);
+
+  doc.fontSize(20).text("Invoice", { align: "center" });
+  doc.moveDown();
+
+  // Add order details
+  doc.fontSize(12).text(`Order ID: ${order.orderId}`);
+  doc.text(`Order Date: ${new Date(order.orderDate).toLocaleString("en-IN")}`);
+  doc.text(`Payment Method: ${order.paymentMethod}`);
+  doc.text(`Payment Status: ${order.paymentStatus}`);
+  doc.text(
+    `Shipping Address: ${order.shippingAddress.houseName}, ${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state}, ${order.shippingAddress.country}, ${order.shippingAddress.postalCode}`
+  );
+  doc.moveDown();
+
+  // Create the table data
+  const table = {
+    headers: ["Product Name", "Quantity", "Price", "Total Price"],
+    rows: order.items.map(item => [
+      item.title,
+      item.quantity,
+      `$${item.productPrice.toFixed(2)}`,
+      `$${(item.productPrice * item.quantity).toFixed(2)}`
+    ])
+  };
+
+  // Draw the table with styling
+  doc.table(table, {
+    prepareHeader: () => doc.font("Helvetica-Bold").fontSize(12),
+    prepareRow: (row, i) => doc.font("Helvetica").fontSize(10),
+    width: 500, // Width of the table
+    align: "center", // Align text within columns to center
+    padding: 5, // Padding for each cell
+    colors: ["#AE2424", "#AE2424", "#AE2424", "#AE2424"], // Color of text in each column
+    borderWidth: 1, // Border width
+    headerBorderWidth: 1, // Header border width
+    rowEvenBackground: "#AE2424" // Background color for even rows
+  });
+   
+  doc.moveDown();
+
+  // Add total amount and coupon
+  if (order.couponAmount > 0) {
+    doc.text(`Coupon Amount: $${order.couponAmount.toFixed(2)}`);
+  }
+  doc.text(`Grand Total: $${order.billTotal.toFixed(2)}`);
+
+  doc.end();
+}
+
+
+const retryOrder =async(req,res)=>{
   try{
-
-    const userId = req.session.userData;
+    const userId = req.session.userData
     const user = await User.findById(userId);
-    const {orderId,total}=req.body;
+    const {orderId,totalAmount}=req.body;
     
 
     var options = {
-      amount: parseFloat(total) * 100, 
+      amount: totalAmount * 100, // amount in the smallest currency unit
       currency: "INR",
       receipt: `reciept_${orderId}`,
     };
@@ -610,12 +686,12 @@ const retryOrderPayment = async (req,res) =>{
           success: true,
           msg: "Order Created",
           order_id: order.id,
-          // amount: parseFloat(total) * 100,
-          key_id:  process.env.RAZORPAY_KEY_ID,
+          amount: totalAmount * 100,
+          key_id: process.env.RAZORPAY_KEY_ID,
           product_name: "product",
           description: req.body.description,
-          contact:"1234567891",
-          name:  user.name,
+          contact:  "1234567891",
+          name: user.name,
           email: user.email,
         });
       } else {
@@ -628,9 +704,9 @@ const retryOrderPayment = async (req,res) =>{
   }
 }
 
-const retryOnlineOrder = async (req,res) =>{
+const retryPayment =async(req,res)=>{
   try{
-    const {orderId,total,status}=req.body;
+    const {orderId,totalAmount,status}=req.body;
     const order= await Order.findById(orderId);
 
     order.paymentStatus=status;
@@ -649,6 +725,9 @@ const retryOnlineOrder = async (req,res) =>{
 }
 
 
+
+
+
 module.exports = {
   placeOrder,
   onlinePlaceOrder,
@@ -660,7 +739,8 @@ module.exports = {
   returnOrder,
   confirmWalletBalance ,
   walletPlaceOrder ,
-  retryOrderPayment ,
-  retryOnlineOrder 
+  downloadInvoice,
+  retryOrder,
+  retryPayment
 
 };

@@ -66,9 +66,9 @@ userroute.post("/cancelorder",orderController.cancelOrder )
 userroute.put("/returnorder",orderController.returnOrder)
 userroute.put("/checkWalletBalance",orderController.confirmWalletBalance)
 userroute.post("/walletOrder",orderController.walletPlaceOrder)
-userroute.post("/retryOrder",orderController.retryOrderPayment)
-userroute.post("/retryOnlineOrder",orderController.retryOnlineOrder)
-
+userroute.get("/downloadInvoice",orderController.downloadInvoice);
+userroute.post("/retryOrder",orderController.retryOrder)
+userroute.post("/retryOnlineOrder", orderController.retryPayment)
 userroute.post('/apply-coupon', couponController.applyCoupon)
 userroute.post('/remove-coupon' , couponController.removeCoupon)
 

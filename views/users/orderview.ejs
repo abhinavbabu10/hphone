@@ -47,207 +47,213 @@
     <h1>Order View</h1>
     <table class="table table-hover">
         <thead>
-          <tr>
-            <th>Order Date</th>
-            <th>Image</th>
-            <th>Order Status</th>
-            <th>Payment Status</th>
-            <th>Payment Method</th>
-            <th>Product Price</th>
-            <th>Quantity</th>
-            <!-- <th>Total Price</th> -->
-            <th>Actions</th>
-          </tr>
+            <tr>
+                <th>Order Date</th>
+                <th>Image</th>
+                <th>Order Status</th>
+                <th>Payment Status</th>
+                <th>Payment Method</th>
+                <th>Product Price</th>
+                <th>Quantity</th>
+                <th>Actions</th>
+            </tr>
         </thead>
-       
-    <tbody>
-        <% if (order.items && order.items.length > 0) { %>
-            <% order.items.forEach(item => { %>
-                <tr>
-                    <td><%= new Date(order.orderDate).toDateString() %></td>
-                    <td><img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail" style="width: 100px; height: 120px;"></td>
-                    <td data-input-id="<%= item._id %>"><%= item.status %></td>
-                    <td><%= order.paymentStatus %></td>
-                    <td><%= order.paymentMethod %></td>
-    
-                    <% 
-                        // Calculate the effective price of the product considering discounts
-                        let effectivePrice = item.productPrice;
-                        if (item.categoryDiscountPrice && item.categoryDiscountPrice > 0) {
-                            effectivePrice = item.categoryDiscountPrice;
-                        } else if (item.discountPrice && item.discountPrice > 0) {
-                            effectivePrice = item.discountPrice;
-                        }
-                    %>
-    
-                    <td>₹<%= effectivePrice.toFixed(2) %></td>
-                    <td><%= item.quantity %></td>
-                    <!-- <td>$<%= (effectivePrice * item.quantity).toFixed(2) %></td> -->
-    
-                    <td>
-                        <% if (item.status === "Delivered") { %>
-                            <button class="btn btn-warning btn-sm" onclick="showReturnConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Return</button>
-                        <% } %>
-                        <% if (order.paymentStatus === "Failed") { %>
-                            <button class="btn btn-primary btn-sm" onclick="retryPayment('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Retry</button>
-                        <% } else { %>
+        <tbody>
+            <% if (order.items && order.items.length > 0) { %>
+                <% order.items.forEach(item => { %>
+                    <tr>
+                        <td><%= new Date(order.orderDate).toDateString() %></td>
+                        <td><img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail" style="width: 100px; height: 120px;"></td>
+                        <td data-input-id="<%= item._id %>"><%= item.status %></td>
+                        <td><%= order.paymentStatus %></td>
+                        <td><%= order.paymentMethod %></td>
+                        <% 
+                            // Calculate the effective price of the product considering discounts
+                            let effectivePrice = item.productPrice;
+                            if (item.categoryDiscountPrice && item.categoryDiscountPrice > 0) {
+                                effectivePrice = item.categoryDiscountPrice;
+                            } else if (item.discountPrice && item.discountPrice > 0) {
+                                effectivePrice = item.discountPrice;
+                            }
+                        %>
+                        <td>₹<%= effectivePrice.toFixed(2) %></td>
+                        <td><%= item.quantity %></td>
+                        <td>
+                            <% if (item.status === "Delivered") { %>
+                                <button class="btn btn-warning btn-sm" onclick="showReturnConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Return</button>
+                            <% } %>
                             <% if (item.status !== "Cancelled") { %>
                                 <% if (item.status === "Pending" || item.status === "Confirmed") { %>
                                     <button class="btn btn-danger btn-sm" onclick="showCancelConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Cancel</button>
+                                <% } else { %>
+                                    -
                                 <% } %>
                             <% } else { %>
-                                <button class="btn btn-secondary btn-sm" data-input-id="<%= item._id %>" disabled>Order Cancelled</button>
+                                <button onclick="showCancelConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>" disabled>Order Cancelled</button>
                             <% } %>
-                        <% } %>
-                    </td>
-                </tr>
-            <% }); %>
-        <% } else { %>
-            <tr>
-                <td colspan="9">No items found in this order.</td>
-            </tr>
-        <% } %>
-    </tbody>
-    
+                        </td>
+                    </tr>
+                <% }); %>
+            <% } %>
+        </tbody>
     </table>
     
-    <!-- <table id="summary-table" style="margin-top: 20px;">
-        <tbody>
-            <% if (order.couponAmount > 0) { %>
-                <tr>
-                    <th>Coupon Amount</th>
-                    <td id="couponAmount">-$<%= order.couponAmount.toFixed(2) %></td>
-                </tr>
-            <% } %>
-            <tr>
-                <th>Grand Total</th>
-                <td id="grandTotal">$<%= order.billTotal.toFixed(2) %></td>
-            </tr>
-        </tbody>
-    </table> -->
-
-
-
-
-
     <table id="summary-table" style="margin-top: 20px;">
         <tbody>
-            <% order.items.forEach(function(item) { %>
+            <% if(order.couponAmount > 0) { %>
                 <tr>
-                    <th><%= item.name %></th>
-                    <td>₹<%= item.price.toFixed(2) %></td>
-                </tr>
-            <% }); %>
-            <% if (order.couponAmount > 0) { %>
-                <tr>
-                    <th>Coupon Discount</th>
-                    <td id="couponDiscount">-₹<%= order.couponAmount.toFixed(2) %></td>
+                    <th>Coupon Amount</th>
+                    <td id="couponAmount">₹<%= order.couponAmount.toFixed(2) %></td>
                 </tr>
             <% } %>
             <tr>
                 <th>Grand Total</th>
-                <td id="grandTotal">₹<%= (order.billTotal - order.couponAmount).toFixed(2) %></td>
+                <td id="grandTotal">₹<%= order.billTotal.toFixed(2) %></td>
+            </tr>
+            <tr>
+                <th>Shipping Address</th>
+                <td id="shippingAddress">
+                    <%= order.shippingAddress.houseName %>,<br>
+                    <%= order.shippingAddress.street %>,<br>
+                    <%= order.shippingAddress.city %>,<br>
+                    <%= order.shippingAddress.state %>,<br>
+                    <%= order.shippingAddress.country %> - <%= order.shippingAddress.postalCode %>
+                </td>
             </tr>
         </tbody>
     </table>
     
-  
-
-</body>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-<script>
-    function showCancelConfirmation(orderId, itemId) {
-        Swal.fire({
-            title: 'Cancel Order',
-            html: 'Are you sure you want to cancel this order?<br><input type="text" id="cancellationReason" class="swal2-input" placeholder="Enter cancellation reason">',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, cancel it!',
-            cancelButtonText: 'No, keep it'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const cancellationReason = document.getElementById('cancellationReason').value;
-                cancelOrder(orderId, itemId, cancellationReason);
-            }
-        });
-    }
-
-    async function cancelOrder(orderId, itemId, cancellationReason) {
-        try {
-            const response = await fetch('/cancelorder', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ orderId, itemId, cancellationReason })
+    <div style="text-align: center; margin-top: 20px;">
+        <% if(order.paymentStatus === "Failed") { %>
+            <button onclick="retryPayment('<%= order._id %>', '<%= order.billTotal %>')" data-input-id="<%= order._id %>" style="padding: 10px 20px; background-color: #557775; color: white; border: none; border-radius: 5px; cursor: pointer;">Retry</button>
+        <% } else if(order.orderStatus === "Delivered") { %>
+            <button onclick="downloadInvoice('<%= order._id %>')" style="padding: 10px 20px; background-color: #557775; color: white; border: none; border-radius: 5px; cursor: pointer;">Download Invoice</button>
+        <% } %>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <script>
+        function showCancelConfirmation(orderId, itemId) {
+            Swal.fire({
+                title: 'Cancel Order',
+                html: 'Are you sure you want to cancel this order?<br><input type="text" id="cancellationReason" class="swal2-input" placeholder="Enter cancellation reason">',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, cancel it!',
+                cancelButtonText: 'No, keep it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const cancellationReason = document.getElementById('cancellationReason').value;
+                    cancelOrder(orderId, itemId, cancellationReason);
+                }
             });
-            const data = await response.json();
-            if (response.ok) {
-                Swal.fire('Order Cancelled', data.message, 'success');
-
-                document.querySelector(`[data-input-id="${itemId}"]`).textContent = 'Cancelled';
-                const cancelButton = document.querySelector(`button[data-input-id="${itemId}"]`);
-                cancelButton.innerHTML = 'Order Cancelled';
-                cancelButton.disabled = true;
-            location.reload()
-            } else {
-                Swal.fire('Error', data.message, 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'An error occurred while cancelling the order', 'error');
         }
-    }
-
-    function showReturnConfirmation(orderId, itemId) {
-        Swal.fire({
-            title: 'Return Order',
-            html: 'Are you sure you want to return this order?<br><input type="text" id="returnReason" class="swal2-input" placeholder="Enter rearon for returning">',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, return it!',
-            cancelButtonText: 'No, keep it'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const returnReason = document.getElementById('returnReason').value;
-                returnOrder(orderId, itemId, returnReason);
+    
+        async function cancelOrder(orderId, itemId, cancellationReason) {
+            try {
+                const response = await fetch('/cancelorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ orderId, itemId, cancellationReason })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    Swal.fire('Order Cancelled', data.message, 'success');
+    
+                    document.querySelector(`[data-input-id="${itemId}"]`).textContent = 'Cancelled';
+                    const cancelButton = document.querySelector(`button[data-input-id="${itemId}"]`);
+                    cancelButton.innerHTML = 'Order Cancelled';
+                    cancelButton.disabled = true;
+                    location.reload();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'An error occurred while cancelling the order', 'error');
             }
-        });
-    }
-
-    async function returnOrder(orderId, itemId, returnReason) {
-        try {
-            const response = await fetch('/returnorder', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ orderId, itemId, returnReason })
+        }
+    
+        function showReturnConfirmation(orderId, itemId) {
+            Swal.fire({
+                title: 'Return Order',
+                html: 'Are you sure you want to return this order?<br><input type="text" id="returnReason" class="swal2-input" placeholder="Enter reason for returning">',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, return it!',
+                cancelButtonText: 'No, keep it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const returnReason = document.getElementById('returnReason').value;
+                    returnOrder(orderId, itemId, returnReason);
+                }
             });
-            const data = await response.json();
-            if (response.ok) {
-                Swal.fire('Order Cancelled', data.message, 'success');
-
-                document.querySelector(`[data-input-id="${itemId}"]`).textContent = 'Returned';
-                const cancelButton = document.querySelector(`button[data-input-id="${itemId}"]`);
-                cancelButton.innerHTML = 'Order Returned';
-                cancelButton.disabled = true,
-            (()=>{window.location.reload()})
-            } else {
-                Swal.fire('Error', data.message, 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'An error occurred while cancelling the order', 'error');
         }
-    }
+    
+        async function returnOrder(orderId, itemId, returnReason) {
+            try {
+                const response = await fetch('/returnorder', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ orderId, itemId, returnReason })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    Swal.fire('Order Returned', data.message, 'success');
+    
+                    document.querySelector(`[data-input-id="${itemId}"]`).textContent = 'Returned';
+                    const returnButton = document.querySelector(`button[data-input-id="${itemId}"]`);
+                    returnButton.innerHTML = 'Order Returned';
+                    returnButton.disabled = true;
+                    location.reload();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'An error occurred while returning the order', 'error');
+            }
+        }
+    
+        async function downloadInvoice(orderId) {
+            try {
+                const response = await fetch(`/downloadInvoice?orderId=${orderId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+    
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `invoice_${orderId}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    const data = await response.json();
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'An error occurred while downloading the invoice', 'error');
+            }
+        }
+    
 
-
-    function retryPayment(orderId, total) {
-    console.log("billtotal", total);
+function retryPayment(orderId, totalAmount) {
+    console.log("billtotal", totalAmount);
+    
     fetch("/retryOrder", {
         method: "POST",
         headers: {
@@ -255,7 +261,7 @@
         },
         body: JSON.stringify({
             orderId: orderId,
-            total: total
+            totalAmount: totalAmount
         })
     })
     .then(response => response.json())
@@ -263,26 +269,26 @@
         if (data.success) {
             console.log("success");
             const options = {
-                key: data.key_id,
-                amount: data.amount,
-                currency: "INR",
-                name:  "HPHONE",
-                description: data.description,
-                order_id: data.order_id,
+                    key: data.key_id ,
+                    amount: data.amount,
+                    currency: "INR",
+                    name: "HPHONE",
+                    description: data.description,
+                    order_id: data.order_id,
                 handler: function (response) {
                     console.log(response);
-                    retryOrderPlace(orderId, total, "Success"); 
+                    retryOrderPlace(orderId, totalAmount, "Success");
                 },
                 prefill: {
                     contact: data.contact,
-                    name: data.name, 
+                    name: data.name,
                     email: data.email
                 },
                 notes: {
                     description: data.description
                 },
                 theme: {
-                    color: "#F37254"
+                  color: "#F37254"
                 }
             };
 
@@ -292,7 +298,7 @@
 
             razorpayObject.on('payment.failed', function (response) {
                 console.error(response.error);
-                retryOrderPlace(orderId, total, "Failed"); 
+                retryOrderPlace(orderId, totalAmount, "Failed");
             });
         } else {
             Swal.fire({
@@ -307,45 +313,40 @@
     });
 }
 
-function retryOrderPlace(orderId,total,status){
+function retryOrderPlace(orderId, totalAmount, status) {
     fetch(`/retryOnlineOrder`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(
-                       {
-                       orderId,
-                       total,
-                       status
-                    
-                        
-                    })
+        body: JSON.stringify({
+            orderId,
+            totalAmount,
+            status
+        })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            if(data.message === "Order placed successfully"){
+            if (data.message === "Order placed successfully") {
                 Swal.fire({
-                icon: "success",
-                title: 'Order Confirmed',
-                text: "Your payment was successful and the order has been placed.",
-                confirmButtonText: "OK"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    location.reload();
-                }
-            });
-
-            }else if (data.message ==="Payment failed retry" ){
+                    icon: "success",
+                    title: 'Order Confirmed',
+                    text: "Your payment was successful and the order has been placed.",
+                    confirmButtonText: "OK"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        location.reload();
+                    }
+                });
+            } else if (data.message === "Payment failed retry") {
                 Swal.fire({
-                icon: "error",
-                title: 'Payment Failed',
-                text: data.message,
-                confirmButtonText: "Ok"
-            })
+                    icon: "error",
+                    title: 'Payment Failed',
+                    text: data.message,
+                    confirmButtonText: "Ok"
+                });
             }
-            
         } else {
             Swal.fire({
                 icon: 'warning',
@@ -364,9 +365,8 @@ function retryOrderPlace(orderId,total,status){
     });
 }
 
-
     </script>
-
+    
 
 
 
