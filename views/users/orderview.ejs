@@ -80,7 +80,7 @@
                         }
                     %>
     
-                    <td>$<%= effectivePrice.toFixed(2) %></td>
+                    <td>₹<%= effectivePrice.toFixed(2) %></td>
                     <td><%= item.quantity %></td>
                     <!-- <td>$<%= (effectivePrice * item.quantity).toFixed(2) %></td> -->
     
@@ -135,18 +135,18 @@
             <% order.items.forEach(function(item) { %>
                 <tr>
                     <th><%= item.name %></th>
-                    <td>$<%= item.price.toFixed(2) %></td>
+                    <td>₹<%= item.price.toFixed(2) %></td>
                 </tr>
             <% }); %>
             <% if (order.couponAmount > 0) { %>
                 <tr>
                     <th>Coupon Discount</th>
-                    <td id="couponDiscount">-$<%= order.couponAmount.toFixed(2) %></td>
+                    <td id="couponDiscount">-₹<%= order.couponAmount.toFixed(2) %></td>
                 </tr>
             <% } %>
             <tr>
                 <th>Grand Total</th>
-                <td id="grandTotal">$<%= (order.billTotal - order.couponAmount).toFixed(2) %></td>
+                <td id="grandTotal">₹<%= (order.billTotal - order.couponAmount).toFixed(2) %></td>
             </tr>
         </tbody>
     </table>

@@ -594,7 +594,7 @@ const retryOrderPayment = async (req,res) =>{
   try{
 
     const userId = req.session.userData;
-      const user = await User.findById(userId);
+    const user = await User.findById(userId);
     const {orderId,total}=req.body;
     
 
@@ -610,10 +610,10 @@ const retryOrderPayment = async (req,res) =>{
           success: true,
           msg: "Order Created",
           order_id: order.id,
-          amount: parseFloat(total) * 100,
+          // amount: parseFloat(total) * 100,
           key_id:  process.env.RAZORPAY_KEY_ID,
           product_name: "product",
-          description: "req.body.description",
+          description: req.body.description,
           contact:"1234567891",
           name:  user.name,
           email: user.email,
