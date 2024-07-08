@@ -35,6 +35,8 @@ adminRoute.post('/', adminController.verifyAdmin);
 
 adminRoute.get("/home",adminauth.isAdminLogin, adminController.loadDashboard);
 
+adminRoute.get("/filter-graph",adminController.filterGraph);
+
 adminRoute.get('/logout',  adminController.adminlogout)
 
 

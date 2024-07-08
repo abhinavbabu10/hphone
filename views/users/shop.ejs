@@ -274,7 +274,7 @@ async function addToCart(productId) {
 
 async function addToWishlist(productId) {
   try {
-    const response = await fetch('/wishlist', {
+    const response = await fetch('/add-wishlist', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -313,7 +313,6 @@ async function addToWishlist(productId) {
     });
   }
 }
-
 
 
 document.querySelectorAll('.sort-by-dropdown ul li a').forEach(item => {
