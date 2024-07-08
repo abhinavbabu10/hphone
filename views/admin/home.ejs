@@ -137,7 +137,7 @@
                     <p>Whole data about your business here</p>
                 </div>
                 <div>
-                    <a href="#" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create report</a>
+                    <!-- <a href="#" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create report</a> -->
                 </div>
             </div>
             <div class="row">
@@ -147,7 +147,7 @@
                             <span class="icon icon-sm rounded-circle bg-primary-light"><i class="text-primary material-icons md-monetization_on"></i></span>
                             <div class="text">
                                 <h6 class="mb-1 card-title">Revenue</h6>
-                                <span>$<%= totalRevenue.toFixed(2) %></span>
+                                <span>₹<%= totalRevenue.toFixed(2) %></span>
                                 <span class="text-sm">
                                     Shipping fees are not included
                                 </span>
@@ -189,7 +189,7 @@
                             <span class="icon icon-sm rounded-circle bg-info-light"><i class="text-info material-icons md-shopping_basket"></i></span>
                             <div class="text">
                                 <h6 class="mb-1 card-title">Monthly Earning</h6> 
-                                <span>$<%= monthlyEarnings.toFixed(2) %></span>
+                                <span>₹<%= monthlyEarnings.toFixed(2) %></span>
                                 <span class="text-sm">
                                     Based in your local time.
                                 </span>
@@ -247,9 +247,9 @@
                             <tbody>
                                 <% topProducts.forEach(product => { %>
                                     <tr>
-                                        <td><%= product.product.title %></td>
+                                        <td><%= product.product.name %></td>
                                         <td><%= product.totalOrders %></td>
-                                        <td>$<%= (product.totalOrders * product.product.price).toFixed(2) %></td>
+                                        <td>₹<%= (product.totalOrders * product.product.price).toFixed(2) %></td>
                                     </tr>
                                 <% }) %>
                             </tbody>
@@ -270,7 +270,7 @@
                                 <% topCategories.forEach(category => { %>
                                     <tr>
                                         <td><%= category._id %></td>
-                                        <td>$<%= category.totalRevenue.toFixed(2) %></td>
+                                        <td>₹<%= category.totalRevenue.toFixed(2) %></td>
                                     </tr>
                                 <% }) %>
                             </tbody>
@@ -283,7 +283,7 @@
         </section>
         
          <!-- content-main end// -->
-        <footer class="main-footer font-xs">
+        <!-- <footer class="main-footer font-xs">
             <div class="row pb-30 pt-15">
                 <div class="col-sm-6">
                     <script>
@@ -296,7 +296,7 @@
                     </div>
                 </div>
             </div>
-        </footer>
+        </footer> -->
 
     </main>
 

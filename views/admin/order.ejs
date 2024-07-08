@@ -191,7 +191,7 @@
                                         </td>
                                         <td><b><%= order.user ? order.user.name : 'No User' %></b></td>
                                         <td><%= order.user ? order.user.email : 'No Email' %></td>
-                                        <td>$<%= order.billTotal.toFixed(2) %></td>
+                                        <td>₹<%= order.billTotal.toFixed(2) %></td>
                                         <td>
                                         <% switch (order.orderStatus) {
                                             case 'Pending':

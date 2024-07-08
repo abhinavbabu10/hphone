@@ -1,5 +1,6 @@
 const User = require('../models/userModel')
 const Order = require("../models/orderModel")
+const Category = require("../models/categoryModel")
 const Product = require("../models/productModel")
 const { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } = require('date-fns');
 const bcrypt = require('bcrypt')
@@ -54,10 +55,10 @@ const loadDashboard = async(req,res)=>{
         const deliveredOrders = await Order.countDocuments({ orderStatus: "Delivered" });
 
         // Calculate Products
-        const totalProducts = await Product.countDocuments({ isDeleted: false });
+        const totalProducts = await Product.countDocuments({ isUnlisted: false });
 
         // Calculate Total Categories
-        const totalCategories = await Product.distinct('category', { isDeleted: false });
+        const totalCategories = await Product.distinct('category', { isUnlisted: false });
 
         // Calculate Monthly Earnings for Delivered Orders
         const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -107,12 +108,13 @@ const loadDashboard = async(req,res)=>{
             { $limit: 10 }
         ]);
 
-        // console.log("totalRevenue",totalRevenue);
-        // console.log("deliveredOrders",deliveredOrders);
-        // console.log("totalProducts",totalProducts);
-        // console.log("monthlyEarnings", monthlyEarnings)
-        // console.log("topProducts",topProducts);
-        // console.log("topCategories",topCategories);
+        console.log("totalRevenue",totalRevenue);
+        console.log("deliveredOrders",deliveredOrders);
+        console.log("totalProducts",totalProducts);
+        console.log("totalCategories",totalCategories)
+        console.log("monthlyEarnings", monthlyEarnings)
+        console.log("topProducts",topProducts);
+        console.log("topCategories",topCategories);
 
         res.render("home", {
             totalRevenue,

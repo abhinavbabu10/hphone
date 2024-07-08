@@ -102,7 +102,7 @@
                             <% let shippingAddress = order.shippingAddress; %>
                             <%= shippingAddress.street %>, <%= shippingAddress.city %>, <%= shippingAddress.state %>, <%= shippingAddress.country %>, <%= shippingAddress.postalCode %>
                         </td>
-                        <td class="center">$<%= item.productPrice.toFixed(2) %></td>
+                        <td class="center">₹<%= item.productPrice.toFixed(2) %></td>
                         <td class="center"><%= item.quantity %></td>
                         <td class="center"><%= item.status %></td>
                         <td class="center"><img src="/Productimages/<%= item.media[0] %>" alt="Product Image" class="img-thumbnail"></td>
