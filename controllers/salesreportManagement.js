@@ -167,8 +167,8 @@ const pdfDownload = async (req, res) => {
       rows: orders.map(order => [
         moment(order.orderDate).format('YYYY-MM-DD'),
         order.user.name, // Adjust according to your schema
-        `$${order.billTotal.toFixed(2)}`,
-        `$${(order.couponAmount || 0).toFixed(2)}`,
+        `INR ${order.billTotal.toFixed(2)}`,
+        `INR ${(order.couponAmount || 0).toFixed(2)}`,
         order.items.map(item => item.productId.name).join(', ') // Adjust according to your schema
       ])
     };

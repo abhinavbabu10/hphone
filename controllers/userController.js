@@ -434,20 +434,40 @@ const loadShopdetail = async(req,res) =>{
 }
 
 
-const loadProfile = async(req,res) =>{
+// const loadProfile = async(req,res) =>{
 
-    try {
-        const userId = req.session.userData
-        const user = await User.findById(userId)
-        const product = await Product.find({ isUnlisted: false })
-        const order = await Order.find({user:userId})
-        const wallet = await Wallet.findOne({ user: userId });
-       res.render('profile',{user,order,product:product,wallet})
+//     try {
+//         const userId = req.session.userData
+//         const user = await User.findById(userId)
+//         const product = await Product.find({ isUnlisted: false })
+//         const order = await Order.find({user:userId})
+//         const wallet = await Wallet.findOne({ user: userId });
+//        res.render('profile',{user,order,product:product,wallet})
        
+//     } catch (error) {
+//         console.log(error)
+//     }
+// }
+
+const loadProfile = async (req, res) => {
+    try {
+        const userId = req.session.userData;
+        const user = await User.findById(userId);
+        const product = await Product.find({ isUnlisted: false });
+        const order = await Order.find({ user: userId });
+        
+        // Find the wallet and sort transactions by transactionDate in descending order
+        const wallet = await Wallet.findOne({ user: userId }).lean();
+        if (wallet && wallet.transactions) {
+            wallet.transactions.sort((a, b) => new Date(b.transactionDate) - new Date(a.transactionDate));
+        }
+
+        res.render('profile', { user, order, product, wallet });
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
-}
+};
+
 
 const editDetail = async (req, res) => {
     try {

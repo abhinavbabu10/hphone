@@ -276,78 +276,78 @@ const cancelOrder = async (req, res) => {
   const { orderId, itemId, cancellationReason } = req.body;
 
   try {
-      const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId);
 
-      if (!order) {
-          return res.status(404).json({ message: 'Order not found' });
-      }
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
 
-      const item = order.items.id(itemId);
+    const item = order.items.id(itemId);
 
-      if (!item) {
-          return res.status(404).json({ message: 'Item not found in order' });
-      }
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found in order' });
+    }
 
-      item.status = 'Cancelled';
-      item.cancellationReason = cancellationReason;
-      item.cancellationDate = new Date();
+    item.status = 'Cancelled';
+    item.cancellationReason = cancellationReason;
+    item.cancellationDate = new Date();
 
-      const product = await Product.findById(item.productId);
-      if (product) {
-          product.stock += item.quantity;
-          await product.save();
-      }
+    const product = await Product.findById(item.productId);
+    if (product) {
+      product.stock += item.quantity;
+      await product.save();
+    }
 
-      const allItemsCancelled = order.items.every(item => item.status === 'Cancelled');
-      if (allItemsCancelled) {
-          order.orderStatus = 'Cancelled';
-          order.cancellationReason = cancellationReason;
-      }
+    const allItemsCancelled = order.items.every(item => item.status === 'Cancelled');
+    if (allItemsCancelled) {
+      order.orderStatus = 'Cancelled';
+      order.cancellationReason = cancellationReason;
+    }
 
-      await order.save();
+    // Calculate the refund amount considering the coupon discount
+    const itemTotal = item.quantity * item.price;
+    const orderTotal = order.billTotal;
+    const orderSubtotal = order.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    const discountRatio = orderTotal / orderSubtotal;
+    const refundAmount = itemTotal * discountRatio;
 
-      let wallet = await Wallet.findOne({ user: order.user });
-      if (!wallet) {
-          wallet = new Wallet({
-              user: order.user,
-              walletBalance: 0,
-              amountSpent: 0,
-              transactions: []
-          });
-      }
+    await order.save();
 
-      
-      const refundAmount = item.quantity * item.price;
-      let couponDiscount = 0;
-      if (order.couponCode) {
-          const coupon = await Coupon.findOne({ couponcode: order.couponCode });
-          if (coupon) {
-              const discount = (refundAmount * coupon.discountpercentage) / 100;
-              couponDiscount = Math.min(discount, coupon.maximumDiscountAmount);
-              if (allItemsCancelled) {
-                  coupon.usedBy.pull(order.user);
-                  await coupon.save();
-              }
-          }
-      }
-      const totalRefundAmount = refundAmount + couponDiscount;
-      wallet.walletBalance += totalRefundAmount;
-      wallet.transactions.push({
-          amount: totalRefundAmount,
-          description: `Refund for cancelled order ${orderId} (Including coupon discount)`,
-          type: 'Refund',
-          transactionDate: new Date()
+    let wallet = await Wallet.findOne({ user: order.user });
+    if (!wallet) {
+      wallet = new Wallet({
+        user: order.user,
+        walletBalance: 0,
+        amountSpent: 0,
+        transactions: []
       });
+    }
 
-      await wallet.save();
+    wallet.walletBalance += refundAmount;
+    wallet.transactions.push({
+      amount: refundAmount,
+      description: `Refund for cancelled item from order ${orderId} (Including coupon discount)`,
+      type: 'Refund',
+      transactionDate: new Date()
+    });
 
-      res.json({ message: 'Order has been cancelled and amount refunded successfully' });
+    await wallet.save();
+
+    // If all items are cancelled, remove the user from the coupon's usedBy array
+    if (allItemsCancelled && order.couponCode) {
+      const coupon = await Coupon.findOne({ couponcode: order.couponCode });
+      if (coupon) {
+        coupon.usedBy = coupon.usedBy.filter(userId => !userId.equals(order.user));
+        await coupon.save();
+      }
+    }
+
+    res.json({ message: 'Order has been cancelled and amount refunded successfully' });
   } catch (error) {
-      console.error('Error cancelling order:', error);
-      res.status(500).json({ message: 'An error occurred while cancelling the order' });
+    console.error('Error cancelling order:', error);
+    res.status(500).json({ message: 'An error occurred while cancelling the order' });
   }
 };
-
 
 
 
@@ -465,7 +465,13 @@ const returnOrder = async (req, res) => {
       return res.status(404).json({ message: 'Item not found in order' });
     }
 
-    const refundAmount = item.productPrice * item.quantity; 
+    // Calculate the refund amount considering the coupon discount
+    const itemTotal = item.quantity * item.price;
+    const orderTotal = order.billTotal;
+    const orderSubtotal = order.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    const discountRatio = orderTotal / orderSubtotal;
+    const refundAmount = itemTotal * discountRatio;
+
     item.status = 'Returned';
     item.reasonForReturn = returnReason;
     item.returnDate = new Date();
@@ -477,7 +483,14 @@ const returnOrder = async (req, res) => {
 
     await order.save();
 
-   
+    // Update product stock
+    const product = await Product.findById(item.productId);
+    if (product) {
+      product.stock += item.quantity;
+      await product.save();
+    }
+
+    // Process refund to wallet
     let wallet = await Wallet.findOne({ user: order.user });
     if (!wallet) {
       wallet = new Wallet({ user: order.user });
@@ -486,11 +499,20 @@ const returnOrder = async (req, res) => {
     wallet.walletBalance += refundAmount;
     wallet.transactions.push({
       amount: refundAmount,
-      description: `Refund for returned item from order ${orderId}`,
+      description: `Refund for returned item from order ${orderId} (Including coupon discount)`,
       type: 'Credit',
     });
 
     await wallet.save();
+
+    // If all items are returned, remove the user from the coupon's usedBy array
+    if (allItemsReturned && order.couponCode) {
+      const coupon = await Coupon.findOne({ couponcode: order.couponCode });
+      if (coupon) {
+        coupon.usedBy = coupon.usedBy.filter(userId => !userId.equals(order.user));
+        await coupon.save();
+      }
+    }
 
     res.status(200).json({ message: 'Order returned and amount refunded to wallet successfully' });
   } catch (error) {
