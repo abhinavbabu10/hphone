@@ -133,16 +133,27 @@ const loadDashboard = async(req,res)=>{
 };
 
 
+
 const filterGraph = async (req, res) => {
     try {
         const { filter, startDate, endDate } = req.query;
         console.log("Filter:", filter);
         console.log("Start Date:", startDate);
         console.log("End Date:", endDate);
-        
+
         let matchCriteria = { orderStatus: 'Delivered' }; // Filtering only delivered orders
 
         switch (filter) {
+            case 'today':
+                const startOfDay = new Date();
+                startOfDay.setHours(0, 0, 0, 0);
+                const endOfDay = new Date();
+                endOfDay.setHours(23, 59, 59, 999);
+                matchCriteria.orderDate = {
+                    $gte: startOfDay,
+                    $lte: endOfDay
+                };
+                break;
             case 'weekly':
                 matchCriteria.orderDate = {
                     $gte: startOfWeek(new Date()),
@@ -206,11 +217,6 @@ const filterGraph = async (req, res) => {
         res.status(500).json({ error: "Failed to filter graph" });
     }
 };
-
-
-
-
-
 
 
 

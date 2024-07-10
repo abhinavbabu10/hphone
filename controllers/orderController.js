@@ -40,7 +40,7 @@ const placeOrder = async (req, res) => {
       billTotal += item.productId.price * item.quantity;
     }
 
-    const { addressId, paymentMethod, total } = req.body;
+    const { addressId, paymentMethod, total, couponCode, couponAmount } = req.body;
     const selectedAddress = user.address.id(addressId);
 
     if (!selectedAddress) {
@@ -48,6 +48,31 @@ const placeOrder = async (req, res) => {
     }
 
     console.log("Received payment method:", paymentMethod);
+
+    const createOrderObject = () => ({
+      oId: orderId,
+      user: userId,
+      items: cart.product.map((item) => ({
+        productId: item.productId._id,
+        name: item.productId.name,
+        media: item.productId.media,
+        productPrice: item.productId.discountPrice > 0 ? item.productId.discountPrice : item.productId.price,
+        quantity: item.quantity,
+        price: item.productId.discountPrice > 0 ? item.productId.discountPrice * item.quantity : item.productId.price * item.quantity,
+      })),
+      billTotal: parseInt(total),
+      shippingAddress: {
+        houseName: selectedAddress.houseName,
+        street: selectedAddress.street,
+        city: selectedAddress.city,
+        state: selectedAddress.state,
+        country: selectedAddress.country,
+        postalCode: selectedAddress.postalCode,
+      },
+      paymentMethod,
+      couponCode: couponCode || null,
+      couponAmount: couponAmount || 0
+    });
 
     if (paymentMethod === "Razorpay") {
       console.log("Razorpay Key ID:", process.env.RAZORPAY_KEY_ID);
@@ -79,29 +104,24 @@ const placeOrder = async (req, res) => {
           res.status(500).json({ success: false, message: "Error creating Razorpay order" });
         }
       });
-    } else if (paymentMethod === "COD") {
-      const newOrder = new Order({
-        oId: orderId,
-        user: userId,
-        items: cart.product.map((item) => ({
-          productId: item.productId._id,
-          name: item.productId.name,
-          media: item.productId.media,
-          productPrice: item.productId.discountPrice > 0 ? item.productId.discountPrice : item.productId.price,
-          quantity: item.quantity,
-          price: item.productId.discountPrice > 0 ? item.productId.discountPrice * item.quantity : item.productId.price * item.quantity,
-        })),
-        billTotal: parseInt(total),
-        shippingAddress: {
-          houseName: selectedAddress.houseName,
-          street: selectedAddress.street,
-          city: selectedAddress.city,
-          state: selectedAddress.state,
-          country: selectedAddress.country,
-          postalCode: selectedAddress.postalCode,
-        },
-        paymentMethod
-      });
+    } else if (paymentMethod === "COD" || paymentMethod === "Wallet") {
+      const newOrder = new Order(createOrderObject());
+
+      if (paymentMethod === "Wallet") {
+        const userWallet = await Wallet.findOne({ user: userId });
+        if (!userWallet || userWallet.walletBalance < total) {
+          return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
+        }
+        userWallet.walletBalance -= total;
+        userWallet.amountSpent += total;
+        userWallet.transactions.push({
+          amount: total,
+          description: `Order payment for Order id:${orderId}`,
+          type: 'debit'
+        });
+        await userWallet.save();
+        newOrder.paymentStatus = "Success";
+      }
 
       await newOrder.save();
 
@@ -115,58 +135,16 @@ const placeOrder = async (req, res) => {
       }
       await Cart.findOneAndDelete({ userId });
 
-      res.status(201).json({ success: true, message: "Order placed successfully" });
-    } else if (paymentMethod === "Wallet") {
-      const userWallet = await Wallet.findOne({ user: userId });
-      if (userWallet && userWallet.walletBalance >= total) {
-        userWallet.walletBalance -= total;
-        userWallet.amountSpent += total;
-        userWallet.transactions.push({
-          amount: total,
-          description: `Order payment for Order id:${orderId}`,
-          type: 'debit'
-        });
-        await userWallet.save();
-
-        const newOrder = new Order({
-          oId: orderId,
-          user: userId,
-          items: cart.product.map((item) => ({
-            productId: item.productId._id,
-            name: item.productId.name,
-            media: item.productId.media,
-            productPrice: item.productId.discountPrice > 0 ? item.productId.discountPrice : item.productId.price,
-            quantity: item.quantity,
-            price: item.productId.discountPrice > 0 ? item.productId.discountPrice * item.quantity : item.productId.price * item.quantity,
-          })),
-          billTotal: parseInt(total),
-          shippingAddress: {
-            houseName: selectedAddress.houseName,
-            street: selectedAddress.street,
-            city: selectedAddress.city,
-            state: selectedAddress.state,
-            country: selectedAddress.country,
-            postalCode: selectedAddress.postalCode,
-          },
-          paymentMethod
-        });
-
-        await newOrder.save();
-
-        for (const item of newOrder.items) {
-          const product = await Product.findById(item.productId);
-          if (!product) {
-            throw new Error(`Product with id ${item.productId} not found`);
-          }
-          product.stock -= item.quantity;
-          await product.save();
+      // If a coupon was used, add the user to the coupon's usedBy array
+      if (couponCode) {
+        const coupon = await Coupon.findOne({ couponcode: couponCode });
+        if (coupon) {
+          coupon.usedBy.push(userId);
+          await coupon.save();
         }
-        await Cart.findOneAndDelete({ userId });
-
-        res.status(201).json({ success: true, message: "Order placed successfully" });
-      } else {
-        res.status(400).json({ success: false, message: "Insufficient wallet balance" });
       }
+
+      res.status(201).json({ success: true, message: "Order placed successfully" });
     } else {
       res.status(400).json({ success: false, message: "Invalid payment method" });
     }
@@ -180,6 +158,8 @@ const onlinePlaceOrder = async(req,res) => {
   try {
     const userId = req.session.userData;
     const cart = await Cart.findOne({ userId }).populate("product.productId");
+    
+ 
 
     if (!cart || !cart.product.length) {
       return res.status(400).json({ success: false, message: "Cart is empty" });
@@ -192,7 +172,7 @@ const onlinePlaceOrder = async(req,res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const { addressId, total, paymentMethod, paymentStatus, subtotal } = req.query;
+    const { addressId, total, paymentMethod, paymentStatus, subtotal, couponCode, couponAmount } = req.query;
     const selectedAddress = user.address.id(addressId);
 
     if (!selectedAddress) {
@@ -225,10 +205,20 @@ const onlinePlaceOrder = async(req,res) => {
         postalCode: selectedAddress.postalCode,
       },
       paymentMethod,
+      couponCode: couponCode || null,
+      couponAmount: couponAmount || 0,
       paymentStatus,
     });
 
     await newOrder.save();
+
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ couponcode: couponCode });
+      if (coupon) {
+        coupon.usedBy.push(userId);
+        await coupon.save();
+      }
+    }
 
     if (newOrder.paymentStatus === "Success") {
       for (const item of newOrder.items) {
@@ -644,12 +634,11 @@ async function generateInvoicePDF(order, res) {
   doc.moveDown();
 
   // Add order details
-  doc.fontSize(12).text(`Order ID: ${order.orderId}`);
-  doc.text(`Order Date: ${new Date(order.orderDate).toLocaleString("en-IN")}`);
+  doc.fontSize(12).text(`Order Date: ${new Date(order.orderDate).toLocaleString("en-IN")}`);
   doc.text(`Payment Method: ${order.paymentMethod}`);
   doc.text(`Payment Status: ${order.paymentStatus}`);
   doc.text(
-    `Shipping Address: ${order.shippingAddress.houseName}, ${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state}, ${order.shippingAddress.country}, ${order.shippingAddress.postalCode}`
+    `Shipping Address: ${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state}, ${order.shippingAddress.country}, ${order.shippingAddress.postalCode}`
   );
   doc.moveDown();
 
@@ -657,10 +646,10 @@ async function generateInvoicePDF(order, res) {
   const table = {
     headers: ["Product Name", "Quantity", "Price", "Total Price"],
     rows: order.items.map(item => [
-      item.title,
+      item.name,
       item.quantity,
-      `$${item.productPrice.toFixed(2)}`,
-      `$${(item.productPrice * item.quantity).toFixed(2)}`
+      `INR ${item.productPrice.toFixed(2)}`,
+      `INR ${(item.productPrice * item.quantity).toFixed(2)}`
     ])
   };
 
@@ -681,9 +670,9 @@ async function generateInvoicePDF(order, res) {
 
   // Add total amount and coupon
   if (order.couponAmount > 0) {
-    doc.text(`Coupon Amount: $${order.couponAmount.toFixed(2)}`);
+    doc.text(`Coupon Amount: INR ${order.couponAmount.toFixed(2)}`);
   }
-  doc.text(`Grand Total: $${order.billTotal.toFixed(2)}`);
+  doc.text(`Grand Total: INR ${order.billTotal.toFixed(2)}`);
 
   doc.end();
 }

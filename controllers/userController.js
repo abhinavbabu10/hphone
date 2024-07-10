@@ -454,14 +454,16 @@ const loadProfile = async (req, res) => {
         const userId = req.session.userData;
         const user = await User.findById(userId);
         const product = await Product.find({ isUnlisted: false });
-        const order = await Order.find({ user: userId });
+        
+        // Sort orders by createdAt in descending order
+        const order = await Order.find({ user: userId }).sort({ createdAt: -1 });
         
         // Find the wallet and sort transactions by transactionDate in descending order
         const wallet = await Wallet.findOne({ user: userId }).lean();
         if (wallet && wallet.transactions) {
             wallet.transactions.sort((a, b) => new Date(b.transactionDate) - new Date(a.transactionDate));
         }
-
+        
         res.render('profile', { user, order, product, wallet });
     } catch (error) {
         console.log(error);

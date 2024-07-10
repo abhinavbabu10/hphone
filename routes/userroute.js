@@ -33,7 +33,7 @@ userroute.post('/updatePassword',userController.updatePassword)
 
 
 userroute.get('/shop',auth.isLogin, userController.loadShop)
-userroute.get('/shop-detail',userController.loadShopdetail)
+userroute.get('/shop-detail',auth.isLogin,userController.loadShopdetail)
 userroute.get('/logout', userController.logout)
 
 userroute.get('/profile',auth.isLogin, userController.loadProfile)
@@ -61,7 +61,7 @@ userroute.post('/add-addresscheckout',userController.addAddressCheckOut)
 
 userroute.post('/placeorder',orderController.placeOrder)
 userroute.post('/complete-order',orderController.onlinePlaceOrder)
-userroute.get('/orderview',orderController.loadOrderView)
+userroute.get('/orderview',auth.isLogin,orderController.loadOrderView)
 userroute.post("/cancelorder",orderController.cancelOrder )
 userroute.put("/returnorder",orderController.returnOrder)
 userroute.put("/checkWalletBalance",orderController.confirmWalletBalance)
