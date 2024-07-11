@@ -269,7 +269,7 @@
                             <tbody>
                                 <% topCategories.forEach(category => { %>
                                     <tr>
-                                        <td><%= category._id %></td>
+                                        <td><%= category.name %></td>
                                         <td>₹<%= category.totalRevenue.toFixed(2) %></td>
                                     </tr>
                                 <% }) %>

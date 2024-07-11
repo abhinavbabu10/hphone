@@ -345,10 +345,10 @@
                                             <div class="row">
                                               <div class="col-lg-8">
                                                 <div class="wallet-balance">
-                                                  <h6>Wallet Balance: $<span id="wallet-balance"><%= wallet ? wallet.walletBalance.toFixed(2) : '0.00' %></span></h6>
+                                                  <h6>Wallet Balance: ₹<span id="wallet-balance"><%= wallet ? wallet.walletBalance.toFixed(2) : '0.00' %></span></h6>
                                                 </div>
                                                 <div class="amount-spent">
-                                                  <h6>Amount Spent: $<span id="amount-spent"><%= wallet ? wallet.amountSpent.toFixed(2) : '0.00' %></span></h6>
+                                                  <h6>Amount Spent: ₹<span id="amount-spent"><%= wallet ? wallet.amountSpent.toFixed(2) : '0.00' %></span></h6>
                                                 </div>
                                                 <div class="transactions mt-30">
                                                   <h6>Transactions</h6>
@@ -368,7 +368,7 @@
                                                             <td><%= transaction.transactionDate.toDateString() %></td>
                                                             <td><%= transaction.description %></td>
                                                             <td><%= transaction.type %></td>
-                                                            <td>$<%= transaction.amount.toFixed(2) %></td>
+                                                            <td>₹<%= transaction.amount.toFixed(2) %></td>
                                                           </tr>
                                                         <% }) %>
                                                       <% } else { %>

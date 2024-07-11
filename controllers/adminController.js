@@ -108,13 +108,28 @@ const loadDashboard = async(req,res)=>{
             { $limit: 10 }
         ]);
 
+        const categoryIds = topCategories.map(category => category._id);
+        const categories = await Category.find({ _id: { $in: categoryIds } }, 'name');
+
+
+        const categoryMap = {};
+        categories.forEach(category => {
+            categoryMap[category._id] = category.name;
+        });
+
+        const topCategoriesWithNames = topCategories.map(category => ({
+            _id: category._id,
+            totalRevenue: category.totalRevenue,
+            name: categoryMap[category._id]
+        }));
+
         console.log("totalRevenue",totalRevenue);
         console.log("deliveredOrders",deliveredOrders);
         console.log("totalProducts",totalProducts);
         console.log("totalCategories",totalCategories)
         console.log("monthlyEarnings", monthlyEarnings)
         console.log("topProducts",topProducts);
-        console.log("topCategories",topCategories);
+        console.log("topCategories",topCategoriesWithNames);
 
         res.render("home", {
             totalRevenue,
@@ -123,7 +138,7 @@ const loadDashboard = async(req,res)=>{
             totalCategories,
             monthlyEarnings,
             topProducts,
-            topCategories
+            topCategories:topCategoriesWithNames
         });
 
     } catch (error) {
@@ -141,7 +156,7 @@ const filterGraph = async (req, res) => {
         console.log("Start Date:", startDate);
         console.log("End Date:", endDate);
 
-        let matchCriteria = { orderStatus: 'Delivered' }; // Filtering only delivered orders
+        let matchCriteria = { orderStatus: 'Delivered' };
 
         switch (filter) {
             case 'today':

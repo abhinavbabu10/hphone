@@ -40,7 +40,7 @@ const placeOrder = async (req, res) => {
       billTotal += item.productId.price * item.quantity;
     }
 
-    const { addressId, paymentMethod, total, couponCode, couponAmount } = req.body;
+    const { addressId, paymentMethod, total, couponCode, couponAmount,couponId } = req.body;
     const selectedAddress = user.address.id(addressId);
 
     if (!selectedAddress) {
@@ -136,11 +136,22 @@ const placeOrder = async (req, res) => {
       await Cart.findOneAndDelete({ userId });
 
       // If a coupon was used, add the user to the coupon's usedBy array
-      if (couponCode) {
-        const coupon = await Coupon.findOne({ couponcode: couponCode });
-        if (coupon) {
+      // if (couponCode) {
+      //   const coupon = await Coupon.findOne({ couponcode: couponCode });
+      //   if (coupon) {
+      //     coupon.usedBy.push(userId);
+      //     await coupon.save();
+      //   }
+      // }
+
+      if (couponId) {
+        const coupon = await Coupon.findById(couponId);
+        if (coupon && !coupon.usedBy.includes(userId)) {
           coupon.usedBy.push(userId);
           await coupon.save();
+          newOrder.couponApplied = couponId;
+          newOrder.discountAmount = couponAmount;
+          await newOrder.save();
         }
       }
 
@@ -153,6 +164,10 @@ const placeOrder = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
+
+
 
 const onlinePlaceOrder = async(req,res) => {
   try {
@@ -244,6 +259,10 @@ const onlinePlaceOrder = async(req,res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
+
+
+
+
 
 
 const loadOrderView = async (req, res) =>{

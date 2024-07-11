@@ -184,7 +184,7 @@
 
 
                         <div class="table-wrapper">
-                            <div class="table-responsive">
+                            <!-- <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
@@ -235,7 +235,62 @@
                                         </tr>
                                     </tfoot>
                                 </table>
+                            </div> -->
+
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Customer</th>
+                                            <th>Products</th>
+                                            <th>Quantity Sold</th>
+                                            <th>Price</th>
+                                            <th>Discount Amount</th>
+                                            <th>Total Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesTableBody">
+                                        <% orders.forEach(order => { %>
+                                            <tr>
+                                                <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
+                                                <td><%= order.user.name %></td>
+                                                <td>
+                                                    <% order.items.forEach(item => { %>
+                                                        <div class="product-item"><%= item.productId.name %></div>
+                                                    <% }) %>
+                                                </td>
+                                                <td>
+                                                    <% order.items.forEach(item => { %>
+                                                        <div class="product-item"><%= item.quantity %></div>
+                                                    <% }) %>
+                                                </td>
+                                                <td>
+                                                    <% order.items.forEach(item => { %>
+                                                        <div class="product-item"><%= item.productPrice.toFixed(2) %></div>
+                                                    <% }) %>
+                                                </td>
+                                                <td><%= order.couponAmount.toFixed(2) %></td>
+                                                <td class="text-end"><%= order.billTotal.toFixed(2) %></td>
+                                            </tr>
+                                        <% }) %>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="summary-row">
+                                            <td colspan="5">Total Discount Amount:</td>
+                                            <td id="total-discount"><%= totalDiscountAmount %></td>
+                                            <td id="total-sales-amount" class="text-end"><%= totalSalesAmount %></td>
+                                        </tr>
+                                        <tr class="summary-row">
+                                            <td colspan="7">Sales Count: <span id="sales-count"><%= totalSalesCount %></span></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
+                            
+
+
+
                             <div class="download-buttons">
                                 <button class="btn btn-success" onclick="downloadExcel()">Download Excel</button>
                                 <button class="btn btn-danger" id ='downloadPDFButton'>Download PDF</button>
@@ -292,7 +347,7 @@
     <script src="/Adminassets/js/custom-chart.js" type="text/javascript"></script>
 
   
-    
+<!--     
     <script>
         let selectedFilterType = 'all';
     
@@ -306,6 +361,181 @@
             const orderNumberCell = document.createElement('td');
             orderNumberCell.textContent = order.oId;
             row.appendChild(orderNumberCell);
+    
+            const customerCell = document.createElement('td');
+            customerCell.textContent = order.user.name;
+            row.appendChild(customerCell);
+    
+            const productsCell = document.createElement('td');
+            order.items.forEach(item => {
+                const productItem = document.createElement('div');
+                productItem.className = 'product-item';
+                productItem.textContent = item.productId.name;
+                productsCell.appendChild(productItem);
+            });
+            row.appendChild(productsCell);
+    
+            const quantityCell = document.createElement('td');
+            order.items.forEach(item => {
+                const quantityItem = document.createElement('div');
+                quantityItem.className = 'product-item';
+                quantityItem.textContent = item.quantity;
+                quantityCell.appendChild(quantityItem);
+            });
+            row.appendChild(quantityCell);
+    
+            const priceCell = document.createElement('td');
+            order.items.forEach(item => {
+                const priceItem = document.createElement('div');
+                priceItem.className = 'product-item';
+                priceItem.textContent = item.productPrice.toFixed(2);
+                priceCell.appendChild(priceItem);
+            });
+            row.appendChild(priceCell);
+    
+            const discountCell = document.createElement('td');
+            discountCell.textContent = order.couponAmount.toFixed(2);
+            row.appendChild(discountCell);
+    
+            const totalPriceCell = document.createElement('td');
+            totalPriceCell.className = 'text-end';
+            totalPriceCell.textContent = order.billTotal.toFixed(2);
+            row.appendChild(totalPriceCell);
+    
+            return row;
+        }
+    
+        function updateSalesReport(data) {
+            const salesTableBody = document.getElementById('salesTableBody');
+            salesTableBody.innerHTML = '';
+    
+            let totalDiscountAmount = 0;
+            let totalSalesAmount = 0;
+            let totalSalesCount = 0;
+    
+            data.orders.forEach(order => {
+                const orderRow = createOrderRow(order);
+                salesTableBody.appendChild(orderRow);
+    
+                totalDiscountAmount += order.couponAmount;
+                totalSalesAmount += order.billTotal;
+                totalSalesCount += 1;
+            });
+    
+            document.getElementById('total-discount').textContent = totalDiscountAmount.toFixed(2);
+            document.getElementById('total-sales-amount').textContent = totalSalesAmount.toFixed(2);
+            document.getElementById('sales-count').textContent = totalSalesCount;
+        }
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            function filterSalesReport(filterType, startDate, endDate) {
+                selectedFilterType = filterType; // Update the selected filter type
+    
+                const filterParams = {
+                    filter: filterType,
+                    startDate: startDate || null,
+                    endDate: endDate || null
+                };
+    
+                console.log('Sending filterParams:', filterParams);
+    
+                fetch('/admin/filterorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(filterParams)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    updateSalesReport(data);
+                })
+                .catch(error => console.error('Error:', error));
+            }
+    
+            const filterCustom = document.getElementById('filterCustom');
+            if (filterCustom) {
+                filterCustom.addEventListener('click', () => {
+                    const startDate = document.getElementById('startDate').value;
+                    const endDate = document.getElementById('endDate').value;
+                    filterSalesReport('custom', startDate, endDate);
+                });
+            }
+    
+            const buttons = {
+                'dailyButton': 'daily',
+                'weeklyButton': 'weekly',
+                'monthlyButton': 'monthly',
+                'yearlyButton': 'yearly'
+            };
+            Object.entries(buttons).forEach(([id, filterType]) => {
+                const button = document.getElementById(id);
+                if (button) {
+                    button.addEventListener('click', () => filterSalesReport(filterType));
+                }
+            });
+    
+            const downloadPDFButton = document.getElementById('downloadPDFButton');
+            if (downloadPDFButton) {
+                downloadPDFButton.onclick = () => {
+                    const startDate = document.getElementById('startDate').value;
+                    const endDate = document.getElementById('endDate').value;
+                    const filterParams = {
+                        filter: selectedFilterType,
+                        startDate: startDate || null,
+                        endDate: endDate || null
+                    };
+                    downloadPDF(filterParams);
+                };
+            }
+        });
+    
+        function downloadPDF(filterParams) {
+            console.log('filterParams for PDF:', filterParams);
+    
+            if (!filterParams || Object.keys(filterParams).length === 0) {
+                console.error('Error: filterParams is empty');
+                return;
+            }
+    
+            fetch('/admin/generate-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(filterParams)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                let url = window.URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = url;
+                a.download = 'sales_report.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(error => console.error('Error generating PDF:', error));
+        }
+    </script> -->
+    
+
+
+
+    <script>
+        let selectedFilterType = 'all';
+    
+        function createOrderRow(order) {
+            const row = document.createElement('tr');
+    
+            const dateCell = document.createElement('td');
+            dateCell.textContent = new Date(order.orderDate).toLocaleDateString();
+            row.appendChild(dateCell);
     
             const customerCell = document.createElement('td');
             customerCell.textContent = order.user.name;

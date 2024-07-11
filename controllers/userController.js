@@ -397,6 +397,7 @@ const verifyLogin = async (req, res) => {
         const password = req.body.password;
         const user = req.session.userData;
         const userdata = await User.findOne({ email: email });
+        if(!userdata) return  res.render('login', { message: "Email and password are incorrect",user:'' });
         if(userdata.is_admin ===1){
            return res.render('login', { message:"admin" ,user:''});
         }
@@ -705,18 +706,34 @@ const checkOutQuantity= async (req,res) =>{
 
 
 
-const checkOut = async (req, res) =>{
+// const checkOut = async (req, res) =>{
+//     try {
+//         const userId = req.session.userData;
+//         const user = await User.findById(userId)
+//         const cart = await Cart.findOne({ userId:userId }).populate('product.productId');
+//         const coupons = await Coupon.find({})
+//         res.render('checkout', { cart,user,coupons });
+//       } catch (err) {
+//         console.error(err);
+//         res.status(500).send('Internal Server Error');
+//       }
+//     };
+
+const checkOut = async (req, res) => {
     try {
         const userId = req.session.userData;
-        const user = await User.findById(userId)
-        const cart = await Cart.findOne({ userId:userId }).populate('product.productId');
-        const coupons = await Coupon.find({})
-        res.render('checkout', { cart,user,coupons });
-      } catch (err) {
+        const user = await User.findById(userId);
+        const cart = await Cart.findOne({ userId: userId }).populate('product.productId');
+
+        const allCoupons = await Coupon.find({ status: 'active' });
+        const availableCoupons = allCoupons.filter(coupon => !coupon.usedBy.includes(userId));
+
+        res.render('checkout', { cart, user, coupons: availableCoupons });
+    } catch (err) {
         console.error(err);
         res.status(500).send('Internal Server Error');
-      }
-    };
+    }
+};
 
     const addAddressCheckOut = async (req,res) =>{
         try {
