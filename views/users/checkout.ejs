@@ -392,25 +392,57 @@
     
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+    // document.getElementById('placeOrderBtn').addEventListener('click', function(event) {
+    //     event.preventDefault();
+    //     const selectedAddressId = document.querySelector('input[name="address"]:checked').value;
+    //     if (!selectedAddressId) {
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'Order Placement Failed',
+    //             text: 'Please select a shipping address.',
+    //             confirmButtonText: 'OK'
+    //         });
+    //         return;
+    //     }
+
+    //     const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    //     const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace('₹', ''));
+    //     const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₹', ''));
+
+
+    //     if (selectedPaymentMethod === 'COD' && totalAmount > 1000) {
+    //     Swal.fire({
+    //         icon: 'error',
+    //         title: 'Payment Method Not Available',
+    //         text: 'Cash on Delivery is not available for orders over ₹1000. Please choose a different payment method.',
+    //         confirmButtonText: 'OK'
+    //     });
+    //     return;
+    // }
+
+    //     confirmQuantity(selectedAddressId, selectedPaymentMethod, totalAmount, subtotal);
+    // });
+
     document.getElementById('placeOrderBtn').addEventListener('click', function(event) {
-        event.preventDefault();
-        const selectedAddressId = document.querySelector('input[name="address"]:checked').value;
-        if (!selectedAddressId) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Order Placement Failed',
-                text: 'Please select a shipping address.',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
+    event.preventDefault();
+    
+    const selectedAddress = document.querySelector('input[name="address"]:checked');
+    if (!selectedAddress) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Address Required',
+            text: 'Please select a shipping address before placing your order.',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
 
-        const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-        const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace('₹', ''));
-        const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₹', ''));
+    const selectedAddressId = selectedAddress.value;
+    const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace('₹', ''));
+    const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₹', ''));
 
-
-        if (selectedPaymentMethod === 'COD' && totalAmount > 1000) {
+    if (selectedPaymentMethod === 'COD' && totalAmount > 1000) {
         Swal.fire({
             icon: 'error',
             title: 'Payment Method Not Available',
@@ -420,8 +452,8 @@
         return;
     }
 
-        confirmQuantity(selectedAddressId, selectedPaymentMethod, totalAmount, subtotal);
-    });
+    confirmQuantity(selectedAddressId, selectedPaymentMethod, totalAmount, subtotal);
+});
 
 
 

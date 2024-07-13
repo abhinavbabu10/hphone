@@ -87,13 +87,13 @@
      <button type="submit" id="submit-btn">Verify OTP</button>
      <button type="button" id="resend-btn" onclick="resendOTP()" disabled>Resend OTP</button>
    </form>
-   <p id="timer">Timer: 5 Minutes</p>
+   <p id="timer">Timer: 1 Minutes</p>
    <!-- <p id="error-message"></p> -->
  </div>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
  <script>
-    let timerSeconds = 60*5; 
+    let timerSeconds = 60; 
     let resendTimerSeconds = 30;
     let timerInterval;
     let resendTimerInterval;

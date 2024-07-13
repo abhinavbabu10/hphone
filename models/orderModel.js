@@ -8,7 +8,6 @@ const orderSchema = Schema({
         ref: 'User',
         required: true
     },
-
     cart: {
         type: ObjectId,
         ref: 'Cart'
@@ -96,10 +95,10 @@ const orderSchema = Schema({
         default: 'nil',
         type: String
     },
-    couponAmount:{
-        default: 0,
-        type: Number
-    },
+    couponAmount: {
+        type: Number,
+        default: 0
+      },
     couponCode:{
         default: 'nil',
         type: String

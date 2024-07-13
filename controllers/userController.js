@@ -371,12 +371,39 @@ const verifyOTP = async (req, res) => {
 
 
 
+// const resendOTP = async (req, res) => {
+//     try {
+
+//          let email = req.session.userDetail.email
+//         const newOTP = Math.floor(100000 + Math.random() * 900000);
+//         req.session.userData.otp = newOTP;
+
+//         const expirationTime = Date.now() + 60 * 1000;
+//         req.session.otpExpiration = expirationTime;
+//         console.log('New OTP:', newOTP);
+
+//         sendOTPByEmail(email, newOTP);
+
+//         res.status(200).json({ message: 'New OTP sent successfully' });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Internal server error' });
+//     }
+// };
+
+
+
 const resendOTP = async (req, res) => {
     try {
+        let email = req.session.userDetail.email;
+        
+        // Ensure userData is defined
+        if (!req.session.userData) {
+            req.session.userData = {};
+        }
 
-         let email = req.session.userDetail.email
         const newOTP = Math.floor(100000 + Math.random() * 900000);
-        req.session.userData.otp = newOTP;
+        req.session.userDetail.otp = newOTP;
 
         const expirationTime = Date.now() + 60 * 1000;
         req.session.otpExpiration = expirationTime;
@@ -390,6 +417,8 @@ const resendOTP = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+
 
 const verifyLogin = async (req, res) => {
     try {
