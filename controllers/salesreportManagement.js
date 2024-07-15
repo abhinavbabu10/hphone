@@ -5,33 +5,53 @@ const PDFDocument = require("pdfkit-table");
 
 
 
-  const loadSales = async (req, res) => {
-
+const loadSales = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const skip = (page - 1) * limit;
 
   try {
-    const deliveredOrders = await Order.find({ orderStatus: "Delivered" })
+    let deliveredOrders = await Order.find({ 
+      orderStatus: { $in: ["Delivered", "Partially Delivered"] }
+    })
       .populate("user")
       .populate("items.productId")
       .skip(skip)
       .limit(limit);
 
-    const totalSalesCount = await Order.countDocuments({ orderStatus: "Delivered" });
-    const totalDiscountAmount = deliveredOrders.reduce(
-      (acc, order) => acc + (order.couponAmount || 0), 0
+    // Filter out cancelled items and add cancelledItemsCount
+    deliveredOrders = deliveredOrders.map(order => {
+      const deliveredItems = order.items.filter(item => item.status === "Delivered");
+      const cancelledItemsCount = order.items.filter(item => item.status === "Cancelled").length;
+      return {
+        ...order.toObject(),
+        items: deliveredItems,
+        cancelledItemsCount: cancelledItemsCount
+      };
+    });
+
+    const totalSalesCount = await Order.countDocuments({ 
+      orderStatus: { $in: ["Delivered", "Partially Delivered"] }
+    });
+
+    const totalDiscountAmount = deliveredOrders.reduce((acc, order) => {
+      const deliveredItemsCount = order.items.length;
+      const totalItemsCount = deliveredItemsCount + order.cancelledItemsCount;
+      const discountRatio = deliveredItemsCount / totalItemsCount;
+      return acc + ((order.couponAmount || 0) * discountRatio);
+    }, 0);
+
+    const totalSalesAmount = deliveredOrders.reduce((acc, order) => 
+      acc + order.items.reduce((itemAcc, item) => itemAcc + (item.productPrice * item.quantity), 0), 0
     );
-    const totalSalesAmount = deliveredOrders.reduce(
-      (acc, order) => acc + order.billTotal, 0
-    );
+
     const totalPages = Math.ceil(totalSalesCount / limit);
 
     res.render("salesreport", {
       orders: deliveredOrders,
       totalSalesCount: totalSalesCount,
-      totalDiscountAmount: parseFloat(totalDiscountAmount) || 0,
-      totalSalesAmount: parseFloat(totalSalesAmount) || 0,
+      totalDiscountAmount: parseFloat(totalDiscountAmount.toFixed(2)) || 0,
+      totalSalesAmount: parseFloat(totalSalesAmount.toFixed(2)) || 0,
       totalPages: totalPages,
       currentPage: page
     });
@@ -47,7 +67,9 @@ const filterOrders = async (req, res) => {
   const skip = (page - 1) * limit;
   let orders, totalFilteredCount;
   try {
-    let query = { orderStatus: "Delivered" };  // Add this line to filter for delivered orders
+    let query = { 
+      orderStatus: { $in: ["Delivered", "Partially Delivered"] }
+    };
 
     if (filter === 'daily') {
       query.orderDate = { $gte: new Date().setHours(0, 0, 0, 0) };
@@ -75,6 +97,12 @@ const filterOrders = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // Filter out cancelled items from each order
+    orders = orders.map(order => ({
+      ...order.toObject(),
+      items: order.items.filter(item => item.status !== "Cancelled")
+    }));
+
     totalFilteredCount = await Order.countDocuments(query);
 
     res.json({
@@ -88,13 +116,14 @@ const filterOrders = async (req, res) => {
   }
 };
 
-
 const pdfDownload = async (req, res) => {
   try {
     const { filter, startDate, endDate } = req.body;
     console.log('Received filter parameters:', req.body);
 
-    let query = { orderStatus: "Delivered" };
+    let query = { 
+      orderStatus: { $in: ["Delivered", "Partially Delivered"] }
+    };
 
     switch (filter) {
       case 'daily':
@@ -135,13 +164,27 @@ const pdfDownload = async (req, res) => {
         return res.status(400).send("Invalid filter type");
     }
 
-    const orders = await Order.find(query)
+    let orders = await Order.find(query)
       .populate('user')
       .populate('items.productId');
 
-    const totalSalesCount = orders.length;
-    const totalDiscountAmount = orders.reduce((acc, order) => acc + (order.couponAmount || 0), 0);
-    const totalSalesAmount = orders.reduce((acc, order) => acc + order.billTotal, 0);
+    // Filter out cancelled items from each order
+    orders = orders.map(order => ({
+      ...order.toObject(),
+      items: order.items.filter(item => item.status === "Delivered"),
+      cancelledItemsCount: order.items.filter(item => item.status === "Cancelled").length
+    }));
+
+    const totalSalesCount = orders.reduce((acc, order) => acc + order.items.length, 0);
+    const totalDiscountAmount = orders.reduce((acc, order) => {
+      const deliveredItemsCount = order.items.length;
+      const totalItemsCount = order.items.length + order.cancelledItemsCount;
+      const discountRatio = deliveredItemsCount / totalItemsCount;
+      return acc + ((order.couponAmount || 0) * discountRatio);
+    }, 0);
+    const totalSalesAmount = orders.reduce((acc, order) => 
+      acc + order.items.reduce((itemAcc, item) => itemAcc + (item.productPrice * item.quantity), 0), 0
+    );
 
     const doc = new PDFDocument();
     let buffers = [];
@@ -156,28 +199,33 @@ const pdfDownload = async (req, res) => {
       res.end(pdfData);
     });
 
-    doc.fontSize(16).text('Sales Report (Delivered Orders)', { align: 'center' });
+    doc.fontSize(16).text('Sales Report (Delivered Items Only)', { align: 'center' });
     doc.moveDown();
 
-    // Add summary information
-    doc.fontSize(12).text(`Total Sales Count: ${totalSalesCount}`);
+    doc.fontSize(12).text(`Total Delivered Items Count: ${totalSalesCount}`);
     doc.text(`Total Discount Amount: INR ${totalDiscountAmount.toFixed(2)}`);
     doc.text(`Total Sales Amount: INR ${totalSalesAmount.toFixed(2)}`);
     doc.moveDown();
 
-    // Prepare table data
     const tableData = {
-      headers: ['Order Date', 'Customer Name', 'Total Amount', 'Discount', 'Products'],
-      rows: orders.map(order => [
-        moment(order.orderDate).format('YYYY-MM-DD'),
-        order.user.name,
-        `INR ${order.billTotal.toFixed(2)}`,
-        `INR ${(order.couponAmount || 0).toFixed(2)}`,
-        order.items.map(item => item.productId.name).join(', ')
-      ])
+      headers: ['Order Date', 'Customer Name', 'Total Amount', 'Discount', 'Delivered Products'],
+      rows: orders.map(order => {
+        const orderTotal = order.items.reduce((acc, item) => acc + (item.productPrice * item.quantity), 0);
+        const deliveredItemsCount = order.items.length;
+        const totalItemsCount = order.items.length + order.cancelledItemsCount;
+        const discountRatio = deliveredItemsCount / totalItemsCount;
+        const orderDiscount = (order.couponAmount || 0) * discountRatio;
+        
+        return [
+          moment(order.orderDate).format('YYYY-MM-DD'),
+          order.user.name,
+          `INR ${orderTotal.toFixed(2)}`,
+          `INR ${orderDiscount.toFixed(2)}`,
+          order.items.map(item => item.productId.name).join(', ')
+        ];
+      })
     };
 
-    // Add table to document
     doc.table(tableData, {
       prepareHeader: () => doc.fontSize(12).font('Helvetica-Bold'),
       prepareRow: (row, i) => doc.fontSize(10).font('Helvetica')
@@ -189,6 +237,9 @@ const pdfDownload = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+
+
+
 
 module.exports = {
     loadSales,

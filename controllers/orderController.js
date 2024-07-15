@@ -565,27 +565,52 @@ const returnOrder = async (req, res) => {
       return res.status(400).json({ message: 'Item has already been cancelled or returned' });
     }
 
-    const refundAmount = item.quantity * item.productPrice;
+    // Calculate the refund amount considering coupon discount
+    let refundAmount = item.quantity * item.productPrice;
+    let couponDiscount = 0;
+    
+    if (order.couponAmount > 0) {
+      const totalBeforeDiscount = order.items.reduce((sum, i) => sum + (i.productPrice * i.quantity), 0);
+      const itemProportion = refundAmount / totalBeforeDiscount;
+      
+      couponDiscount = order.couponAmount * itemProportion;
+      refundAmount -= couponDiscount;
+    }
 
     item.status = 'Returned';
     item.reasonForReturn = returnReason;
-
-    const allItemsReturned = order.items.every(i => i.status === 'Returned' || i.status === 'Cancelled');
-    if (allItemsReturned) {
-      order.orderStatus = 'Returned';
-    } else {
-      order.orderStatus = 'Partially Returned';
-    }
-
-    order.billTotal -= refundAmount;
-
-    await order.save();
+    item.returnDate = new Date();
 
     const product = await Product.findById(item.productId);
     if (product) {
       product.stock += item.quantity;
       await product.save();
     }
+
+    // Recalculate the order total
+    const activeItems = order.items.filter(i => i.status !== 'Cancelled' && i.status !== 'Returned');
+    order.billTotal = activeItems.reduce((total, i) => total + (i.productPrice * i.quantity), 0);
+    
+    // Adjust coupon amount if applicable
+    if (order.couponAmount > 0) {
+      order.couponAmount -= couponDiscount;
+      order.couponAmount = Math.max(0, order.couponAmount); // Ensure coupon amount is not negative
+      order.billTotal -= order.couponAmount;
+    }
+
+    // Ensure billTotal is not negative
+    order.billTotal = Math.max(0, order.billTotal);
+
+    if (activeItems.length === 0) {
+      order.orderStatus = 'Returned';
+      order.reasonForReturn = returnReason;
+      order.couponAmount = 0;
+      order.billTotal = 0;
+    } else {
+      order.orderStatus = 'Partially Returned';
+    }
+
+    await order.save();
 
     let wallet = await Wallet.findOne({ user: order.user });
     if (!wallet) {
@@ -602,7 +627,12 @@ const returnOrder = async (req, res) => {
 
     await wallet.save();
 
-    res.status(200).json({ message: 'Order returned and amount refunded to wallet successfully', refundAmount });
+    res.status(200).json({ 
+      message: 'Order returned and amount refunded to wallet successfully',
+      refundAmount,
+      newOrderTotal: order.billTotal,
+      newOrderStatus: order.orderStatus
+    });
   } catch (error) {
     console.error('Error returning order:', error);
     res.status(500).json({ message: 'An error occurred while returning the order' });
@@ -704,7 +734,7 @@ const walletPlaceOrder = async (req, res) => {
   }
 };
 
-const downloadInvoice = async (req, res) =>{
+const downloadInvoice = async (req, res) => {
   try {
     const { orderId } = req.query;
 
@@ -742,10 +772,13 @@ async function generateInvoicePDF(order, res) {
   );
   doc.moveDown();
 
-  // Create the table data
+  // Filter only delivered items
+  const deliveredItems = order.items.filter(item => item.status === 'Delivered');
+
+  // Create the table data with only delivered items
   const table = {
     headers: ["Product Name", "Quantity", "Price", "Total Price"],
-    rows: order.items.map(item => [
+    rows: deliveredItems.map(item => [
       item.name,
       item.quantity,
       `INR ${item.productPrice.toFixed(2)}`,
@@ -757,22 +790,27 @@ async function generateInvoicePDF(order, res) {
   doc.table(table, {
     prepareHeader: () => doc.font("Helvetica-Bold").fontSize(12),
     prepareRow: (row, i) => doc.font("Helvetica").fontSize(10),
-    width: 500, // Width of the table
-    align: "center", // Align text within columns to center
-    padding: 5, // Padding for each cell
-    colors: ["#AE2424", "#AE2424", "#AE2424", "#AE2424"], // Color of text in each column
-    borderWidth: 1, // Border width
-    headerBorderWidth: 1, // Header border width
-    rowEvenBackground: "#AE2424" // Background color for even rows
+    width: 500,
+    align: "center",
+    padding: 5,
+    colors: ["#AE2424", "#AE2424", "#AE2424", "#AE2424"],
+    borderWidth: 1,
+    headerBorderWidth: 1,
+    rowEvenBackground: "#AE2424"
   });
    
   doc.moveDown();
 
+  // Recalculate the total for delivered items
+  let deliveredTotal = deliveredItems.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
+
   // Add total amount and coupon
   if (order.couponAmount > 0) {
-    doc.text(`Coupon Amount: INR ${order.couponAmount.toFixed(2)}`);
+    const appliedCouponAmount = (order.couponAmount * deliveredTotal) / order.billTotal;
+    doc.text(`Coupon Amount: INR ${appliedCouponAmount.toFixed(2)}`);
+    deliveredTotal -= appliedCouponAmount;
   }
-  doc.text(`Grand Total: INR ${order.billTotal.toFixed(2)}`);
+  doc.text(`Grand Total: INR ${deliveredTotal.toFixed(2)}`);
 
   doc.end();
 }
