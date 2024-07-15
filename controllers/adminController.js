@@ -103,7 +103,7 @@ const loadDashboard = async(req,res)=>{
                 } 
             }, 
             { $unwind: "$productInfo" },
-            { $group: { _id: "$productInfo.category", totalRevenue: { $sum: "$items.price" } } },
+            { $group: { _id: "$productInfo.category", totalRevenue: { $sum: "$items.productPrice" } } },
             { $sort: { totalRevenue: -1 } },
             { $limit: 10 }
         ]);
