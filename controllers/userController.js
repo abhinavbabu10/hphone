@@ -49,9 +49,12 @@ const securePassword = async (password) => {
 
 //LOAD HOME PAGE
 const loadhome = async (req, res) => {
+    console.log('kaboom');
     try {
-        const users = req.session.userData;
-        const user = await User.findById(users);
+        let user = null;
+        if (req.session.userData && typeof req.session.userData === 'string') {
+            user = await User.findById(req.session.userData);
+        }
         
         const recentProducts = await Product.find({ isUnlisted: false })
             .sort({ createdOn: -1 })
@@ -70,8 +73,9 @@ const loadhome = async (req, res) => {
 //LOAD SIGNUP PAGE
 
 const loadsignup = async (req, res) => {
+    console.log('boom')
     try {
-        const user = req.session.userData
+        const user = req.session.userData || "";
         res.render('signup',{user,message:''})
     } catch (error) {
         console.log(error)
@@ -318,7 +322,8 @@ const verifyOTP = async (req, res) => {
                 });
                 await newWallet.save();
             }
-
+            req.session.userDetail = null;
+            req.session.userData = null;
             res.redirect('/login');
         } else {
             res.render('otp', { errorMessage: 'Incorrect OTP' });
@@ -791,6 +796,7 @@ const checkOut = async (req, res) => {
             if (enteredOTP != req.session.otp) {
               return res.status(400).json({ success: false, errorMessage: 'Invalid OTP.' });
           }
+            req.session.userData = null;
             res.json({ success: true, message: 'OTP verified successfully.' });
         } catch (error) {
             console.error(error);

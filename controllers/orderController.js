@@ -324,100 +324,183 @@ const loadOrderView = async (req, res) => {
 };
 
 
+// const cancelOrder = async (req, res) => {
+//   const { orderId, itemId, cancellationReason } = req.body;
+
+//   try {
+//     const order = await Order.findById(orderId);
+
+//     if (!order) {
+//       return res.status(404).json({ message: 'Order not found' });
+//     }
+
+//     const item = order.items.id(itemId);
+
+//     if (!item) {
+//       return res.status(404).json({ message: 'Item not found in order' });
+//     }
+
+//     if (item.status === 'Cancelled') {
+//       return res.status(400).json({ message: 'Item has already been cancelled' });
+//     }
+    
+//     // Calculate the refund amount considering coupon discount
+//     let refundAmount = item.quantity * item.productPrice;
+//     let couponDiscount = 0;
+    
+//     if (order.couponAmount > 0) {
+//       const totalBeforeDiscount = order.items.reduce((sum, i) => sum + (i.productPrice * i.quantity), 0);
+//       const itemProportion = refundAmount / totalBeforeDiscount;
+      
+//       couponDiscount = order.couponAmount * itemProportion;
+//       refundAmount -= couponDiscount;
+//     }
+
+//     item.status = 'Cancelled';
+//     item.cancellationReason = cancellationReason;
+//     item.cancellationDate = new Date();
+
+//     const product = await Product.findById(item.productId);
+//     if (product) {
+//       product.stock += item.quantity;
+//       await product.save();
+//     }
+
+//     // Recalculate the order total
+//     const activeItems = order.items.filter(i => i.status !== 'Cancelled');
+//     order.billTotal = activeItems.reduce((total, i) => total + (i.productPrice * i.quantity), 0);
+    
+//     // Adjust coupon amount if applicable
+//     if (order.couponAmount > 0) {
+//       order.couponAmount -= couponDiscount;
+//       order.couponAmount = Math.max(0, order.couponAmount); // Ensure coupon amount is not negative
+//       order.billTotal -= order.couponAmount;
+//     }
+
+//     // Ensure billTotal is not negative
+//     order.billTotal = Math.max(0, order.billTotal);
+
+//     if (activeItems.length === 0) {
+//       order.orderStatus = 'Cancelled';
+//       order.cancellationReason = cancellationReason;
+//       order.couponAmount = 0;
+//       order.billTotal = 0;
+//     } else {
+//       order.orderStatus = 'Partially Cancelled';
+//     }
+
+//     await order.save();
+
+//     let wallet = await Wallet.findOne({ user: order.user });
+//     if (!wallet) {
+//       wallet = new Wallet({ user: order.user, walletBalance: 0 });
+//     }
+
+//     wallet.walletBalance += refundAmount;
+//     wallet.transactions.push({
+//       amount: refundAmount,
+//       description: `Refund for cancelled item from order ${order.oId}`,
+//       type: 'Credit',
+//       transactionDate: new Date()
+//     });
+
+//     await wallet.save();
+
+//     res.status(200).json({ 
+//       message: 'Order has been cancelled and amount refunded successfully',
+//       refundAmount,
+//       newOrderTotal: order.billTotal,
+//       newOrderStatus: order.orderStatus
+//     });
+//   } catch (error) {
+//     console.error('Error cancelling order:', error);
+//     res.status(500).json({ message: 'An error occurred while cancelling the order' });
+//   }
+// };
+
+
 const cancelOrder = async (req, res) => {
-  const { orderId, itemId, cancellationReason } = req.body;
-
   try {
+    const { orderId, itemId, cancellationReason } = req.body;
     const order = await Order.findById(orderId);
-
+    
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    const item = order.items.id(itemId);
-
+    const item = order.items.find(item => item._id.toString() === itemId);
     if (!item) {
-      return res.status(404).json({ message: 'Item not found in order' });
+      return res.status(404).json({ message: 'Item not found in the order' });
     }
 
     if (item.status === 'Cancelled') {
-      return res.status(400).json({ message: 'Item has already been cancelled' });
-    }
-    
-    // Calculate the refund amount considering coupon discount
-    let refundAmount = item.quantity * item.productPrice;
-    let couponDiscount = 0;
-    
-    if (order.couponAmount > 0) {
-      const totalBeforeDiscount = order.items.reduce((sum, i) => sum + (i.productPrice * i.quantity), 0);
-      const itemProportion = refundAmount / totalBeforeDiscount;
-      
-      couponDiscount = order.couponAmount * itemProportion;
-      refundAmount -= couponDiscount;
+      return res.status(400).json({ message: 'Item is already cancelled' });
     }
 
     item.status = 'Cancelled';
     item.cancellationReason = cancellationReason;
     item.cancellationDate = new Date();
 
-    const product = await Product.findById(item.productId);
-    if (product) {
-      product.stock += item.quantity;
-      await product.save();
-    }
+    // Calculate refund amount
+    let refundAmount = item.productPrice * item.quantity;
 
-    // Recalculate the order total
-    const activeItems = order.items.filter(i => i.status !== 'Cancelled');
-    order.billTotal = activeItems.reduce((total, i) => total + (i.productPrice * i.quantity), 0);
-    
-    // Adjust coupon amount if applicable
+    // Handle coupon adjustments
+    let couponAdjustment = 0;
     if (order.couponAmount > 0) {
-      order.couponAmount -= couponDiscount;
-      order.couponAmount = Math.max(0, order.couponAmount); // Ensure coupon amount is not negative
-      order.billTotal -= order.couponAmount;
+      const itemTotalPrice = item.productPrice * item.quantity;
+      couponAdjustment = order.couponAmount * (itemTotalPrice / order.billTotal);
+      couponAdjustment = Math.min(couponAdjustment, order.couponAmount);
+      order.couponAmount = Math.max(0, order.couponAmount - couponAdjustment);
     }
 
-    // Ensure billTotal is not negative
-    order.billTotal = Math.max(0, order.billTotal);
+    // Calculate total refund including coupon adjustment
+    const totalRefund = refundAmount - couponAdjustment;
 
-    if (activeItems.length === 0) {
+    // Update order total
+    order.billTotal = Math.max(0, order.billTotal - refundAmount);
+
+    // Process refund to wallet if payment was successful
+    if (order.paymentStatus === 'Success') {
+      let wallet = await Wallet.findOne({ user: order.user });
+      
+      if (!wallet) {
+        wallet = new Wallet({ user: order.user, walletBalance: 0 });
+      }
+
+      wallet.walletBalance += totalRefund;
+      wallet.transactions.push({
+        amount: totalRefund,
+        description: `Refund for order ${order.oId}`,
+        type: 'Credit'
+      });
+
+      await wallet.save();
+    }
+
+    // Update order status
+    const remainingActiveItems = order.items.filter(item => item.status !== 'Cancelled');
+    if (remainingActiveItems.length === 0) {
       order.orderStatus = 'Cancelled';
-      order.cancellationReason = cancellationReason;
-      order.couponAmount = 0;
-      order.billTotal = 0;
     } else {
       order.orderStatus = 'Partially Cancelled';
     }
 
+    // Ensure values are not NaN before saving
+    if (isNaN(order.couponAmount)) order.couponAmount = 0;
+    if (isNaN(order.billTotal)) order.billTotal = 0;
+
     await order.save();
 
-    let wallet = await Wallet.findOne({ user: order.user });
-    if (!wallet) {
-      wallet = new Wallet({ user: order.user, walletBalance: 0 });
-    }
-
-    wallet.walletBalance += refundAmount;
-    wallet.transactions.push({
-      amount: refundAmount,
-      description: `Refund for cancelled item from order ${order.oId}`,
-      type: 'Credit',
-      transactionDate: new Date()
-    });
-
-    await wallet.save();
-
     res.status(200).json({ 
-      message: 'Order has been cancelled and amount refunded successfully',
-      refundAmount,
-      newOrderTotal: order.billTotal,
-      newOrderStatus: order.orderStatus
+      message: 'Order cancelled successfully', 
+      refundAmount: totalRefund 
     });
+
   } catch (error) {
-    console.error('Error cancelling order:', error);
-    res.status(500).json({ message: 'An error occurred while cancelling the order' });
+    console.error('Error in cancelOrder:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 
 const loadOrder = async (req, res) => {
   try {
@@ -547,98 +630,88 @@ const loadOrderDetails = async (req, res) => {
 };
 
 
-const returnOrder = async (req, res) => {
-  const { orderId, itemId, returnReason } = req.body;
 
+const returnOrder = async (req, res) => {
   try {
+    const { orderId, itemId, returnReason } = req.body;
     const order = await Order.findById(orderId);
+
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    const item = order.items.id(itemId);
+    const item = order.items.find(item => item._id.toString() === itemId);
     if (!item) {
-      return res.status(404).json({ message: 'Item not found in order' });
+      return res.status(404).json({ message: 'Item not found in the order' });
     }
 
-    if (item.status === 'Cancelled' || item.status === 'Returned') {
-      return res.status(400).json({ message: 'Item has already been cancelled or returned' });
+    if (item.status !== 'Delivered') {
+      return res.status(400).json({ message: 'Only delivered items can be returned' });
     }
 
-    // Calculate the refund amount considering coupon discount
-    let refundAmount = item.quantity * item.productPrice;
-    let couponDiscount = 0;
-    
-    if (order.couponAmount > 0) {
-      const totalBeforeDiscount = order.items.reduce((sum, i) => sum + (i.productPrice * i.quantity), 0);
-      const itemProportion = refundAmount / totalBeforeDiscount;
-      
-      couponDiscount = order.couponAmount * itemProportion;
-      refundAmount -= couponDiscount;
+    if (item.status === 'Returned') {
+      return res.status(400).json({ message: 'Item is already returned' });
     }
 
     item.status = 'Returned';
     item.reasonForReturn = returnReason;
     item.returnDate = new Date();
 
-    const product = await Product.findById(item.productId);
-    if (product) {
-      product.stock += item.quantity;
-      await product.save();
-    }
+    // Calculate refund amount
+    let refundAmount = item.productPrice * item.quantity;
 
-    // Recalculate the order total
-    const activeItems = order.items.filter(i => i.status !== 'Cancelled' && i.status !== 'Returned');
-    order.billTotal = activeItems.reduce((total, i) => total + (i.productPrice * i.quantity), 0);
-    
-    // Adjust coupon amount if applicable
+    // Handle coupon adjustments
+    let couponAdjustment = 0;
     if (order.couponAmount > 0) {
-      order.couponAmount -= couponDiscount;
-      order.couponAmount = Math.max(0, order.couponAmount); // Ensure coupon amount is not negative
-      order.billTotal -= order.couponAmount;
+      const itemTotalPrice = item.productPrice * item.quantity;
+      couponAdjustment = order.couponAmount * (itemTotalPrice / order.billTotal);
+      couponAdjustment = Math.min(couponAdjustment, order.couponAmount);
+      order.couponAmount = Math.max(0, order.couponAmount - couponAdjustment);
     }
 
-    // Ensure billTotal is not negative
-    order.billTotal = Math.max(0, order.billTotal);
+    // Calculate total refund including coupon adjustment
+    const totalRefund = refundAmount - couponAdjustment;
 
-    if (activeItems.length === 0) {
+    // Update order total
+    order.billTotal = Math.max(0, order.billTotal - refundAmount);
+
+    // Process refund to wallet
+    let wallet = await Wallet.findOne({ user: order.user });
+    
+    if (!wallet) {
+      wallet = new Wallet({ user: order.user, walletBalance: 0 });
+    }
+    wallet.walletBalance += totalRefund;
+    wallet.transactions.push({
+      amount: totalRefund,
+      description: `Refund for returned item in order ${order.oId}`,
+      type: 'Credit'
+    });
+    await wallet.save();
+
+    // Update order status
+    const remainingActiveItems = order.items.filter(item => item.status !== 'Returned' && item.status !== 'Cancelled');
+    if (remainingActiveItems.length === 0) {
       order.orderStatus = 'Returned';
-      order.reasonForReturn = returnReason;
-      order.couponAmount = 0;
-      order.billTotal = 0;
     } else {
       order.orderStatus = 'Partially Returned';
     }
 
+    // Ensure values are not NaN before saving
+    if (isNaN(order.couponAmount)) order.couponAmount = 0;
+    if (isNaN(order.billTotal)) order.billTotal = 0;
+
     await order.save();
 
-    let wallet = await Wallet.findOne({ user: order.user });
-    if (!wallet) {
-      wallet = new Wallet({ user: order.user, walletBalance: 0 });
-    }
-
-    wallet.walletBalance += refundAmount;
-    wallet.transactions.push({
-      amount: refundAmount,
-      description: `Refund for returned item from order ${order.oId}`,
-      type: 'Credit',
-      transactionDate: new Date()
-    });
-
-    await wallet.save();
-
-    res.status(200).json({ 
-      message: 'Order returned and amount refunded to wallet successfully',
-      refundAmount,
-      newOrderTotal: order.billTotal,
-      newOrderStatus: order.orderStatus
+    res.status(200).json({
+      message: 'Item returned successfully',
+      refundAmount: totalRefund
     });
   } catch (error) {
-    console.error('Error returning order:', error);
-    res.status(500).json({ message: 'An error occurred while returning the order' });
+    console.error('Error in returnOrder:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 
 
 const confirmWalletBalance = async (req,res) =>{
@@ -801,20 +874,27 @@ async function generateInvoicePDF(order, res) {
    
   doc.moveDown();
 
-  // Recalculate the total for delivered items
+  // Calculate total for delivered items
   let deliveredTotal = deliveredItems.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
 
-  // Add total amount and coupon
+  // Calculate coupon adjustment
+  let couponAdjustment = 0;
   if (order.couponAmount > 0) {
-    const appliedCouponAmount = (order.couponAmount * deliveredTotal) / order.billTotal;
-    doc.text(`Coupon Amount: INR ${appliedCouponAmount.toFixed(2)}`);
-    deliveredTotal -= appliedCouponAmount;
+    couponAdjustment = order.couponAmount * (deliveredTotal / order.billTotal);
+    couponAdjustment = Math.min(couponAdjustment, order.couponAmount);
   }
-  doc.text(`Grand Total: INR ${deliveredTotal.toFixed(2)}`);
+
+  // Calculate final total
+  const finalTotal = deliveredTotal - couponAdjustment;
+
+  // Add coupon amount and grand total to invoice
+  if (couponAdjustment > 0) {
+    doc.text(`Coupon Discount: INR ${couponAdjustment.toFixed(2)}`);
+  }
+  doc.text(`Grand Total: INR ${finalTotal.toFixed(2)}`);
 
   doc.end();
 }
-
 
 const retryOrder =async(req,res)=>{
   try{

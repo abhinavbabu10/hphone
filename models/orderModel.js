@@ -18,7 +18,7 @@ const orderSchema = Schema({
     },
     orderStatus: {
         type: String,
-        enum:   ['Pending', 'Processing', 'Confirmed', 'Shipped', 'Partially Shipped', 'Delivered', 'Partially Delivered', 'Cancelled', 'Partially Cancelled', 'Returned'],
+        enum:   ['Pending', 'Processing', 'Confirmed', 'Shipped', 'Partially Shipped', 'Delivered', 'Partially Delivered', 'Cancelled', 'Partially Cancelled', 'Returned','Partially Returned'],
         default: 'Pending',
     },
     items: [{

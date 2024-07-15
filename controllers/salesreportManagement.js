@@ -5,6 +5,17 @@ const PDFDocument = require("pdfkit-table");
 
 
 
+const calculateOrderTotals = (orders) => {
+  return orders.reduce((acc, order) => {
+    const orderTotal = order.items.reduce((itemAcc, item) => itemAcc + (item.productPrice * item.quantity), 0);
+    const orderDiscount = (order.couponAmount || 0) + (order.discountAmount || 0);
+    return {
+      totalSalesAmount: acc.totalSalesAmount + orderTotal - orderDiscount,
+      totalDiscountAmount: acc.totalDiscountAmount + orderDiscount
+    };
+  }, { totalSalesAmount: 0, totalDiscountAmount: 0 });
+};
+
 const loadSales = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
@@ -34,16 +45,7 @@ const loadSales = async (req, res) => {
       orderStatus: { $in: ["Delivered", "Partially Delivered"] }
     });
 
-    const totalDiscountAmount = deliveredOrders.reduce((acc, order) => {
-      const deliveredItemsCount = order.items.length;
-      const totalItemsCount = deliveredItemsCount + order.cancelledItemsCount;
-      const discountRatio = deliveredItemsCount / totalItemsCount;
-      return acc + ((order.couponAmount || 0) * discountRatio);
-    }, 0);
-
-    const totalSalesAmount = deliveredOrders.reduce((acc, order) => 
-      acc + order.items.reduce((itemAcc, item) => itemAcc + (item.productPrice * item.quantity), 0), 0
-    );
+    const { totalSalesAmount, totalDiscountAmount } = calculateOrderTotals(deliveredOrders);
 
     const totalPages = Math.ceil(totalSalesCount / limit);
 
@@ -60,7 +62,6 @@ const loadSales = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
 
 const filterOrders = async (req, res) => {
   const { filter, startDate, endDate, page = 1, limit = 10 } = req.body;
@@ -105,11 +106,15 @@ const filterOrders = async (req, res) => {
 
     totalFilteredCount = await Order.countDocuments(query);
 
+    const { totalSalesAmount, totalDiscountAmount } = calculateOrderTotals(orders);
+
     res.json({
       orders,
       totalFilteredCount,
       totalPages: Math.ceil(totalFilteredCount / limit),
-      currentPage: page
+      currentPage: page,
+      totalSalesAmount: parseFloat(totalSalesAmount.toFixed(2)) || 0,
+      totalDiscountAmount: parseFloat(totalDiscountAmount.toFixed(2)) || 0
     });
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while fetching orders' });
@@ -175,16 +180,8 @@ const pdfDownload = async (req, res) => {
       cancelledItemsCount: order.items.filter(item => item.status === "Cancelled").length
     }));
 
+    const { totalSalesAmount, totalDiscountAmount } = calculateOrderTotals(orders);
     const totalSalesCount = orders.reduce((acc, order) => acc + order.items.length, 0);
-    const totalDiscountAmount = orders.reduce((acc, order) => {
-      const deliveredItemsCount = order.items.length;
-      const totalItemsCount = order.items.length + order.cancelledItemsCount;
-      const discountRatio = deliveredItemsCount / totalItemsCount;
-      return acc + ((order.couponAmount || 0) * discountRatio);
-    }, 0);
-    const totalSalesAmount = orders.reduce((acc, order) => 
-      acc + order.items.reduce((itemAcc, item) => itemAcc + (item.productPrice * item.quantity), 0), 0
-    );
 
     const doc = new PDFDocument();
     let buffers = [];
@@ -211,10 +208,7 @@ const pdfDownload = async (req, res) => {
       headers: ['Order Date', 'Customer Name', 'Total Amount', 'Discount', 'Delivered Products'],
       rows: orders.map(order => {
         const orderTotal = order.items.reduce((acc, item) => acc + (item.productPrice * item.quantity), 0);
-        const deliveredItemsCount = order.items.length;
-        const totalItemsCount = order.items.length + order.cancelledItemsCount;
-        const discountRatio = deliveredItemsCount / totalItemsCount;
-        const orderDiscount = (order.couponAmount || 0) * discountRatio;
+        const orderDiscount = (order.couponAmount || 0) + (order.discountAmount || 0);
         
         return [
           moment(order.orderDate).format('YYYY-MM-DD'),
@@ -237,7 +231,6 @@ const pdfDownload = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
-
 
 
 
