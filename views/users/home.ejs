@@ -26,7 +26,76 @@
             </div>
         </div>
     </section>
- </section>
+
+    <section class="product-tabs section-padding wow fadeIn animated">
+        <div class="container">
+            <div class="tab-header">
+                <h3>Recent Arrivals</h3>
+                <a href="/shop" class="view-more d-none d-md-flex">
+                    View More<i class="fi-rs-angle-double-small-right"></i>
+                </a>
+            </div>
+            <div class="row product-grid-3" id="product-grid">
+                <% products.forEach(product => { %>
+                  <div class="col-lg-4 col-md-4 col-12 col-sm-6">
+                    <div class="product-cart-wrap mb-30">
+                      <div class="product-img-action-wrap">
+                        <div class="product-img product-img-zoom">
+                          <a href="/shop-detail?id=<%= product.id %>">
+                            <img
+                              src="/Productimages/<%= product.media[0] %>"
+                              alt="<%= product.name %>"
+                              class="img-sm img-thumbnail img-fluid"
+                            />
+                          </a>
+                        </div>
+                      </div>
+                      <div class="product-content-wrap">
+                        <h2><a href="/shop-detail?id=<%= product.id %>"><%= product.name %></a></h2>
+                        <div class="rating-result" title="<%= product.rating %>">
+                          <span><span><%= product.rating %></span></span>
+                        </div>
+                        <div class="product-price">
+                          <% 
+                            let lowestPrice = product.price;
+                            if (product.discountPrice > 0 && product.discountPrice < lowestPrice) {
+                              lowestPrice = product.discountPrice;
+                            }
+                            if (product.categoryDiscountPrice > 0 && product.categoryDiscountPrice < lowestPrice) {
+                              lowestPrice = product.categoryDiscountPrice;
+                            }
+                          %>
+                          <% if (lowestPrice < product.price) { %>
+                            <span class="new-price"><%= lowestPrice %></span>
+                            <span class="old-price"><%= product.price %></span>
+                          <% } else { %>
+                            <span><%= product.price %></span>
+                          <% } %>
+                        </div>
+                        <div class="product-stock">
+                          <span class="stock-label">Available Stock: </span>
+                          <span class="stock-value"><%= product.stock %></span>
+                        </div>
+                        <div class="product-action-1 show">
+                          <% if(user) { %>
+                            <button class="add-to-cart-button" data-id="<%= product.id %>" onclick="addToCart('<%= product.id %>')">
+                              <i class="fi-rs-shopping-bag-add"></i>
+                            </button>
+                            <button class="add-to-wishlist-button" data-id="<%= product.id %>" onclick="addToWishlist('<%= product.id %>')">
+                              <i class="fi-rs-heart"></i>
+                            </button>
+                          <% } else { %>
+                            <a class="action-btn hover-up " href="/login"><i class="fi-rs-shopping-bag-add"></i></a> 
+                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="/login"><i class="fi-rs-heart"></i></a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+        </div>
+    </section>
 </main>
 
 

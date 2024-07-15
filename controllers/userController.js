@@ -48,19 +48,23 @@ const securePassword = async (password) => {
 
 
 //LOAD HOME PAGE
-
 const loadhome = async (req, res) => {
     try {
-        const users = req.session.userData
-        const user = await User.findById(users)
- 
-         
-        res.render('home',{user})
+        const users = req.session.userData;
+        const user = await User.findById(users);
+        
+        const recentProducts = await Product.find({ isUnlisted: false })
+            .sort({ createdOn: -1 })
+            .limit(6);
+        res.render('home', {
+            user,
+            products: recentProducts,
+        });
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        res.status(500).send('Internal Server Error');
     }
-}
-
+};
 
 
 //LOAD SIGNUP PAGE
