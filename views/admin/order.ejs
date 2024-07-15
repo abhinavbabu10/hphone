@@ -212,6 +212,12 @@
                                             case 'Returned':
                                                 %><span class="badge rounded-pill alert-warning"><%= order.orderStatus %></span><%
                                                 break;
+                                                case 'Partially Cancelled':
+                                                %><span class="badge rounded-pill alert-danger"><%= order.orderStatus %></span><%
+                                                break;
+                                                case 'Partially Delivered':
+                                                %><span class="badge rounded-pill alert-success"><%= order.orderStatus %></span><%
+                                                break;
                                             default:
                                                 %><span class="badge rounded-pill"><%= order.orderStatus %></span><%
                                                 break;
@@ -224,7 +230,7 @@
                                             <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
                                                 <i class="material-icons md-more_horiz"></i>
                                             </a>
-                                            <%if(order.orderStatus=="Pending" || order.orderStatus=="Shipped") {%>
+                                            <%if(order.orderStatus=="Pending" || order.orderStatus=="Shipped" || order.orderStatus=="Partially Cancelled") {%>
                                             <div class="dropdown-menu">
                                                 <a class="dropdown-item" id="changeStatus<%= order._id %>" href="#" onclick="showChangeStatus('<%= order._id %>')">Change Status</a>
                                                 <!-- <a class="dropdown-item text-danger" href="#">Delete</a> -->

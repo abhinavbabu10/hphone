@@ -111,62 +111,6 @@ const deleteCoupon = async(req,res) => {
 
 
 
-
-
-
-
-// const applyCoupon = async (req, res) => {
-//   try {
-//       const { couponCode, totalAmount } = req.body;
-//       const userId = req.session.userData;
-
-//       if (!userId) {
-//           return res.status(400).json({ success: false, message: 'User not logged in.' });
-//       }
-
-//       const user = await User.findById(userId);
-//       if (!user) {
-//           return res.status(404).json({ success: false, message: 'User not found.' });
-//       }
-
-//       const coupon = await Coupon.findOne({ couponcode: couponCode, status: 'active' });
-//       if (!coupon) {
-//           return res.json({ success: false, message: 'Invalid or inactive coupon code.' });
-//       }
-
-//       if (coupon.usedBy.includes(userId)) {
-//           return res.json({ success: false, message: 'You have already used this coupon.' });
-//       }
-
-//       if (totalAmount < coupon.minimumamount) {
-//           return res.json({ success: false, message: `Minimum purchase amount of ₹${coupon.minimumamount} required for this coupon.` });
-//       }
-
-//       const discountPercentage = coupon.discountpercentage;
-//       let discountAmount = (totalAmount * discountPercentage) / 100;
-//       let newTotalAmount = totalAmount - discountAmount;
-
-//       if (coupon.maximumDiscountAmount && discountAmount > coupon.maximumDiscountAmount) {
-//           discountAmount = coupon.maximumDiscountAmount;
-//           newTotalAmount = totalAmount - discountAmount;
-//       }
-
-//       coupon.usedBy.push(userId);
-//       await coupon.save();
-
-//       res.json({
-//           success: true,
-//           discountAmount,
-//           newTotalAmount,
-//       });
-//   } catch (error) {
-//       console.error('Error applying coupon:', error);
-//       res.status(500).json({ success: false, message: 'Internal Server Error.' });
-//   }
-// };
-
-
-
 const applyCoupon = async (req, res) => {
   try {
     const { couponCode, totalAmount } = req.body;
@@ -211,37 +155,6 @@ const applyCoupon = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error.' });
   }
 };
-
-
-
-// const removeCoupon = async (req, res) => {
-//   try {
-//       const userId = req.session.userData;
-
-//       if (!userId) {
-//           return res.status(400).json({ success: false, message: 'User not logged in.' });
-//       }
-
-//       const user = await User.findById(userId);
-//       if (!user) {
-//           return res.status(404).json({ success: false, message: 'User not found.' });
-//       }
-
-//       const coupon = await Coupon.findOne({ usedBy: userId });
-//       if (!coupon) {
-//           return res.json({ success: false, message: 'No coupon applied.' });
-//       }
-
-//       coupon.usedBy = coupon.usedBy.filter(id => id.toString() !== userId.toString());
-//       await coupon.save();
-
-//       res.json({ success: true });
-//   } catch (error) {
-//       console.error('Error removing coupon:', error);
-//       res.status(500).json({ success: false, message: 'Internal Server Error.' });
-//   }
-// };
-
 
 
 

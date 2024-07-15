@@ -96,49 +96,6 @@ const logout = async (req,res) =>{
 }
 
 
-// const insertUser = async (req, res) => {
-//     try {
-//         const { username, email, password, referralCode } = req.body;
-//         if (!req.session) {
-//             throw new Error('Session middleware not initialized');
-//         }
-
-//         const existingUser = await User.findOne({ email: email });
-//         if (existingUser) {
-//             return res.render('signup', { user: null, message: 'Email already exists' });
-//         }
-
-     
-//         let referrer = null;
-//         if (referralCode) {
-//             referrer = await User.findOne({ referralCode: referralCode });
-//             if (!referrer) {
-//                 return res.render('signup', { user: null, message: 'Invalid referral code' });
-//             }
-//         }
-
-//         const otp = generateOTP();
-
-//         const userData = {
-//             name: username,
-//             email: email,
-//             password: password,
-//             referralCode: referralCode || null,
-//             otp: otp
-//         };
-
-//         req.session.userDetail = userData;
-//         req.session.referrer = referrer; 
-//         console.log(otp, "otp");
-
-//         sendOTPByEmail(email, otp);
-//         res.redirect('/otp');
-//     } catch (error) {
-//         console.error('Error inserting user:', error);
-//         res.status(500).send('Error inserting user');
-//     }
-// };
-
 const insertUser = async (req, res) => {
     try {
         const { username, email, password, referralCode } = req.body;
@@ -370,29 +327,6 @@ const verifyOTP = async (req, res) => {
 
 
 
-
-// const resendOTP = async (req, res) => {
-//     try {
-
-//          let email = req.session.userDetail.email
-//         const newOTP = Math.floor(100000 + Math.random() * 900000);
-//         req.session.userData.otp = newOTP;
-
-//         const expirationTime = Date.now() + 60 * 1000;
-//         req.session.otpExpiration = expirationTime;
-//         console.log('New OTP:', newOTP);
-
-//         sendOTPByEmail(email, newOTP);
-
-//         res.status(200).json({ message: 'New OTP sent successfully' });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ error: 'Internal server error' });
-//     }
-// };
-
-
-
 const resendOTP = async (req, res) => {
     try {
         let email = req.session.userDetail.email;
@@ -463,21 +397,6 @@ const loadShopdetail = async(req,res) =>{
     }
 }
 
-
-// const loadProfile = async(req,res) =>{
-
-//     try {
-//         const userId = req.session.userData
-//         const user = await User.findById(userId)
-//         const product = await Product.find({ isUnlisted: false })
-//         const order = await Order.find({user:userId})
-//         const wallet = await Wallet.findOne({ user: userId });
-//        res.render('profile',{user,order,product:product,wallet})
-       
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
 
 const loadProfile = async (req, res) => {
     try {
@@ -732,21 +651,6 @@ const checkOutQuantity= async (req,res) =>{
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-
-
-
-// const checkOut = async (req, res) =>{
-//     try {
-//         const userId = req.session.userData;
-//         const user = await User.findById(userId)
-//         const cart = await Cart.findOne({ userId:userId }).populate('product.productId');
-//         const coupons = await Coupon.find({})
-//         res.render('checkout', { cart,user,coupons });
-//       } catch (err) {
-//         console.error(err);
-//         res.status(500).send('Internal Server Error');
-//       }
-//     };
 
 const checkOut = async (req, res) => {
     try {

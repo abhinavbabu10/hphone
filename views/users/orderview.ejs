@@ -79,17 +79,19 @@
                         <td>₹<%= effectivePrice.toFixed(2) %></td>
                         <td><%= item.quantity %></td>
                         <td>
-                            <% if (item.status === "Delivered") { %>
+                            <% if (item.status === "Delivered" && item.status !== "Cancelled" && item.status !== "Returned") { %>
                                 <button class="btn btn-warning btn-sm" onclick="showReturnConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Return</button>
                             <% } %>
-                            <% if (item.status !== "Cancelled") { %>
+                            <% if (item.status !== "Cancelled" && item.status !== "Delivered" && item.status !== "Returned") { %>
                                 <% if (item.status === "Pending" || item.status === "Confirmed") { %>
                                     <button class="btn btn-danger btn-sm" onclick="showCancelConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Cancel</button>
                                 <% } else { %>
                                     -
                                 <% } %>
-                            <% } else { %>
-                                <button onclick="showCancelConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>" disabled>Order Cancelled</button>
+                            <% } else if (item.status === "Cancelled") { %>
+                                <span class="text-danger">Cancelled</span>
+                            <% } else if (item.status === "Returned") { %>
+                                <span class="text-warning">Returned</span>
                             <% } %>
                         </td>
                     </tr>
@@ -125,7 +127,7 @@
     <div style="text-align: center; margin-top: 20px;">
         <% if(order.paymentStatus === "Failed") { %>
             <button onclick="retryPayment('<%= order._id %>', '<%= order.billTotal %>')" data-input-id="<%= order._id %>" style="padding: 10px 20px; background-color: #557775; color: white; border: none; border-radius: 5px; cursor: pointer;">Retry</button>
-        <% } else if(order.orderStatus === "Delivered") { %>
+        <% } else if(order.orderStatus === 'Partially Delivered' ||order.orderStatus === "Delivered") { %>
             <button onclick="downloadInvoice('<%= order._id %>')" style="padding: 10px 20px; background-color: #557775; color: white; border: none; border-radius: 5px; cursor: pointer;">Download Invoice</button>
         <% } %>
     </div>
@@ -134,6 +136,13 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     
     <script>
+        function disableButton(buttonId) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.disabled = true;
+            }
+        }
+    
         function showCancelConfirmation(orderId, itemId) {
             Swal.fire({
                 title: 'Cancel Order',
@@ -145,7 +154,25 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     const cancellationReason = document.getElementById('cancellationReason').value;
+                    disableButton('cancel-' + itemId);
                     cancelOrder(orderId, itemId, cancellationReason);
+                }
+            });
+        }
+    
+        function showReturnConfirmation(orderId, itemId) {
+            Swal.fire({
+                title: 'Return Order',
+                html: 'Are you sure you want to return this order?<br><input type="text" id="returnReason" class="swal2-input" placeholder="Enter reason for returning">',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, return it!',
+                cancelButtonText: 'No, keep it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const returnReason = document.getElementById('returnReason').value;
+                    disableButton('return-' + itemId);
+                    returnOrder(orderId, itemId, returnReason);
                 }
             });
         }
@@ -175,22 +202,6 @@
                 console.error('Error:', error);
                 Swal.fire('Error', 'An error occurred while cancelling the order', 'error');
             }
-        }
-    
-        function showReturnConfirmation(orderId, itemId) {
-            Swal.fire({
-                title: 'Return Order',
-                html: 'Are you sure you want to return this order?<br><input type="text" id="returnReason" class="swal2-input" placeholder="Enter reason for returning">',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, return it!',
-                cancelButtonText: 'No, keep it'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const returnReason = document.getElementById('returnReason').value;
-                    returnOrder(orderId, itemId, returnReason);
-                }
-            });
         }
     
         async function returnOrder(orderId, itemId, returnReason) {

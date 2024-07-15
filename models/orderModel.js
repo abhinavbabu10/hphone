@@ -18,7 +18,7 @@ const orderSchema = Schema({
     },
     orderStatus: {
         type: String,
-        enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Returned'],
+        enum:   ['Pending', 'Processing', 'Confirmed', 'Shipped', 'Partially Shipped', 'Delivered', 'Partially Delivered', 'Cancelled', 'Partially Cancelled', 'Returned'],
         default: 'Pending',
     },
     items: [{
@@ -43,9 +43,6 @@ const orderSchema = Schema({
             required: true,
             min: [1, 'Quantity can not be less than one.'],
             default: 1
-        },
-        price: {
-            type: Number,
         },
         status:{
             type: String,
