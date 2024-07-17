@@ -171,12 +171,12 @@ cursor: pointer;
                       <form method="post" action="/admin/edit-product/<%= product._id %>" enctype="multipart/form-data" id="productForm">
                         <div>
                           <label for="productName" class="form-label">Product Name</label>
-                          <input type="text" class="form-control" id="productName" name="name" placeholder="Enter product name" value="<%= product.name %>" required>
+                          <input type="text" class="form-control" id="productName" name="name" placeholder="Enter product name" value="<%= product.name %>">
                           <div class="invalid-feedback"></div>
                         </div>
                         <div>
                           <label for="productDescription" class="form-label">Product Description</label>
-                          <textarea class="form-control" id="productDescription" name="description" placeholder="Enter product description" required><%= product.description %></textarea>
+                          <textarea class="form-control" id="productDescription" name="description" placeholder="Enter product description"><%= product.description %></textarea>
                           <div class="invalid-feedback"></div>
                         </div>
                         <div>
@@ -187,23 +187,24 @@ cursor: pointer;
                         <div class="image-preview" id="imagePreview"></div>
                         <div>
                           <label for="productPrice" class="form-label">Price</label>
-                          <input type="number" class="form-control" id="productPrice" name="price" placeholder="Enter product price" value="<%= product.price %>" required>
+                          <input type="number" class="form-control" id="productPrice" name="price" placeholder="Enter product price" value="<%= product.price %>">
                           <div class="invalid-feedback"></div>
                         </div>
                         <div>
                           <label for="productDiscountPrice" class="form-label">ProductDiscount Price</label>
-                          <input type="number" class="form-control" id="productDiscountPrice" name="discountPrice" placeholder="Enter discount price" value="<%= product.discountPrice %>" min="0" required>
+                          <input type="number" class="form-control" id="productDiscountPrice" name="discountPrice" placeholder="Enter discount price" value="<%= product.discountPrice %>" min="0">
                           <div class="invalid-feedback"></div>
                         </div>
                         <div>
+                          <input type="hidden" name="categoryDiscountPrice" value="<%= product.categoryDiscountPrice %>">
                           <label for="productCategoryDiscountPrice" class="form-label">Category Discount Price</label>
-                          <input type="number" class="form-control" id="productCategoryDiscountPrice" name="categoryDiscountPrice" placeholder="Enter category discount price" value="<%= product.categoryDiscountPrice %>" min="0" disabled>
+                          <input type="number" class="form-control" id="productCategoryDiscountPrice" placeholder="Enter category discount price" value="<%= product.categoryDiscountPrice %>" min="0" disabled>
                           <div class="invalid-feedback"></div>
                         </div>
                         </div>
                         <div>
                           <label for="productCategory" class="form-label">Category</label>
-                          <select class="form-control" id="productCategory" name="category" required>
+                          <select class="form-control" id="productCategory" name="category">
                             <option value="" disabled>Select a category</option>
                             <% category.forEach(category => { %>
                               <option value="<%= category._id %>" <%= product.category === category._id.toString() ? 'selected' : '' %>><%= category.name %></option>
@@ -213,7 +214,7 @@ cursor: pointer;
                         </div>
                         <div>
                           <label for="productStock" class="form-label">Stock</label>
-                          <input type="number" class="form-control" id="productStock" name="stock" placeholder="Enter product stock" value="<%= product.stock %>" required>
+                          <input type="number" class="form-control" id="productStock" name="stock" placeholder="Enter product stock" value="<%= product.stock %>">
                           <div class="invalid-feedback"></div>
                         </div>
                         <% if (product.media.length > 0) { %>
@@ -272,79 +273,94 @@ cursor: pointer;
 
 
     <script>
-      const ERRORS = {
-        PRODUCT_NAME_REQUIRED: 'Please enter a product name.',
-        PRODUCT_NAME_MIN_LENGTH: 'Product name must be at least 3 characters long and contain only letters.',
-        PRODUCT_DESCRIPTION_MIN_LENGTH: 'Product description must be at least 10 characters long.',
-        MEDIA_INVALID_TYPE: 'Only image/jpeg, image/png, image/gif, and image/webp files are allowed.',
-        PRICE_REQUIRED: 'Please enter the product price.',
-        PRICE_INVALID: 'Price must be a positive number.',
-        CATEGORY_REQUIRED: 'Please select a category.',
-        STOCK_REQUIRED: 'Stock must be greater than 0.',
-      };
+ const ERRORS = {
+  PRODUCT_NAME_REQUIRED: 'Please enter a product name.',
+  PRODUCT_NAME_INVALID: 'Product name must contain at least one letter.',
+  PRODUCT_NAME_INVALID_SPACE: 'Product name cannot start with spaces.',
+  PRODUCT_DESCRIPTION_INVALID: 'Product description cannot start with spaces.',
+  PRODUCT_DESCRIPTION_MIN_LENGTH: 'Product description must be at least 10 characters long.',
+  MEDIA_INVALID_TYPE: 'Only image/jpeg, image/png, image/gif, and image/webp files are allowed.',
+  PRICE_REQUIRED: 'Please enter the product price.',
+  PRICE_INVALID: 'Price must be greater than zero.',
+  CATEGORY_REQUIRED: 'Please select a category.',
+  STOCK_INVALID: 'Stock cannot be negative.',
+  DISCOUNT_PRICE_INVALID: 'Discount price cannot be greater than the actual price.',
+};
     
       document.getElementById('productForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        document.querySelectorAll('.invalid-feedback').forEach(function(element) {
-          element.textContent = '';
-          element.classList.remove('d-block');
-        });
-    
-        var name = document.getElementById('productName');
-        var nameError = document.querySelector('.name-error');
-        if (!name.value) {
-          nameError.textContent = ERRORS.PRODUCT_NAME_REQUIRED;
-          nameError.classList.add('d-block');
-        } else if (name.value.length < 3) {
-          nameError.textContent = ERRORS.PRODUCT_NAME_MIN_LENGTH;
-          nameError.classList.add('d-block');
-        }
-    
-        var description = document.getElementById('productDescription');
-        var descriptionError = document.querySelector('.description-error');
-        if (description.value.length < 10) {
-          descriptionError.textContent = ERRORS.PRODUCT_DESCRIPTION_MIN_LENGTH;
-          descriptionError.classList.add('d-block');
-        }
-    
-        var media = document.getElementById('productMedia');
-        var mediaError = document.querySelector('.media-error');
-        if (media.files.length > 0) {
-          const fileType = media.files[0].type;
-          if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(fileType)) {
-            mediaError.textContent = ERRORS.MEDIA_INVALID_TYPE;
-            mediaError.classList.add('d-block');
-          }
-        }
-    
-        var price = document.getElementById('productPrice');
-        var priceError = document.querySelector('.price-error');
-        if (!price.value) {
-          priceError.textContent = ERRORS.PRICE_REQUIRED;
-          priceError.classList.add('d-block');
-        } else if (!/^\d+(\.\d+)?$/.test(price.value)) {
-          priceError.textContent = ERRORS.PRICE_INVALID;
-          priceError.classList.add('d-block');
-        }
-    
-        var category = document.getElementById('productCategory');
-        var categoryError = document.querySelector('.category-error');
-        if (category.value === '') {
-          categoryError.textContent = ERRORS.CATEGORY_REQUIRED;
-          categoryError.classList.add('d-block');
-        }
-    
-        var stock = document.getElementById('productStock');
-        var stockError = document.querySelector('.stock-error');
-        // if (stock.value <= 0) {
-        //   stockError.textContent = ERRORS.STOCK_REQUIRED;
-        //   stockError.classList.add('d-block');
-        // }
-    
-        if (document.querySelectorAll('.invalid-feedback.d-block').length === 0) {
-          this.submit();
-        }
-      });
+  event.preventDefault();
+  document.querySelectorAll('.invalid-feedback').forEach(function(element) {
+    element.textContent = '';
+    element.classList.remove('d-block');
+  });
+  var name = document.getElementById('productName');
+var nameError = name.nextElementSibling;
+if (!name.value.trim()) {
+  nameError.textContent = ERRORS.PRODUCT_NAME_REQUIRED;
+  nameError.classList.add('d-block');
+} else if (name.value.startsWith(' ')) {
+  nameError.textContent = ERRORS.PRODUCT_NAME_INVALID_SPACE;
+  nameError.classList.add('d-block');
+} else if (!/[a-zA-Z]/.test(name.value)) {
+  nameError.textContent = ERRORS.PRODUCT_NAME_INVALID;
+  nameError.classList.add('d-block');
+}
+
+  var description = document.getElementById('productDescription');
+  var descriptionError = description.nextElementSibling;
+  if (description.value.length < 10) {
+    descriptionError.textContent = ERRORS.PRODUCT_DESCRIPTION_MIN_LENGTH;
+    descriptionError.classList.add('d-block');
+  } else if (description.value.startsWith(' ')) {
+    descriptionError.textContent = ERRORS.PRODUCT_DESCRIPTION_INVALID;
+    descriptionError.classList.add('d-block');
+  }
+
+  var media = document.getElementById('productMedia');
+  var mediaError = document.querySelector('.media-error');
+  if (media.files.length > 0) {
+    const fileType = media.files[0].type;
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(fileType)) {
+      mediaError.textContent = ERRORS.MEDIA_INVALID_TYPE;
+      mediaError.classList.add('d-block');
+    }
+  }
+
+  var price = document.getElementById('productPrice');
+  var priceError = price.nextElementSibling;
+  if (!price.value) {
+    priceError.textContent = ERRORS.PRICE_REQUIRED;
+    priceError.classList.add('d-block');
+  } else if (parseFloat(price.value) <= 0) {
+    priceError.textContent = ERRORS.PRICE_INVALID;
+    priceError.classList.add('d-block');
+  }
+
+  var discountPrice = document.getElementById('productDiscountPrice');
+  var discountPriceError = discountPrice.nextElementSibling;
+  if (parseFloat(discountPrice.value) > parseFloat(price.value)) {
+    discountPriceError.textContent = ERRORS.DISCOUNT_PRICE_INVALID;
+    discountPriceError.classList.add('d-block');
+  }
+
+  var category = document.getElementById('productCategory');
+  var categoryError = category.nextElementSibling;
+  if (category.value === '') {
+    categoryError.textContent = ERRORS.CATEGORY_REQUIRED;
+    categoryError.classList.add('d-block');
+  }
+
+  var stock = document.getElementById('productStock');
+  var stockError = stock.nextElementSibling;
+  if (parseInt(stock.value) < 0) {
+    stockError.textContent = ERRORS.STOCK_INVALID;
+    stockError.classList.add('d-block');
+  }
+
+  if (document.querySelectorAll('.invalid-feedback.d-block').length === 0) {
+    this.submit();
+  }
+});
     </script>
     
 

@@ -46,34 +46,34 @@
             </div> -->
             <form method="post" action="/signup" id="form">
               <div class="form-group">
-                <input type="text" required name="username" id="username" placeholder="Username" />
-                <span class="error" id="usernameError"></span>
+                  <input type="text" name="username" id="username" placeholder="Username" />
+                  <span class="error" id="usernameError"></span>
               </div>
               <div class="form-group">
-                <input type="text" required name="email" id="email" placeholder="Email" />
-                <span class="error" id="emailError"></span>
+                  <input type="text" name="email" id="email" placeholder="Email" />
+                  <span class="error" id="emailError"></span>
               </div>
               <div class="form-group">
-                <input required type="password" name="password" id="password" placeholder="Password" />
-                <span class="error" id="passwordError"></span>
+                  <input type="password" name="password" id="password" placeholder="Password" />
+                  <span class="error" id="passwordError"></span>
               </div>
               <div class="form-group">
-                <input required type="password" name="password2" id="password2" placeholder="Confirm password" />
-                <span class="error" id="password2Error"></span>
+                  <input type="password" name="password2" id="password2" placeholder="Confirm password" />
+                  <span class="error" id="password2Error"></span>
               </div>
-            <div class="form-group">
-              <input type="text" id="referralCode" name="referralCode" class="form-control" placeholder="Referral Code" />
-              <div id="referralCodeError" class="error-message"></div>
-          </div>
-            <div class="login_footer form-group">
-                <div class="chek-form">
-                    <div class="custome-checkbox"></div>
-                </div>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="btn btn-fill-out btn-block hover-up" name="">Submit & Register</button>
-            </div>
-        </form>
+              <div class="form-group">
+                  <input type="text" id="referralCode" name="referralCode" class="form-control" placeholder="Referral Code" />
+                  <div id="referralCodeError" class="error-message"></div>
+              </div>
+              <div class="login_footer form-group">
+                  <div class="chek-form">
+                      <div class="custome-checkbox"></div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <button type="submit" class="btn btn-fill-out btn-block hover-up" name="">Submit & Register</button>
+              </div>
+          </form>
           <div class="divider-text-center mt-15 mb-15">
             <span> or</span>
           </div>
@@ -95,82 +95,115 @@
           <div</div>
           </main>
           
-<script>
+          <script>
+            const form = document.getElementById('form');
+            const username = document.getElementById('username');
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
+            const password2 = document.getElementById('password2');
+            
+            const setError = (element, message) => {
+              const inputControl = element.parentElement;
+              const errorDisplay = inputControl.querySelector('.error');
+              errorDisplay.innerText = message;
+              errorDisplay.style.color = 'red';
+              inputControl.classList.add('error');
+              inputControl.classList.remove('success');
+            };
+            
+            const setSuccess = element => {
+              const inputControl = element.parentElement;
+              const errorDisplay = inputControl.querySelector('.error');
+              errorDisplay.innerText = '';
+              inputControl.classList.add('success');
+              inputControl.classList.remove('error');
+            };
+            
+            const isValidEmail = email => {
+              const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              return re.test(String(email).toLowerCase());
+            };
+            
+            const isValidPassword = password => {
+              const re = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+              return re.test(password);
+            };
+            
+            const validateInputs = () => {
+              let isValid = true;
+              const usernameValue = username.value.trim();
+              const emailValue = email.value.trim();
+              const passwordValue = password.value.trim();
+              const password2Value = password2.value.trim();
+            
+              if(usernameValue === '') {
+                setError(username, 'Username is required');
+                isValid = false;
+              } else {
+                setSuccess(username);
+              }
+            
+              if(emailValue === '') {
+                setError(email, 'Email is required');
+                isValid = false;
+              } else if (!isValidEmail(emailValue)) {
+                setError(email, 'Provide a valid email address');
+                isValid = false;
+              } else {
+                setSuccess(email);
+              }
+            
+              if(passwordValue === '') {
+                setError(password, 'Password is required');
+                isValid = false;
+              } else if (!isValidPassword(passwordValue)) {
+                setError(password, 'Password must be at least 8 characters, include an uppercase letter, a number and a special character');
+                isValid = false;
+              } else {
+                setSuccess(password);
+              }
+            
+              if(password2Value === '') {
+                setError(password2, 'Please confirm your password');
+                isValid = false;
+              } else if (password2Value !== passwordValue) {
+                setError(password2, "Passwords don't match");
+                isValid = false;
+              } else {
+                setSuccess(password2);
+              }
+            
+              return isValid;
+            };
+            
+            form.addEventListener('submit', e => {
+              if (!validateInputs()) {
+                e.preventDefault();
+              }
+            });
+          </script>
+            
+            <style>
+            .form-group {
+              margin-bottom: 15px;
+              position: relative;
+            }
+            
+            .error {
+              color: red;
+              font-size: 0.8em;
+              margin-top: 5px;
+            }
+            
+            .form-group.error input {
+              border-color: red;
+            }
+            
+            .form-group.success input {
+              border-color: green;
+            }
+            </style>
 
-const form = document.getElementById('form');
-const username = document.getElementById('username');
-const email = document.getElementById('email');
-const password = document.getElementById('password');
-const password2 = document.getElementById('password2');
-
-const setError = (element, message) => {
-  const inputControl = element.parentElement;
-  const errorDisplay = inputControl.querySelector('.error');
-  errorDisplay.innerText = message;
-  errorDisplay.style.color = 'red';
-  inputControl.classList.add('error');
-  inputControl.classList.remove('success');
-};
-
-const setSuccess = element => {
-  const inputControl = element.parentElement;
-  const errorDisplay = inputControl.querySelector('.error');
-  errorDisplay.innerText = '';
-  inputControl.classList.add('success');
-  inputControl.classList.remove('error');
-};
-
-const isValidEmail = email => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(String(email).toLowerCase());
-};
-
-const isValidPassword = password => {
-  const re = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
-  return re.test(password);
-};
-
-const validateInput = (input, validationFunction) => {
-  const value = input.value.trim();
-  if (value === '') {
-    setError(input, `${input.name} is required`);
-    return false;
-  } else if (validationFunction && !validationFunction(value)) {
-    setError(input, `Invalid ${input.name}`);
-    return false;
-  } else {
-    setSuccess(input);
-    return true;
-  }
-};
-
-username.addEventListener('input', () => validateInput(username));
-email.addEventListener('input', () => validateInput(email, isValidEmail));
-password.addEventListener('input', () => validateInput(password, isValidPassword));
-password2.addEventListener('input', () => {
-  if (password2.value.trim() === '') {
-    setError(password2, 'Please confirm your password');
-  } else if (password2.value !== password.value) {
-    setError(password2, 'Passwords do not match');
-  } else {
-    setSuccess(password2);
-  }
-});
-
-form.addEventListener('submit', e => {
-  e.preventDefault();
-  
-  const isUsernameValid = validateInput(username);
-  const isEmailValid = validateInput(email, isValidEmail);
-  const isPasswordValid = validateInput(password, isValidPassword);
-  const isPassword2Valid = password2.value === password.value;
-
-  if (isUsernameValid && isEmailValid && isPasswordValid && isPassword2Valid) {
-    form.submit();
-  }
-});
-
- </script>
           
           
 <%- include('../partials/footercopy') %> 

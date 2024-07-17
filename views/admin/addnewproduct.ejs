@@ -163,59 +163,59 @@
                         <h2 class="content-title">Add New Product</h2>
                      </div>
                     </div>
-                   
-                      <form method="post" action="/admin/add-product" enctype="multipart/form-data" id="productForm">
-                        <div class="form-group">
-                          <label for="productName" class="form-label">Product Name</label>
-                          <input type="text" class="form-control" id="productName" name="name" placeholder="Enter product name" required>
-                          <div class="invalid-feedback name-error"></div>
-                        </div>
-                      
-                        <div class="form-group">
-                          <label for="productDescription" class="form-label">Product Description</label>
-                          <textarea class="form-control" id="productDescription" name="description" placeholder="Enter product description" required></textarea>
-                          <div class="invalid-feedback description-error"></div>
-                        </div>
-                      
-                        <div class="form-group">
-                          <label for="productMedia" class="form-label">Product Media</label>
-                          <input type="file" class="form-control-file" id="productMedia" name="media" multiple required>
-                          <div class="invalid-feedback media-error"></div>
-                        </div>
-                      
-                        <div class="image-preview" id="imagePreview"></div>
-                      
-                        <div class="form-group">
-                          <label for="productPrice" class="form-label">Price</label>
-                          <input type="number" class="form-control" id="productPrice" name="price" placeholder="Enter product price" required>
-                          <div class="invalid-feedback price-error"></div>
-                        </div>
-                      
-                        <div class="form-group">
-                          <label for="productCategory" class="form-label">Category</label>
-                          <select class="form-control" id="productCategory" name="category" required>
-                            <option value="" selected disabled>Select a category</option>
-                            <% category.forEach(category => { %>
-                              <option value="<%= category._id %>" data-discount="<%= category.discount %>"><%= category.name %></option>
-                            <% }); %>
-                          </select>
-                          <div class="invalid-feedback category-error"></div>
-                        </div>
-                      
-                        <div class="form-group">
-                          <label for="categoryDiscountPrice" class="form-label">Category Discount Price</label>
-                          <input type="number" class="form-control" id="categoryDiscountPrice" name="categoryDiscountPrice" readonly>
-                          <div class="invalid-feedback category-discount-error"></div>
-                        </div>
-                      
-                        <div class="form-group">
-                          <label for="productStock" class="form-label">Stock</label>
-                          <input type="number" class="form-control" id="productStock" name="stock" placeholder="Enter product stock" required>
-                          <div class="invalid-feedback stock-error"></div>
-                        </div>
-                      
-                        <button type="submit" class="btn btn-primary mt-3">Add Product</button>
-                      </form>
+
+                    <form method="post" action="/admin/add-product" enctype="multipart/form-data" id="productForm">
+                      <div class="form-group">
+                        <label for="productName" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="productName" name="name" placeholder="Enter product name">
+                        <div class="invalid-feedback name-error"></div>
+                      </div>
+                    
+                      <div class="form-group">
+                        <label for="productDescription" class="form-label">Product Description</label>
+                        <textarea class="form-control" id="productDescription" name="description" placeholder="Enter product description"></textarea>
+                        <div class="invalid-feedback description-error"></div>
+                      </div>
+                    
+                      <div class="form-group">
+                        <label for="productMedia" class="form-label">Product Media</label>
+                        <input type="file" class="form-control-file" id="productMedia" name="media" multiple>
+                        <div class="invalid-feedback media-error"></div>
+                      </div>
+                    
+                      <div class="image-preview" id="imagePreview"></div>
+                    
+                      <div class="form-group">
+                        <label for="productPrice" class="form-label">Price</label>
+                        <input type="number" class="form-control" id="productPrice" name="price" placeholder="Enter product price">
+                        <div class="invalid-feedback price-error"></div>
+                      </div>
+                    
+                      <div class="form-group">
+                        <label for="productCategory" class="form-label">Category</label>
+                        <select class="form-control" id="productCategory" name="category">
+                          <option value="" selected disabled>Select a category</option>
+                          <% category.forEach(category => { %>
+                            <option value="<%= category._id %>" data-discount="<%= category.discount %>"><%= category.name %></option>
+                          <% }); %>
+                        </select>
+                        <div class="invalid-feedback category-error"></div>
+                      </div>
+                    
+                      <div class="form-group">
+                        <label for="categoryDiscountPrice" class="form-label">Category Discount Price</label>
+                        <input type="number" class="form-control" id="categoryDiscountPrice" name="categoryDiscountPrice" readonly>
+                        <div class="invalid-feedback category-discount-error"></div>
+                      </div>
+                    
+                      <div class="form-group">
+                        <label for="productStock" class="form-label">Stock</label>
+                        <input type="number" class="form-control" id="productStock" name="stock" placeholder="Enter product stock">
+                        <div class="invalid-feedback stock-error"></div>
+                      </div>
+                    
+                      <button type="submit" class="btn btn-primary mt-3">Add Product</button>
+                    </form>
                    
                     </section>
 
@@ -235,81 +235,88 @@
 
 
    <script>
-    const ERRORS = {
-      PRODUCT_NAME_REQUIRED: 'Please enter a product name.',
-      PRODUCT_NAME_MIN_LENGTH: 'Product name must be at least 3 characters long and contain only letters.',
-      PRODUCT_DESCRIPTION_MIN_LENGTH: 'Product description must be at least 10 characters long.',
-      MEDIA_REQUIRED: 'Please select at least one media file.',
-      MEDIA_INVALID_TYPE: 'Only image/jpeg, image/png, image/gif, and image/webp files are allowed.',
-      PRICE_REQUIRED: 'Please enter the product price.',
-      PRICE_INVALID: 'Price must be a positive number.',
-      CATEGORY_REQUIRED: 'Please select a category.',
-      STOCK_REQUIRED: 'Stock must be greater than 0.',
-    };
-    
-    document.getElementById('productForm').addEventListener('submit', function(event) {
-      event.preventDefault();
-      document.querySelectorAll('.invalid-feedback').forEach(function(element) {
-        element.textContent = '';
-        element.classList.remove('d-block');
-      });
-      var name = document.getElementById('productName');
-      var nameError = document.querySelector('.name-error');
-      if (!name.value) {
-        nameError.textContent = ERRORS.PRODUCT_NAME_REQUIRED;
-        nameError.classList.add('d-block');
-      } else if (name.value.length < 3) {
-        nameError.textContent = ERRORS.PRODUCT_NAME_MIN_LENGTH;
-        nameError.classList.add('d-block');
-      }
-    
-      var description = document.getElementById('productDescription');
-      var descriptionError = document.querySelector('.description-error');
-      if (description.value.length < 10) {
-        descriptionError.textContent = ERRORS.PRODUCT_DESCRIPTION_MIN_LENGTH;
-        descriptionError.classList.add('d-block');
-      }
-    
-      var media = document.getElementById('productMedia');
-      var mediaError = document.querySelector('.media-error');
-      if (!media.files.length) {
-        mediaError.textContent = ERRORS.MEDIA_REQUIRED;
-        mediaError.classList.add('d-block');
-      } else {
-        const fileType = media.files[0].type;
-        if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(fileType)) {
-          mediaError.textContent = ERRORS.MEDIA_INVALID_TYPE;
-          mediaError.classList.add('d-block');
-        }
-      }
-    
-      var price = document.getElementById('productPrice');
-      var priceError = document.querySelector('.price-error');
-      if (!price.value) {
-        priceError.textContent = ERRORS.PRICE_REQUIRED;
-        priceError.classList.add('d-block');
-      } else if (!/^\d+(\.\d+)?$/.test(price.value)) {
-        priceError.textContent = ERRORS.PRICE_INVALID;
-        priceError.classList.add('d-block');
-      }
-    
-      var category = document.getElementById('productCategory');
-      var categoryError = document.querySelector('.category-error');
-      if (category.value === '') {
-        categoryError.textContent = ERRORS.CATEGORY_REQUIRED;
-        categoryError.classList.add('d-block');
-      }
-    
-      var stock = document.getElementById('productStock');
-      var stockError = document.querySelector('.stock-error');
-      if (stock.value <= 0) {
-        stockError.textContent = ERRORS.STOCK_REQUIRED;
-        stockError.classList.add('d-block');
-      }
-      if (document.querySelectorAll('.invalid-feedback.d-block').length === 0) {
-        this.submit();
-      }
-    });
+  const ERRORS = {
+  PRODUCT_NAME_REQUIRED: 'Please enter a product name.',
+  PRODUCT_NAME_INVALID: 'Product name must be at least 3 characters long, contain letters, and not start with a space or consist of only numbers.',
+  PRODUCT_DESCRIPTION_INVALID: 'Product description must be at least 10 characters long and not start with a space.',
+  MEDIA_REQUIRED: 'Please select at least one media file.',
+  MEDIA_INVALID_TYPE: 'Only image/jpeg, image/png, image/gif, and image/webp files are allowed.',
+  PRICE_REQUIRED: 'Please enter the product price.',
+  PRICE_INVALID: 'Price must be a number greater than zero.',
+  CATEGORY_REQUIRED: 'Please select a category.',
+  STOCK_REQUIRED: 'Please enter the product stock.',
+  STOCK_INVALID: 'Stock must be a positive integer greater than zero.',
+};
+
+document.getElementById('productForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+  document.querySelectorAll('.invalid-feedback').forEach(function(element) {
+    element.textContent = '';
+    element.classList.remove('d-block');
+  });
+
+  var name = document.getElementById('productName');
+  var nameError = document.querySelector('.name-error');
+  if (!name.value.trim()) {
+    nameError.textContent = ERRORS.PRODUCT_NAME_REQUIRED;
+    nameError.classList.add('d-block');
+  } else if (name.value.trim().length < 3 || !/^(?=.*[a-zA-Z])[a-zA-Z0-9\s]+$/.test(name.value) || /^\s/.test(name.value) || /^\d+$/.test(name.value)) {
+    nameError.textContent = ERRORS.PRODUCT_NAME_INVALID;
+    nameError.classList.add('d-block');
+  }
+
+  var description = document.getElementById('productDescription');
+  var descriptionError = document.querySelector('.description-error');
+  if (description.value.trim().length < 10 || /^\s/.test(description.value)) {
+    descriptionError.textContent = ERRORS.PRODUCT_DESCRIPTION_INVALID;
+    descriptionError.classList.add('d-block');
+  }
+
+  var media = document.getElementById('productMedia');
+  var mediaError = document.querySelector('.media-error');
+  if (!media.files.length) {
+    mediaError.textContent = ERRORS.MEDIA_REQUIRED;
+    mediaError.classList.add('d-block');
+  } else {
+    const fileType = media.files[0].type;
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(fileType)) {
+      mediaError.textContent = ERRORS.MEDIA_INVALID_TYPE;
+      mediaError.classList.add('d-block');
+    }
+  }
+
+    var price = document.getElementById('productPrice');
+  var priceError = document.querySelector('.price-error');
+  if (!price.value.trim()) {
+    priceError.textContent = ERRORS.PRICE_REQUIRED;
+    priceError.classList.add('d-block');
+  } else if (!/^\d*\.?\d+$/.test(price.value.trim()) || parseFloat(price.value) <= 0) {
+    priceError.textContent = ERRORS.PRICE_INVALID;
+    priceError.classList.add('d-block');
+  }
+
+
+  var category = document.getElementById('productCategory');
+  var categoryError = document.querySelector('.category-error');
+  if (category.value === '') {
+    categoryError.textContent = ERRORS.CATEGORY_REQUIRED;
+    categoryError.classList.add('d-block');
+  }
+
+  var stock = document.getElementById('productStock');
+  var stockError = document.querySelector('.stock-error');
+  if (!stock.value.trim()) {
+    stockError.textContent = ERRORS.STOCK_REQUIRED;
+    stockError.classList.add('d-block');
+  } else if (!/^[1-9]\d*$/.test(stock.value.trim())) {
+    stockError.textContent = ERRORS.STOCK_INVALID;
+    stockError.classList.add('d-block');
+  }
+
+  if (document.querySelectorAll('.invalid-feedback.d-block').length === 0) {
+    this.submit();
+  }
+});
     </script>
 
 <script>

@@ -16,15 +16,15 @@ userroute.get('/',userController.loadhome);
 userroute.get('/signup',auth.isLogout,userController.loadsignup);
 userroute.post('/signup',userController.insertUser);
 
-userroute.get('/login',userController.loadlogin);
+userroute.get('/login',auth.isLogout,userController.loadlogin);
 userroute.post('/login', userController.verifyLogin);
 
-userroute.get('/otp', userController.loadotp);
+userroute.get('/otp', auth.isLogout,userController.loadotp);
 userroute.post('/otp',userController.verifyOTP)
 userroute.post('/resendOTP',userController.resendOTP)
 
 
-userroute.get('/forgot',userController.forgottenPassword)
+userroute.get('/forgot',auth.isLogout,userController.forgottenPassword)
 userroute.post('/forgot',userController.forgotPassword)
 userroute.post('/test-email',userController.emailChecking)
 userroute.post('/otp-verification',userController.otpVerify)

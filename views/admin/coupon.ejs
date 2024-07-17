@@ -128,34 +128,34 @@
                         <form id="createCouponForm" action="/admin/add-coupon" method="POST">
                             <div class="mb-3">
                                 <label for="couponname" class="form-label">Coupon Name</label>
-                                <input type="text" class="form-control" id="couponname" name="couponname" required>
+                                <input type="text" class="form-control" id="couponname" name="couponname">
                                 <span class="text-danger" id="couponNameError"></span>
                             </div>
                             <div class="mb-3">
                                 <label for="couponcode" class="form-label">Coupon Code</label>
-                                <input type="text" class="form-control" id="couponcode" name="couponcode" required>
+                                <input type="text" class="form-control" id="couponcode" name="couponcode">
                                 <span class="text-danger" id="couponCodeError"></span>
                             </div>
                             <div class="mb-3">
                                 <label for="discountpercentage" class="form-label">Discount Percentage</label>
-                                <input type="number" class="form-control" id="discountpercentage" name="discountpercentage" required>
+                                <input type="number" class="form-control" id="discountpercentage" name="discountpercentage">
                                 <span class="text-danger" id="discountpercentageError"></span>
                             </div>
                             <div class="mb-3">
                                 <label for="maximumDiscountAmount" class="form-label">Maximum Discount Amount</label>
-                                <input type="number" class="form-control" id="maximumDiscountAmount" name="maximumDiscountAmount" required>
+                                <input type="number" class="form-control" id="maximumDiscountAmount" name="maximumDiscountAmount">
                                 <span class="text-danger" id="maximumDiscountAmountError"></span>
                             </div>
                             <div class="mb-3">
                                 <label for="status" class="form-label">Status</label>
-                                <select class="form-select" id="status" name="status" required>
+                                <select class="form-select" id="status" name="status">
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
                             </div>
                             <div class="mb-3">
                                 <label for="minimumamount" class="form-label">Minimum Amount</label>
-                                <input type="number" class="form-control" id="minimumamount" name="minimumamount" required>
+                                <input type="number" class="form-control" id="minimumamount" name="minimumamount">
                                 <span class="text-danger" id="minimumAmountError"></span>
                             </div>
                             <button type="submit" class="btn btn-primary">Save</button>
@@ -224,34 +224,34 @@
                             <input type="hidden" id="editCouponId" name="couponId">
                             <div class="mb-3">
                                 <label for="editCouponName" class="form-label">Coupon Name</label>
-                                <input type="text" class="form-control" id="editCouponName" name="couponname" required>
+                                <input type="text" class="form-control" id="editCouponName" name="couponname">
                                 <span class="text-danger" id="editCouponNameError"></span>
                             </div>
                             <div class="mb-3">
                                 <label for="editCouponCode" class="form-label">Coupon Code</label>
-                                <input type="text" class="form-control" id="editCouponCode" name="couponcode" required>
+                                <input type="text" class="form-control" id="editCouponCode" name="couponcode">
                                 <span class="text-danger" id="editCouponCodeError"></span>
                             </div>
                             <div class="mb-3">
                                 <label for="editdiscountpercentage" class="form-label">Discount Percentage</label>
-                                <input type="number" class="form-control" id="editdiscountpercentage" name="discountpercentage" required>
+                                <input type="number" class="form-control" id="editdiscountpercentage" name="discountpercentage">
                                 <span class="text-danger" id="editdiscountpercentageError"></span>
                             </div>
                             <div class="mb-3">
                                 <label for="editStatus" class="form-label">Status</label>
-                                <select class="form-select" id="editStatus" name="status" required>
+                                <select class="form-select" id="editStatus" name="status">
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
                             </div>
                             <div class="mb-3">
                                 <label for="editMinimumAmount" class="form-label">Minimum Amount</label>
-                                <input type="number" class="form-control" id="editMinimumAmount" name="minimumamount" required>
+                                <input type="number" class="form-control" id="editMinimumAmount" name="minimumamount">
                                 <span class="text-danger" id="editMinimumAmountError"></span>
                             </div>
                             <div class="mb-3">
                                 <label for="editMaximumDiscountAmount" class="form-label">Maximum Discount Amount</label>
-                                <input type="number" class="form-control" id="editMaximumDiscountAmount" name="maximumDiscountAmount" required>
+                                <input type="number" class="form-control" id="editMaximumDiscountAmount" name="maximumDiscountAmount">
                                 <span class="text-danger" id="editMaximumDiscountAmountError"></span>
                             </div>
                             <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -485,13 +485,12 @@ document.getElementById('createCouponForm').addEventListener('submit', function(
         this.submit();
     }
 });
-
 function validateCouponForm() {
     let isValid = true;
     
     const couponName = document.getElementById('couponname').value.trim();
     const couponCode = document.getElementById('couponcode').value.trim();
-    const discountPercentage  = document.getElementById('discountpercentage').value.trim();
+    const discountPercentage = document.getElementById('discountpercentage').value.trim();
     const maximumDiscountAmount = document.getElementById('maximumDiscountAmount').value.trim();
     const minimumAmount = document.getElementById('minimumamount').value.trim();
     
@@ -507,28 +506,30 @@ function validateCouponForm() {
     maximumDiscountAmountError.textContent = '';
     minimumAmountError.textContent = '';
     
-    if (couponName === '' || couponName.length < 3) {
-        couponNameError.textContent = 'Coupon name must be at least 3 characters long';
+    if (couponName.trim() === '' || couponName.length < 3 || /^\d+$/.test(couponName) || /^[\d\s]+$/.test(couponName)) {
+        couponNameError.textContent = 'Coupon name must be at least 3 characters long, cannot be only numbers, and cannot be only numbers with spaces';
         isValid = false;
     }
-    
+
     const codePattern = /^[A-Z0-9]{5,10}$/;
     if (!codePattern.test(couponCode)) {
         couponCodeError.textContent = 'Coupon code must be 5-10 uppercase letters or digits';
         isValid = false;
     }
     
-    if (isNaN(discountPercentage) || discountPercentage  <= 0) {
-        discountPercentageError.textContent = 'Discount amount must be a positive number';
+    const discountValue = parseFloat(discountPercentage);
+    if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
+        discountPercentageError.textContent = 'Discount percentage must be between 0 and 100';
         isValid = false;
     }
-
-    if (isNaN(maximumDiscountAmount) || maximumDiscountAmount <= 0) {
+    const maxDiscountValue = parseFloat(maximumDiscountAmount);
+    if (isNaN(maxDiscountValue) || maxDiscountValue < 0) {
         maximumDiscountAmountError.textContent = 'Maximum discount amount must be a positive number';
         isValid = false;
     }
-    
-    if (isNaN(minimumAmount) || minimumAmount <= 0) {
+
+    const minAmountValue = parseFloat(minimumAmount);
+    if (isNaN(minAmountValue) || minAmountValue <= 0) {
         minimumAmountError.textContent = 'Minimum amount must be a positive number';
         isValid = false;
     }
@@ -556,7 +557,7 @@ function validateCouponForm() {
 
     const couponName = document.getElementById('editCouponName').value.trim();
     const couponCode = document.getElementById('editCouponCode').value.trim();
-    const discountPercentage  = document.getElementById('editdiscountpercentage').value.trim();
+    const discountPercentage = document.getElementById('editdiscountpercentage').value.trim();
     const minimumAmount = document.getElementById('editMinimumAmount').value.trim();
     const maximumDiscountAmount = document.getElementById('editMaximumDiscountAmount').value.trim();
 
@@ -572,8 +573,8 @@ function validateCouponForm() {
     minimumAmountError.textContent = '';
     maximumDiscountAmountError.textContent = '';
 
-    if (couponName === '' || couponName.length < 3) {
-        couponNameError.textContent = 'Coupon name must be at least 3 characters long';
+    if (couponName.trim() === '' || couponName.length < 3 || /^\d+$/.test(couponName) || /^[\d\s]+$/.test(couponName)) {
+        couponNameError.textContent = 'Coupon name must be at least 3 characters long, cannot be only numbers, and cannot be only numbers with spaces';
         isValid = false;
     }
 
@@ -583,20 +584,24 @@ function validateCouponForm() {
         isValid = false;
     }
 
-    if (isNaN(discountPercentage ) || discountPercentage  <= 0) {
-        discountPercentageError.textContent = 'Discount amount must be a positive number';
+    const discountValue = parseFloat(discountPercentage);
+    if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
+        discountPercentageError.textContent = 'Discount percentage must be between 0 and 100';
         isValid = false;
     }
 
-    if (isNaN(minimumAmount) || minimumAmount <= 0) {
+    const minAmountValue = parseFloat(minimumAmount);
+    if (isNaN(minAmountValue) || minAmountValue <= 0) {
         minimumAmountError.textContent = 'Minimum amount must be a positive number';
         isValid = false;
     }
 
-    if (isNaN(maximumDiscountAmount) || maximumDiscountAmount <= 0) {
+    const maxDiscountValue = parseFloat(maximumDiscountAmount);
+    if (isNaN(maxDiscountValue) || maxDiscountValue < 0) {
         maximumDiscountAmountError.textContent = 'Maximum discount amount must be a positive number';
         isValid = false;
     }
+
 
     return isValid;
 }

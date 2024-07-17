@@ -5,8 +5,8 @@ require('dotenv').config()
 const mongoose = require("mongoose");
 const userroute = require('./routes/userroute');
 const adminroute = require('./routes/adminroute');
-// mongoose.connect(process.env.MONGODB_URL)
-mongoose.connect("mongodb+srv://abhinavbabu336:Gr33mIBOsHrAhZUU@hphone-db.sedlqyq.mongodb.net/?retryWrites=true&w=majority&appName=hphone-db")
+mongoose.connect(process.env.MONGODB_URL)
+// mongoose.connect("mongodb+srv://abhinavbabu336:Gr33mIBOsHrAhZUU@hphone-db.sedlqyq.mongodb.net/?retryWrites=true&w=majority&appName=hphone-db")
 const secretKey = process.env.SECRET_KEY;
 const nocache = require("nocache")
 const authRoutes = require('./routes/authroute') 

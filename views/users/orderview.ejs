@@ -82,7 +82,7 @@
                             <% if (item.status === "Delivered" && item.status !== "Cancelled" && item.status !== "Returned") { %>
                                 <button class="btn btn-warning btn-sm" onclick="showReturnConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Return</button>
                             <% } %>
-                            <% if (item.status !== "Cancelled" && item.status !== "Delivered" && item.status !== "Returned") { %>
+                            <% if (item.status !== "Cancelled" && item.status !== "Delivered" && item.status !== "Returned" && order.paymentStatus !== "Failed") { %>
                                 <% if (item.status === "Pending" || item.status === "Confirmed") { %>
                                     <button class="btn btn-danger btn-sm" onclick="showCancelConfirmation('<%= order._id %>', '<%= item._id %>')" data-input-id="<%= item._id %>">Cancel</button>
                                 <% } else { %>
@@ -92,6 +92,8 @@
                                 <span class="text-danger">Cancelled</span>
                             <% } else if (item.status === "Returned") { %>
                                 <span class="text-warning">Returned</span>
+                            <% } else if (order.paymentStatus === "Failed") { %>
+                                <span class="text-danger">Payment Failed</span>
                             <% } %>
                         </td>
                     </tr>
