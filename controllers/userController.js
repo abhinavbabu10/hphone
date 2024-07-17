@@ -834,7 +834,7 @@ const checkOut = async (req, res) => {
             const wishlist = await Wishlist.findOne({ userId: userId }).populate('product.productId');
       
             if (!wishlist) {
-                return res.render("wishList", { user,product: [] });
+                return res.render("wishlist", { user,product: [] });
             }
       
             const product = wishlist.product.map(item => item.productId);
@@ -843,7 +843,7 @@ const checkOut = async (req, res) => {
             if(cart){
                cartCount=cart.product.length;
             }
-            res.render("wishList", { product,user,cartCount });
+            res.render("wishlist", { product,user,cartCount });
         } catch (error) {
             console.error(error);
         }
