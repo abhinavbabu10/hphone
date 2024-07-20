@@ -70,11 +70,19 @@
         <div class="col-lg-9">
           <div class="shop-product-fillter">
             <div class="totall-product">
-              <form id="search-form" class="form-inline" method="GET" action="/shop">
+              <!-- <form id="search-form" class="form-inline" method="GET" action="/shop">
                 <div class="input-holder">
                     <input type="text" name="search" class="form-control" placeholder="Search Product" value="<%= search || '' %>">
                     <button type="submit" class="btn search-btn">Search</button>
                 </div>
+            </form> -->
+            <form id="search-form" class="form-inline" method="GET" action="/shop">
+              <div class="input-holder">
+                <input type="text" name="search" class="form-control" placeholder="Search Product" value="<%= search || '' %>">
+                <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
+                <input type="hidden" name="sort" value="<%= sortOption || '' %>">
+                <button type="submit" class="btn search-btn">Search</button>
+              </div>
             </form>
               <p>
                 <!-- We found <strong class="text-brand">688</strong> items for you! -->
@@ -188,11 +196,16 @@
             <div class="pagination-area mt-15 mb-50">
               <nav aria-label="Page navigation example">
                 <ul class="pagination justify-content-start">
-                  <% if (currentPage > 1) { %>
+                  <!-- <% if (currentPage > 1) { %>
                   <li class="page-item">
                     <a class="page-link" href="?page=<%= currentPage - 1 %>">Previous</a>
                   </li>
-                  <% } %>
+                  <% } %> -->
+                  <% if (currentPage > 1) { %>
+                    <li class="page-item">
+                      <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= search || '' %>&category=<%= selectedCategory || '' %>&sort=<%= sortOption || '' %>">Previous</a>
+                    </li>
+                    <% } %>
                   <% for (let i = 1; i <= totalPages; i++) { %>
                   <li class="page-item <%= currentPage === i ? 'active' : '' %>">
                     <a class="page-link" href="?page=<%= i %>"><%= i %></a>
@@ -210,11 +223,22 @@
         </div>
 
         <div class="col-lg-3 primary-sidebar sticky-sidebar">
-          <div class="widget-category mb-30">
+          <!-- <div class="widget-category mb-30">
             <h5 class="section-title style-1 mb-30 wow fadeIn animated">
               Category
             </h5>
             <ul class="categories">
+              <% category.forEach(cat => { %>
+              <li>
+                <a href="/shop?category=<%= cat._id %>" class="<%= selectedCategory == cat._id ? 'active' : '' %>"><%= cat.name %></a>
+              </li>
+              <% }); %>
+            </ul>
+          </div> -->
+          <div class="widget-category mb-30">
+            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Category</h5>
+            <ul class="categories">
+              <li><a href="/shop" class="<%= !selectedCategory ? 'active' : '' %>">All Categories</a></li>
               <% category.forEach(cat => { %>
               <li>
                 <a href="/shop?category=<%= cat._id %>" class="<%= selectedCategory == cat._id ? 'active' : '' %>"><%= cat.name %></a>
@@ -319,15 +343,28 @@ document.querySelectorAll('.sort-by-dropdown ul li a').forEach(item => {
   item.addEventListener('click', event => {
     event.preventDefault();
     const sortValue = event.target.getAttribute('data-sort');
-    window.location.href = `?sort=${sortValue}`;
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('sort', sortValue);
+    window.location.href = currentUrl.toString();
   });
 });
 
-document.querySelectorAll('.category-filter').forEach(item => {
+document.querySelectorAll('.categories a').forEach(item => {
   item.addEventListener('click', event => {
     event.preventDefault();
-    const categoryValue = event.target.getAttribute('data-category');
-    window.location.href = `?category=${categoryValue}`;
+    const href = event.target.getAttribute('href');
+    const currentUrl = new URL(window.location.href);
+    const newUrl = new URL(href, window.location.origin);
+    
+    // Preserve existing search and sort parameters
+    if (currentUrl.searchParams.has('search')) {
+      newUrl.searchParams.set('search', currentUrl.searchParams.get('search'));
+    }
+    if (currentUrl.searchParams.has('sort')) {
+      newUrl.searchParams.set('sort', currentUrl.searchParams.get('sort'));
+    }
+    
+    window.location.href = newUrl.toString();
   });
 });
 </script>

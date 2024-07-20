@@ -419,6 +419,90 @@ const loadOrderView = async (req, res) => {
 // };
 
 
+// const cancelOrder = async (req, res) => {
+//   try {
+//     const { orderId, itemId, cancellationReason } = req.body;
+//     const order = await Order.findById(orderId);
+    
+//     if (!order) {
+//       return res.status(404).json({ message: 'Order not found' });
+//     }
+
+//     const item = order.items.find(item => item._id.toString() === itemId);
+//     if (!item) {
+//       return res.status(404).json({ message: 'Item not found in the order' });
+//     }
+
+//     if (item.status === 'Cancelled') {
+//       return res.status(400).json({ message: 'Item is already cancelled' });
+//     }
+
+//     item.status = 'Cancelled';
+//     item.cancellationReason = cancellationReason;
+//     item.cancellationDate = new Date();
+
+//     // Calculate refund amount
+//     let refundAmount = item.productPrice * item.quantity;
+
+//     // Handle coupon adjustments
+//     let couponAdjustment = 0;
+//     if (order.couponAmount > 0) {
+//       const itemTotalPrice = item.productPrice * item.quantity;
+//       couponAdjustment = order.couponAmount * (itemTotalPrice / order.billTotal);
+//       couponAdjustment = Math.min(couponAdjustment, order.couponAmount);
+//       order.couponAmount = Math.max(0, order.couponAmount - couponAdjustment);
+//     }
+
+//     // Calculate total refund including coupon adjustment
+//     const totalRefund = refundAmount - couponAdjustment;
+
+//     // Update order total
+//     order.billTotal = Math.max(0, order.billTotal - refundAmount);
+
+//     // Process refund to wallet if payment was successful
+//     if (order.paymentStatus === 'Success') {
+//       let wallet = await Wallet.findOne({ user: order.user });
+      
+//       if (!wallet) {
+//         wallet = new Wallet({ user: order.user, walletBalance: 0 });
+//       }
+
+//       wallet.walletBalance += totalRefund;
+//       wallet.transactions.push({
+//         amount: totalRefund,
+//         description: `Refund for order ${order.oId}`,
+//         type: 'Credit'
+//       });
+
+//       await wallet.save();
+//     }
+
+//     // Update order status
+//     const remainingActiveItems = order.items.filter(item => item.status !== 'Cancelled');
+//     if (remainingActiveItems.length === 0) {
+//       order.orderStatus = 'Cancelled';
+//     } else {
+//       order.orderStatus = 'Partially Cancelled';
+//     }
+
+//     // Ensure values are not NaN before saving
+//     if (isNaN(order.couponAmount)) order.couponAmount = 0;
+//     if (isNaN(order.billTotal)) order.billTotal = 0;
+
+//     await order.save();
+
+//     res.status(200).json({ 
+//       message: 'Order cancelled successfully', 
+//       refundAmount: totalRefund 
+//     });
+
+//   } catch (error) {
+//     console.error('Error in cancelOrder:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// };
+
+
 const cancelOrder = async (req, res) => {
   try {
     const { orderId, itemId, cancellationReason } = req.body;
@@ -440,6 +524,13 @@ const cancelOrder = async (req, res) => {
     item.status = 'Cancelled';
     item.cancellationReason = cancellationReason;
     item.cancellationDate = new Date();
+
+    // Increase product stock
+    const product = await Product.findById(item.productId);
+    if (product) {
+      product.stock += item.quantity;
+      await product.save();
+    }
 
     // Calculate refund amount
     let refundAmount = item.productPrice * item.quantity;
@@ -501,6 +592,7 @@ const cancelOrder = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 const loadOrder = async (req, res) => {
   try {
@@ -807,10 +899,99 @@ const walletPlaceOrder = async (req, res) => {
   }
 };
 
+// const downloadInvoice = async (req, res) => {
+//   try {
+//     const { orderId } = req.query;
+
+//     const order = await Order.findById(orderId).populate("user");
+
+//     if (!order) {
+//       return res.status(404).json({ message: "Order not found" });
+//     }
+
+//     generateInvoicePDF(order, res);
+//   } catch (error) {
+//     console.log(error.message);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
+
+// async function generateInvoicePDF(order, res) {
+//   const doc = new PDFDocument();
+//   const filename = `invoice_${order._id}.pdf`;
+
+//   res.setHeader("Content-Type", "application/pdf");
+//   res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+//   doc.pipe(res);
+
+//   doc.fontSize(20).text("Invoice", { align: "center" });
+//   doc.moveDown();
+
+//   // Add order details
+//   doc.fontSize(12).text(`Order Date: ${new Date(order.orderDate).toLocaleString("en-IN")}`);
+//   doc.text(`Payment Method: ${order.paymentMethod}`);
+//   doc.text(`Payment Status: ${order.paymentStatus}`);
+//   doc.text(
+//     `Shipping Address: ${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state}, ${order.shippingAddress.country}, ${order.shippingAddress.postalCode}`
+//   );
+//   doc.moveDown();
+
+//   // Filter only delivered items
+//   const deliveredItems = order.items.filter(item => item.status === 'Delivered');
+
+//   // Create the table data with only delivered items
+//   const table = {
+//     headers: ["Product Name", "Quantity", "Price", "Total Price"],
+//     rows: deliveredItems.map(item => [
+//       item.name,
+//       item.quantity,
+//       `INR ${item.productPrice.toFixed(2)}`,
+//       `INR ${(item.productPrice * item.quantity).toFixed(2)}`
+//     ])
+//   };
+
+//   // Draw the table with styling
+//   doc.table(table, {
+//     prepareHeader: () => doc.font("Helvetica-Bold").fontSize(12),
+//     prepareRow: (row, i) => doc.font("Helvetica").fontSize(10),
+//     width: 500,
+//     align: "center",
+//     padding: 5,
+//     colors: ["#AE2424", "#AE2424", "#AE2424", "#AE2424"],
+//     borderWidth: 1,
+//     headerBorderWidth: 1,
+//     rowEvenBackground: "#AE2424"
+//   });
+   
+//   doc.moveDown();
+
+//   // Calculate total for delivered items
+//   let deliveredTotal = deliveredItems.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
+
+//   // Calculate coupon adjustment
+//   let couponAdjustment = 0;
+//   if (order.couponAmount > 0) {
+//     couponAdjustment = order.couponAmount * (deliveredTotal / order.billTotal);
+//     couponAdjustment = Math.min(couponAdjustment, order.couponAmount);
+//   }
+
+//   // Calculate final total
+//   const finalTotal = deliveredTotal - couponAdjustment;
+
+//   // Add coupon amount and grand total to invoice
+//   if (couponAdjustment > 0) {
+//     doc.text(`Coupon Discount: INR ${couponAdjustment.toFixed(2)}`);
+//   }
+//   doc.text(`Grand Total: INR ${finalTotal.toFixed(2)}`);
+
+//   doc.end();
+// }
+
+
 const downloadInvoice = async (req, res) => {
   try {
     const { orderId } = req.query;
-
     const order = await Order.findById(orderId).populate("user");
 
     if (!order) {
@@ -819,13 +1000,13 @@ const downloadInvoice = async (req, res) => {
 
     generateInvoicePDF(order, res);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 async function generateInvoicePDF(order, res) {
-  const doc = new PDFDocument();
+  const doc = new PDFDocument({ margin: 50 });
   const filename = `invoice_${order._id}.pdf`;
 
   res.setHeader("Content-Type", "application/pdf");
@@ -833,8 +1014,18 @@ async function generateInvoicePDF(order, res) {
 
   doc.pipe(res);
 
-  doc.fontSize(20).text("Invoice", { align: "center" });
+  doc.fontSize(24).text("HPHONE", { align: "center" });
   doc.moveDown();
+
+  doc.fontSize(10).text("From:", { align: "left" });
+  doc.text("HPHONE");
+  doc.text("Ernakulam, Kerala");
+  doc.text("hphonedopes@gmail.com");
+  doc.moveDown();
+
+  // Add invoice title
+  // doc.fontSize(20).text("Invoice", { align: "center" });
+  // doc.moveDown();
 
   // Add order details
   doc.fontSize(12).text(`Order Date: ${new Date(order.orderDate).toLocaleString("en-IN")}`);
@@ -866,10 +1057,10 @@ async function generateInvoicePDF(order, res) {
     width: 500,
     align: "center",
     padding: 5,
-    colors: ["#AE2424", "#AE2424", "#AE2424", "#AE2424"],
     borderWidth: 1,
     headerBorderWidth: 1,
-    rowEvenBackground: "#AE2424"
+    headerColor: "#f2f2f2",
+    evenRowColor: "#f9f9f9"
   });
    
   doc.moveDown();
@@ -891,10 +1082,18 @@ async function generateInvoicePDF(order, res) {
   if (couponAdjustment > 0) {
     doc.text(`Coupon Discount: INR ${couponAdjustment.toFixed(2)}`);
   }
-  doc.text(`Grand Total: INR ${finalTotal.toFixed(2)}`);
+  doc.fontSize(14).text(`Grand Total: INR ${finalTotal.toFixed(2)}`, { align: "right" });
+
+  doc.moveDown(2);
+  doc.fontSize(12).text("Thank you for your purchase", { align: "center" });
+  doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
 
   doc.end();
 }
+
+
+
+
 
 const retryOrder =async(req,res)=>{
   try{

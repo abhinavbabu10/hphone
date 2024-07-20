@@ -203,74 +203,169 @@ const loadotp = async (req, res) => {
 }
 
 
+// const loadShop = async (req, res) => {
+//     try {
+//       const user = req.session.userData;
+//       const category = await Category.find({ deleted: false }).sort({ createdOn: -1 });
+  
+//       const { category: selectedCategory, sort, limit, page = 1, search } = req.query;
+//       const productsPerPage = limit === 'all' ? 0 : parseInt(limit) || 10;
+//       const skip = (page - 1) * productsPerPage;
+  
+//       let query = { isUnlisted: false, stock: { $gt: 0 } };
+//       let sortOption = {};
+  
+//       if (selectedCategory) {
+//         query.category = selectedCategory;
+//       }
+  
+//       if (search) {
+//         query.name = { $regex: search, $options: "i" };
+//       }
+  
+//       if (sort) {
+//         switch (sort) {
+//           case 'price_asc':
+//             sortOption.price = 1;
+//             break;
+//           case 'price_desc':
+//             sortOption.price = -1;
+//             break;
+//           case 'new_arrivals':
+//             sortOption.createdOn = -1;
+//             break;
+//           case 'rating':
+//             sortOption.rating = -1;
+//             break;
+//           case 'name_asc':
+//             sortOption.name = 1;
+//             break;
+//           case 'name_desc':
+//             sortOption.name = -1;
+//             break;
+//           default:
+//             sortOption = {};
+//         }
+//       }
+  
+//       const [products, totalProducts] = await Promise.all([
+//         Product.find(query).sort(sortOption).skip(skip).limit(productsPerPage),
+//         Product.countDocuments(query)
+//       ]);
+  
+//       const totalPages = Math.ceil(totalProducts / productsPerPage);
+  
+//       res.render('shop', {
+//         category,
+//         products,
+//         user,
+//         currentPage: parseInt(page),
+//         totalPages,
+//         selectedCategory,
+//         sortOption,
+//         search  // Pass the search term to the view
+//       });
+//     } catch (error) {
+//       console.error('Error fetching products:', error);
+//       res.status(500).send('Internal Server Error');
+//     }
+//   };
+
+
+
+
+
+
+//ullath
+
+
 const loadShop = async (req, res) => {
-    try {
-      const user = req.session.userData;
-      const category = await Category.find({ deleted: false }).sort({ createdOn: -1 });
-  
-      const { category: selectedCategory, sort, limit, page = 1, search } = req.query;
-      const productsPerPage = limit === 'all' ? 0 : parseInt(limit) || 10;
-      const skip = (page - 1) * productsPerPage;
-  
-      let query = { isUnlisted: false, stock: { $gt: 0 } };
-      let sortOption = {};
-  
-      if (selectedCategory) {
-        query.category = selectedCategory;
-      }
-  
-      if (search) {
-        query.name = { $regex: search, $options: "i" };
-      }
-  
-      if (sort) {
-        switch (sort) {
-          case 'price_asc':
-            sortOption.price = 1;
-            break;
-          case 'price_desc':
-            sortOption.price = -1;
-            break;
-          case 'new_arrivals':
-            sortOption.createdOn = -1;
-            break;
-          case 'rating':
-            sortOption.rating = -1;
-            break;
-          case 'name_asc':
-            sortOption.name = 1;
-            break;
-          case 'name_desc':
-            sortOption.name = -1;
-            break;
-          default:
-            sortOption = {};
-        }
-      }
-  
-      const [products, totalProducts] = await Promise.all([
-        Product.find(query).sort(sortOption).skip(skip).limit(productsPerPage),
-        Product.countDocuments(query)
-      ]);
-  
-      const totalPages = Math.ceil(totalProducts / productsPerPage);
-  
-      res.render('shop', {
-        category,
-        products,
-        user,
-        currentPage: parseInt(page),
-        totalPages,
-        selectedCategory,
-        sortOption,
-        search  // Pass the search term to the view
-      });
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).send('Internal Server Error');
+  try {
+    const user = req.session.userData;
+    const categories = await Category.find({ deleted: false, status: 'active' }).sort({ createdOn: -1 });
+
+    const { category: selectedCategory, sort, limit, page = 1, search } = req.query;
+    const currentPage = parseInt(page);
+    const productsPerPage = limit === 'all' ? 0 : parseInt(limit) || 10;
+    const skip = (currentPage - 1) * productsPerPage;
+
+    let query = { isUnlisted: false, stock: { $gt: 0 } };
+    let sortOption = {};
+
+    // Filter by active categories
+    const activeCategoryIds = categories.map(cat => cat._id);
+    query.category = { $in: activeCategoryIds };
+
+    if (selectedCategory) {
+      query.category = selectedCategory;
     }
-  };
-  
+
+    if (search) {
+      query.name = { $regex: `^${search}`, $options: "i" };
+    }
+
+    // Apply sort
+    if (sort) {
+      switch (sort) {
+        case 'price_asc':
+          sortOption.price = 1;
+          break;
+        case 'price_desc':
+          sortOption.price = -1;
+          break;
+        case 'new_arrivals':
+          sortOption.createdOn = -1;
+          break;
+        case 'rating':
+          sortOption.rating = -1;
+          break;
+        case 'name_asc':
+          sortOption.name = 1;
+          break;
+        case 'name_desc':
+          sortOption.name = -1;
+          break;
+        default:
+          sortOption = { createdOn: -1 };
+      }
+    } else {
+      sortOption = { createdOn: -1 }; 
+    }
+
+    const [products, totalProducts] = await Promise.all([
+      Product.find(query).sort(sortOption).skip(skip).limit(productsPerPage).populate('category'),
+      Product.countDocuments(query)
+    ]);
+
+    const totalPages = Math.ceil(totalProducts / productsPerPage);
+
+    // Generate pagination URLs
+    const baseUrl = `/shop?`;
+    const queryParams = new URLSearchParams(req.query);
+    queryParams.delete('page'); // Remove page from base URL
+    const paginationUrls = {
+      prev: currentPage > 1 ? `${baseUrl}${queryParams.toString()}&page=${currentPage - 1}` : null,
+      next: currentPage < totalPages ? `${baseUrl}${queryParams.toString()}&page=${currentPage + 1}` : null,
+    };
+
+    res.render('shop', {
+      category: categories,
+      products,
+      user,
+      currentPage,
+      totalPages,
+      selectedCategory,
+      sortOption: sort,
+      search,
+      paginationUrls,
+      baseUrl,
+      queryParams: queryParams.toString()
+    });
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
 
   
   

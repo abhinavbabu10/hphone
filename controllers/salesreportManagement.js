@@ -196,15 +196,19 @@ const pdfDownload = async (req, res) => {
       res.end(pdfData);
     });
 
-    doc.fontSize(16).text('Sales Report (Delivered Items Only)', { align: 'center' });
-    doc.moveDown();
+    // Company name in a box
+    doc.fontSize(24).text('HPHONE', {
+      align: 'center'
+    });
+    
+    doc.moveDown(2);
+    
+    // Sales Report title
+    doc.fontSize(18).text('SALES REPORT', { align: 'center' });
+    doc.moveDown(2);
 
-    doc.fontSize(12).text(`Total Delivered Items Count: ${totalSalesCount}`);
-    doc.text(`Total Discount Amount: INR ${totalDiscountAmount.toFixed(2)}`);
-    doc.text(`Total Sales Amount: INR ${totalSalesAmount.toFixed(2)}`);
-    doc.moveDown();
-
-    const tableData = {
+    // Order Details table
+    const orderTable = {
       headers: ['Order Date', 'Customer Name', 'Total Amount', 'Discount', 'Delivered Products'],
       rows: orders.map(order => {
         const orderTotal = order.items.reduce((acc, item) => acc + (item.productPrice * item.quantity), 0);
@@ -220,7 +224,27 @@ const pdfDownload = async (req, res) => {
       })
     };
 
-    doc.table(tableData, {
+    doc.table(orderTable, {
+      prepareHeader: () => doc.fontSize(12).font('Helvetica-Bold'),
+      prepareRow: (row, i) => doc.fontSize(10).font('Helvetica')
+    });
+
+    doc.moveDown(2);
+
+    // Sales Summary table
+    const summaryTable = {
+      headers: ['', ''],
+      rows: [
+        ['Total Delivered Items Count', totalSalesCount],
+        ['Total Discount Amount', `INR ${totalDiscountAmount.toFixed(2)}`],
+        ['Total Sales Amount', `INR ${totalSalesAmount.toFixed(2)}`]
+      ]
+    };
+
+    doc.fontSize(14).text('Sales Summary', { align: 'center' });
+    doc.moveDown();
+
+    doc.table(summaryTable, {
       prepareHeader: () => doc.fontSize(12).font('Helvetica-Bold'),
       prepareRow: (row, i) => doc.fontSize(10).font('Helvetica')
     });
@@ -231,7 +255,6 @@ const pdfDownload = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
-
 
 
 module.exports = {
